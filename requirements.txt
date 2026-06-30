@@ -1,0 +1,17 @@
+# MAHAD - runtime dependencies. Supported Python: 3.11 - 3.13 (3.13 recommended).
+# Python 3.14 is not validated for MAHAD yet; the launcher selects a supported
+# interpreter. numpy is pinned to 2.4.6, which ships clean Windows wheels
+# for the supported Python range (the earlier 2.2.6 had no wheel for the newest
+# Python and failed to initialise on Windows - the launcher crash this fixes).
+# The data plane is plain stdlib HTTP
+# (Finnhub / Tiingo / native Kraken / Frankfurter / Treasury / FRED / BoE).
+# Install:  pip install -r requirements.txt    Run:  python -m mahad
+PySide6==6.11.1
+pyqtgraph==0.14.0
+pandas==2.3.3
+numpy==2.4.6
+# Local SQLite persistence (watchlist, indicator settings, trade log).
+SQLAlchemy==2.0.50
+# offline IANA timezone data for the market-session calendar on Windows
+# (zoneinfo has no system tzdb there; no network at runtime)
+tzdata==2026.2

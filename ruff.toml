@@ -1,0 +1,28 @@
+# MAHAD - ruff configuration.
+line-length = 118
+target-version = "py310"
+
+[lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "SIM",      # simplify
+    "RET",      # return discipline
+    "C4",       # comprehensions
+    "RUF",      # ruff-specific
+]
+ignore = [
+    "UP006", "UP007", "UP035", "UP045",   # Optional[X] typing kept as written
+    "E741",   # l is used for losses in the maths
+    "SIM108", # ternary rewrites hurt readability in the maths
+    "SIM105", # explicit try-except-pass at degrade boundaries
+    "RUF100", # noqa markers reference rules outside this gate
+    "E702",   # the compact x = W(); x.set... builder idiom in ui/
+]
+
+[lint.per-file-ignores]
+# Tests use odd inputs and long literal tables by design.
+"tests/*" = ["E501", "SIM117", "B017", "E402", "RUF001", "RUF059", "RUF015", "B905", "RUF007", "RUF005", "E731"]
+"mahad/engine/signals.py" = ["SIM102"]   # the nested condition is intentional

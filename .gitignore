@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Secrets - never commit real keys
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.*
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# Test / type / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.benchmarks/
+.coverage
+htmlcov/
+
+# IDE / editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Fonts are loaded from the system, never bundled
+*.otf
+*.ttf
+*.ttc
+*.woff
+*.woff2
+
+# Docs: keep only the README screenshots under docs/images/
+/docs/*
+!/docs/images/
+
+# Local working notes (not part of the repo)
+/research/
