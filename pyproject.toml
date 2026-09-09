@@ -1,0 +1,85 @@
+# MAHAD - project metadata and tool configuration.
+#
+# Runtime dependencies stay in requirements.txt and are read from there, so
+# there is one place to change them. The version is read from mahad/__init__.py.
+# Dev and test dependencies stay in requirements-dev.txt, which CI installs.
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mahad"
+description = "A desktop market-risk workstation for live stock and crypto markets"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11,<3.14"
+dynamic = ["version", "dependencies"]
+authors = [{ name = "Muawiyah Jahanzaib" }]
+keywords = [
+    "market-risk",
+    "value-at-risk",
+    "expected-shortfall",
+    "portfolio",
+    "quantitative-finance",
+    "pyside6",
+]
+classifiers = [
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+[project.urls]
+Source = "https://github.com/5Muawiyah/MAHAD"
+
+[tool.setuptools.dynamic]
+version = { attr = "mahad.__version__" }
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+include = ["mahad*"]
+
+# --- ruff -------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 118
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "SIM",      # simplify
+    "RET",      # return discipline
+    "C4",       # comprehensions
+    "RUF",      # ruff-specific
+]
+ignore = [
+    "UP006", "UP007", "UP035", "UP045",   # Optional[X] typing kept as written
+    "E741",   # l is used for losses in the maths
+    "SIM108", # ternary rewrites hurt readability in the maths
+    "SIM105", # explicit try-except-pass at degrade boundaries
+    "RUF100", # noqa markers reference rules outside this gate
+    "E702",   # the compact x = W(); x.set... builder idiom in ui/
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use odd inputs and long literal tables by design.
+"tests/*" = ["E501", "SIM117", "B017", "E402", "RUF001", "RUF059", "RUF015", "B905", "RUF007", "RUF005", "E731"]
+"mahad/engine/signals.py" = ["SIM102"]   # the nested condition is intentional
+
+# --- mypy -------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.10"
+
+# pyqtgraph ships no type stubs.
+[[tool.mypy.overrides]]
+module = ["pyqtgraph.*"]
+ignore_missing_imports = true
