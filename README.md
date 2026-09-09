@@ -4,7 +4,7 @@
 
 ### A desktop market-risk workstation for live stock and crypto markets
 
-![Python](https://img.shields.io/badge/python-3.13-blue) &nbsp;![Tests](https://img.shields.io/badge/tests-697%20passing-success) &nbsp;![Built with](https://img.shields.io/badge/built%20with-PySide6%20%2F%20Qt-41cd52)
+![Python](https://img.shields.io/badge/python-3.13-blue) &nbsp;[![tests](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml/badge.svg)](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml) &nbsp;![Built with](https://img.shields.io/badge/built%20with-PySide6%20%2F%20Qt-41cd52)
 
 </div>
 
