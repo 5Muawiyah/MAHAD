@@ -10,11 +10,14 @@ Imports run in one direction. The window imports the worker, and takes a few pur
 flowchart LR
     UI["ui<br/>PySide6 and pyqtgraph"] --> W["worker<br/>one background thread"]
     UI -. "pure helpers" .-> E
+    UI -. "read models" .-> D
     W --> E["engine<br/>pure Python maths"]
+    W --> D
     E --> D["data<br/>adapters and repository"]
     D --> P["providers"]
     D --> DB[("SQLite<br/>WAL")]
     R["report<br/>headless CLI"] --> E
+    R --> D
     R -. "read-only" .-> DB
 ```
 
