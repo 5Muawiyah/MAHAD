@@ -288,7 +288,7 @@ def test_stale_covered_cache_tops_up_promptly_fresh_waits_nightly(tmp_path):
     now = 86400.0 * 30
     w._repo.upsert_daily_bars("AAPL", _bars(3))       # latest ts = day 3 (old)
     w._refresh_daily_if_due(now)                      # seeds the dues
-    assert w._daily_due["AAPL"] - now < config.DAILY_REFRESH_S / 2   # prompt
+    assert w._daily_due["AAPL"] - now < config.DAILY_REFRESH_S / 2   # soon
     w2, stock2, _ = _worker(tmp_path, name="d2.db")
     w2._repo.add("AAPL", "stock", "USD", "finnhub")
     fresh = [_Bar(ts=now - 3600.0, open=1, high=2, low=0.5, close=1.5,

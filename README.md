@@ -80,7 +80,7 @@ Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each
 
 ## What this demonstrates
 
-For a technical reviewer, MAHAD shows:
+For a technical reader, MAHAD shows:
 
 - **Python** and a **PySide6 / Qt** desktop application with a custom dark design system that meets WCAG AA contrast.
 - **Live market-data integration** across several providers, each behind a typed adapter that fails gracefully: a missing or rejected key shows a clear message that names the source, never a crash.

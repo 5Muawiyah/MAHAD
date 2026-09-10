@@ -195,7 +195,7 @@ class PollWorker(QObject):
 
     @Slot()
     def stop(self) -> None:
-        # cooperative; the running poll checks self._stop between phases
+        # cooperative; the running poll checks self._stop between steps
         self._stop = True
         if self._timer is not None:
             self._timer.stop()
@@ -265,7 +265,7 @@ class PollWorker(QObject):
         if events:
             self.alert_events.emit(tuple(events))                  # never-dropped channel
         self._emit_alerts()
-        if self._stop:                                             # stop between phases
+        if self._stop:                                             # stop between steps
             return
         if self._poll_held():                                      # held marks
             # refresh rows with the new held marks; same error reason

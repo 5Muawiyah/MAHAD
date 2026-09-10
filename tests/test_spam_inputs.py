@@ -185,4 +185,4 @@ def test_chart_bounds_menu_disabled():
 
 def test_closeevent_requests_interruption():
     s = _src("mahad/ui/main_window.py")
-    assert "self._thread.requestInterruption()" in s, "prompt cooperative shutdown"
+    assert "self._thread.requestInterruption()" in s, "request cooperative shutdown"
