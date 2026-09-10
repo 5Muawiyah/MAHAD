@@ -58,6 +58,10 @@ The portfolio as a desk calls it: the cash and the positions the ledger holds.
 
 One bar of price history: the open, high, low and close over a period, with the volume traded. The last candle is usually still forming.
 
+### Chip
+
+A small rounded label on the panel that carries a state in words, such as the backtest zone reading "GREEN" with its count.
+
 ### CI
 
 Continuous integration: the GitHub Actions workflow in `.github/workflows/tests.yml` that runs the checks and the suite on pushes to main and on pull requests, on Ubuntu and Windows across Python 3.11, 3.12 and 3.13.
