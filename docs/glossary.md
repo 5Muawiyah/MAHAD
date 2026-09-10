@@ -66,19 +66,27 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Intent.** A request from the window to the worker, such as add a symbol, place an order or arm an alert. Intents are queued to the worker thread and answered with events or a fresh snapshot.
 
-**Kupiec test.** A statistical test of whether the number of backtest exceptions matches the confidence level. Too many and too few both fail it.
+**Kupiec test.** A statistical test of whether the number of backtest exceptions matches the confidence level, reported as a likelihood ratio with its p-value. Too many and too few both fail it.
+
+**Likelihood ratio.** The Kupiec test's statistic: it compares how likely the observed number of exceptions is at the model's confidence level with how likely it is at the rate actually seen, and a large value fails the model.
 
 **Mark.** The current price used to value a position. For the live window it is the latest quote; for the headless report it is the last cached daily close.
 
 **Mixin.** A class that holds a group of methods for another class to combine. The worker package uses one per responsibility, all sharing the state of the single worker object.
 
+**OpenGL.** The graphics library a Qt window draws with. The Ubuntu CI runners lack it, so the suite runs there without a window.
+
 **Order statistic.** The k-th smallest value in a sorted sample. Historical VaR and Expected Shortfall are order statistics, which is why they can be reproduced by hand.
 
 **P&L.** Profit and loss. Realised P&L is booked when a sell closes part of a position; unrealised P&L is the gain or loss on the positions still open at the current mark.
 
+**p-value.** The chance of a result at least as extreme as the one observed if the model were right; a small p-value means the exception count is unlikely under the model, and the Kupiec test fails it.
+
 **Parametric VaR.** VaR computed from the mean and standard deviation of returns on the assumption that they are normally distributed.
 
 **Provider.** An external service the program reads prices or reference data from: Finnhub, Tiingo, Kraken, Frankfurter, the US Treasury, FRED (the Federal Reserve Bank of St. Louis's data service), the Bank of England and alternative.me.
+
+**Qt.** The desktop window toolkit MAHAD's screen is built with; PySide6 is its Python form.
 
 **Quote.** The latest price of a symbol with its timestamp and source, and a flag when it has gone stale.
 
@@ -101,6 +109,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **SONIA.** The Sterling Overnight Index Average, the UK's overnight interest-rate benchmark.
 
 **Sortino ratio.** The mean return, measured against a zero target rather than a risk-free rate, divided by the downside deviation only, so upside swings are not counted as risk; annualised over 252 trading days.
+
+**SQLAlchemy.** The Python library the repository uses to read and write the SQLite database.
 
 **Stale.** A quote older than three poll intervals or fifteen seconds, whichever is longer. Stale prices are still shown, dimmed, and alerts pause until a fresh one arrives.
 
@@ -127,5 +137,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **Wall-clock basis.** Returns measured between samples of the portfolio's own value taken on a fixed cadence, including weekends for crypto. The headline volatility and drawdown use this basis and annualise with calendar periods.
 
 **Watchlist.** The symbols being followed, each with its latest price. One of them is the active symbol shown on the chart.
+
+**WCAG AA.** The AA level of the Web Content Accessibility Guidelines: text must contrast with its background by at least 4.5 to 1 for normal text.
 
 **Worker.** The single background thread that fetches prices, runs the maths, writes the database and publishes snapshots and events to the window.

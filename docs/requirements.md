@@ -14,7 +14,7 @@ The program has one machine, one user and two roles. The analyst runs the progra
 
 ## Functional requirements
 
-Test names are functions in `tests/`; the file is given once per group.
+Test names are functions in `tests/`; the file follows each run of names.
 
 ### Market data
 
@@ -62,13 +62,13 @@ FR-18. A reset shall clear positions, cash and realised P&L back to the starting
 
 ### Risk analytics
 
-FR-19. The portfolio value shall be sampled on a fixed wall-clock grid at the chosen risk timeframe, catching up one sample after a sleep and re-anchoring when the timeframe changes; the series shall persist, pruned to the configured cap of 1,000 samples. Proof: `test_sleep_catchup_takes_one_sample_and_preserves_the_grid`, `test_heartbeat_no_sample_before_due` and `test_set_risk_timeframe_reanchors_the_grid` in `test_worker_context.py`; `test_value_history_capped_prune_drops_oldest` in `test_persistence.py`; `test_value_history_cap_is_the_configured_thousand` and `test_ten_k_value_samples_bounded_deque_and_risk` in `test_stress.py`.
+FR-19. The portfolio value shall be sampled on a fixed wall-clock grid at the chosen risk timeframe, catching up one sample after a sleep and re-anchoring when the timeframe changes; the series shall persist, pruned to the configured cap of 1,000 samples. Proof: `test_sleep_catchup_takes_one_sample_and_preserves_the_grid`, `test_heartbeat_no_sample_before_due` and `test_set_risk_timeframe_reanchors_the_grid` in `test_worker_context.py`; `test_value_history_capped_prune_drops_oldest` in `test_persistence.py`; `test_value_history_cap_is_the_configured_thousand` in `test_stress.py`.
 
 FR-20. Exposure, volatility (sample standard deviation over the last 30 returns, annualised on the calendar basis), maximum drawdown (seeded from the persisted peak) and drawdown duration shall be computed on the value history and match the hand-worked vectors (fixed inputs with answers computed by hand, tabled in the verification note). Proof: `test_exposure_overall_fraction_and_abs`, `test_volatility_ddof1_per_period_and_annualised`, `test_volatility_rolling_window_cap_min_available_30`, `test_max_drawdown_core_vector` and `test_max_drawdown_seeded_persisted_peak_survives_capping` in `test_risk.py`; `test_volatility_matches_statistics_stdev` in `test_fuzz.py`; `test_check_i_drawdown_duration` in `test_risk_metrics.py`.
 
 FR-21. The trading-day analytics shall compute historical and parametric VaR, Expected Shortfall, the Kupiec test and the Basel zone, beta, Sharpe, Sortino, EWMA volatility, correlation, concentration, stress replay and component VaR, each matching its worked vector. Proof: `test_check_b_historical_var`, `test_check_b_expected_shortfall`, `test_check_c_parametric_from_moments`, `test_check_e_kupiec`, `test_check_e_basel_zones`, `test_check_g_beta`, `test_check_h_sharpe`, `test_check_h_sortino`, `test_check_f_ewma_steps`, `test_check_k_correlation`, `test_check_j_concentration`, `test_check_l_stress_replay` and `test_component_var_answer_key` in `test_risk_metrics.py`.
 
-FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and covered weight, and shall gate each figure on the number of aligned observations. Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`.
+FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and covered weight, and shall show each figure only once its minimum number of aligned observations is met, saying warming until then. Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`.
 
 FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it against the next trading day's realised return, and run in backcast mode until 250 live forecasts have accrued. Proof: `test_backtest_persistence_round_trip`, `test_accrual_resolves_with_the_prior_days_weights`, `test_accrual_is_idempotent_per_day`, `test_backtest_mode_labels` and `test_ex_ante_label_takes_over_at_the_window` in `test_worker_analytics.py`; `test_backcast_hand_vector` in `test_risk_metrics.py`.
 
@@ -86,7 +86,7 @@ FR-28. The GBP figures shall be a display-only conversion at the European Centra
 
 ### Alerts
 
-FR-29. An alert shall be one of four conditions (price threshold, RSI threshold, price crossing an SMA, SMA crossing an EMA) with validated parameters, shall fire once and disarm, and shall be re-armable. Proof: `test_validate_params_canonical_and_ranges`, `test_evaluate_alert_one_shot_then_rearm` and `test_price_sma_crossover_up_fires_down_does_not` in `test_signals.py`; `test_set_alert_state_fire_then_rearm_roundtrip` in `test_persistence.py`.
+FR-29. An alert shall be one of four conditions (price threshold, RSI threshold, price crossing an SMA, SMA crossing an EMA) with validated parameters (an RSI level above 100 or a price level that is not above zero is rejected, a period outside its bounds is clamped, and the parameters are stored in one canonical form), shall fire once and disarm, and shall be re-armable. Proof: `test_validate_params_canonical_and_ranges`, `test_evaluate_alert_one_shot_then_rearm` and `test_price_sma_crossover_up_fires_down_does_not` in `test_signals.py`; `test_set_alert_state_fire_then_rearm_roundtrip` in `test_persistence.py`.
 
 FR-30. Crossovers shall use closed bars only, shall not fire across an intraday data gap, and shall not replay after a symbol or timeframe switch. Proof: `test_crossover_uses_closed_closes_only_forming_bar_excluded` and `test_crossover_no_signal_across_a_data_gap_intraday` in `test_signals.py`; `test_crossover_ignores_the_forming_bar_in_the_worker` in `test_spam_inputs.py`; `test_switch_resets_crossover_baseline_no_replay_from_cache` in `test_worker_switch.py`.
 
@@ -110,27 +110,27 @@ FR-37. Symbols, alert parameters and settings values shall be stored as inert da
 
 ### Exports and the report
 
-FR-38. The trade log, the value history and the risk snapshot shall export as self-contained CSV files. Proof: `test_csv_rows_are_self_contained` in `test_portfolio.py`; `test_value_history_csv_round_trip` in `test_market_context.py`; `test_risk_snapshot_csv_round_trips` in `test_fx_rates_providers.py`.
+FR-38. The trade log, the value history and the risk snapshot shall export as CSV files that read back without the database: the trade log opens with a starting-cash line and every row carries its symbol, and the value history and the risk snapshot round-trip through their own columns. Proof: `test_csv_rows_are_self_contained` in `test_portfolio.py`; `test_value_history_csv_round_trip` in `test_market_context.py`; `test_risk_snapshot_csv_round_trips` in `test_fx_rates_providers.py`.
 
 FR-39. `python -m mahad.report` shall write the book's figures to a CSV from the database in read-only mode, equal to the engine's own outputs on the same inputs, saying in a note when the database cannot support a figure, exiting with code 1 and a plain message when there is no data, and loading no module of the Qt window toolkit. Proof: `test_rows_equal_the_engine_on_the_same_inputs`, `test_rows_say_when_data_is_missing`, `test_csv_has_the_columns_and_the_summary_prints`, `test_no_data_gives_a_message_and_exit_one`, `test_the_report_connection_cannot_write` and `test_importing_the_report_pulls_in_no_qt` in `test_report.py`.
 
 ### Commands
 
-FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift+P) shall list these commands, and the ones with a shortcut shall drive the same path as the buttons: New simulated order (Ctrl+N), New alert (Ctrl+Shift+A), Add symbol to watchlist (Ctrl+K), Indicator overlays (Ctrl+I), Settings (Ctrl+,), Help (F1), Timeframe 1m, 1h and 1d (Ctrl+1, Ctrl+2, Ctrl+3), Export trades CSV (Ctrl+E), Export value-history CSV (Ctrl+Shift+E), Export risk-metrics CSV, Show Alerts tab, Show Portfolio tab, Show Trade log tab, Toggle Risk Analytics and Toggle Market Context. Proof: `test_registry_covers_core_commands` in `test_command_palette.py`; `test_shortcuts_are_installed_with_tooltip_hints`, `test_each_shortcut_is_paired_with_the_handler_its_button_uses` and `test_timeframe_shortcut_drives_the_same_intent_path` in `test_context_wiring_guards.py`.
+FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift+P) shall list these commands, and the ones with a shortcut shall drive the same path as the buttons: New simulated order (Ctrl+N), New alert (Ctrl+Shift+A), Add symbol to watchlist (Ctrl+K), Indicator overlays (Ctrl+I), Settings (Ctrl+,), Help (F1), Timeframe 1m, 1h and 1d (Ctrl+1, Ctrl+2, Ctrl+3), Export trades CSV (Ctrl+E), Export value-history CSV (Ctrl+Shift+E), Export risk-metrics CSV, Show Alerts tab, Show Portfolio tab, Show Trade log tab, Toggle Risk Analytics and Toggle Market Context. Proof: `test_registry_covers_core_commands` and `test_main_window_wires_the_palette` in `test_command_palette.py`; `test_shortcuts_are_installed_with_tooltip_hints`, `test_each_shortcut_is_paired_with_the_handler_its_button_uses` and `test_timeframe_shortcut_drives_the_same_intent_path` in `test_context_wiring_guards.py`.
 
 ## Non-functional requirements
 
 NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear & Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows continuous-integration (CI) jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
 
-NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without the OpenGL libraries a Qt window needs; the report module's own Qt-free rule is FR-39.
+NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause rests on every provider test injecting its own fetch callable and is not enforced by a socket guard; the report module's own Qt-free rule is FR-39.
 
-NFR-03. Painted text shall meet the WCAG AA contrast standard (a 4.5 to 1 ratio for normal text), and state shall never be conveyed by colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
+NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and state shall never be conveyed by colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
 
 NFR-04. Compute-side latency, measured as benchmark medians wherever the suite runs: SMA, EMA and RSI over 500 bars under 50 ms each; a snapshot with three indicators under 250 ms; twenty alerts evaluated under 250 ms; the value-history risk over 1,000 samples under 50 ms; a portfolio view with 1,000 trades under 250 ms; one fill commit and one value-history append at cap under 500 ms each. Proof: `test_sma_500`, `test_ema_500`, `test_rsi_500`, `test_snapshot_build_500_three_indicators`, `test_signals_twenty_alerts`, `test_risk_compute_1000_samples`, `test_portfolio_view_1000_trades`, `test_record_fill_sqlite` and `test_append_value_history_at_cap` in `test_perf.py`.
 
 NFR-05. Without a network the program shall keep the last good prices marked stale, back off to at most 60 seconds between attempts, pause alerts, and show the cached context tiles. Proof: `test_worker_poll_source_failure_keeps_last_good` and `test_worker_stale_quote_pauses_alerts_no_fire` in `test_robustness.py`; `test_backoff_caps_at_config_ceiling` and `test_backoff_resets_on_success_and_user_intent_bypasses` in `test_worker_switch.py`; `test_context_failure_keeps_cached_values_with_an_honest_note` and `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
 
-NFR-06. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the program's memory by less than 8 MiB (8 x 1,048,576 bytes). Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_ten_k_value_samples_bounded_deque_and_risk`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
+NFR-06. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the program's memory by less than 8 MiB (8 x 1,048,576 bytes). Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
 
 NFR-07. Hostile or malformed input shall never raise out of an adapter, a validator or a worker method. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
 
@@ -170,7 +170,7 @@ Given the book holds positions with cached daily history, when the panel renders
 
 Given a held stock has no history because the Tiingo key is missing, when the section renders, then it names the missing key instead of a figure.
 
-Given the value history holds fewer than two returns, when the panel renders, then the volatility value shows a dash with the note "needs >= 2 returns" and the panel header reads "warming up".
+Given the value history holds fewer than two returns and every mark is fresh, when the panel renders, then the volatility value shows a dash with the note "needs >= 2 returns" and the panel header reads "warming up".
 
 ### Set an alert
 
@@ -218,7 +218,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-16 | test_portfolio.py, test_fuzz.py, test_stress.py | 6 |
 | FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 4 |
 | FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 5 |
-| FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 6 |
+| FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
 | FR-21 | test_risk_metrics.py | 13 |
 | FR-22 | test_worker_analytics.py, test_returns.py | 5 |
@@ -239,13 +239,13 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-37 | test_security.py | 4 |
 | FR-38 | test_portfolio.py, test_market_context.py, test_fx_rates_providers.py | 3 |
 | FR-39 | test_report.py | 6 |
-| FR-40 | test_command_palette.py, test_context_wiring_guards.py | 3 |
+| FR-40 | test_command_palette.py, test_context_wiring_guards.py | 5 |
 | NFR-01 | test_market_data_providers.py, test_fx_rates_providers.py, test_market_context.py, test_worker_context.py, the Windows CI jobs | 7 |
 | NFR-02 | the Ubuntu CI jobs | 0 |
 | NFR-03 | test_analytics_ui.py, test_ui_layout_guards.py | 5 |
 | NFR-04 | test_perf.py | 9 |
 | NFR-05 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |
-| NFR-06 | test_stress.py | 8 |
+| NFR-06 | test_stress.py | 7 |
 | NFR-07 | test_robustness.py, test_fuzz.py | 3 |
 | NFR-08 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, manual check | 7 |
 | NFR-09 | the CI matrix, manual check | 0 |
