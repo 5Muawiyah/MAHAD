@@ -42,7 +42,7 @@ class Row:
 
 
 def read_only_url(path: Path) -> str:
-    # SQLite reads the file: form as a URI, so # and % in the path must be escaped
+    # the path rides inside a URI, so # and % in it must be percent-escaped
     return f"sqlite:///file:{quote(path.resolve().as_posix(), safe='/:')}?mode=ro&uri=true"
 
 
