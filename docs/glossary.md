@@ -76,7 +76,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **OpenGL.** The graphics library a Qt window draws with. The Ubuntu CI runners lack it, so the suite runs there without a window.
 
-**Order statistic.** The k-th smallest value in a sorted sample. Historical VaR and Expected Shortfall are order statistics, which is why they can be reproduced by hand.
+**Order statistic.** The k-th smallest value in a sorted sample. Historical VaR is an order statistic and Expected Shortfall the mean of the lowest m, which is why both can be reproduced by hand.
 
 **P&L.** Profit and loss. Realised P&L is booked when a sell closes part of a position; unrealised P&L is the gain or loss on the positions still open at the current mark.
 
@@ -94,7 +94,11 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Repository.** The one module that reads and writes the SQLite database, through SQLAlchemy. Only the worker thread and the headless report use it.
 
+**Return on VaR.** The book's realised plus unrealised P&L divided by its 95% one-day VaR in USD: how many worst-case days the gains so far amount to.
+
 **Risk-free rate.** The return available without risk, used by the Sharpe ratio. MAHAD uses the US Treasury three-month yield from the context tiles, de-annualised over 252 trading days.
+
+**Rolling VaR.** Historical VaR recomputed on a 60-trading-day window stepped across the history, 40 points, so the panel can show how the figure has moved.
 
 **RSI.** The relative strength index, a momentum gauge from 0 to 100 built from the average size of recent gains and losses, smoothed the way Wilder described in 1978.
 
@@ -130,11 +134,13 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Verification vector.** A worked example with fixed inputs and an answer computed by hand, tabled in the verification note; the tests pin each formula to its vector.
 
-**VIX.** The Chicago Board Options Exchange (CBOE) volatility index, a market-implied measure of expected S&P 500 volatility over the next 30 days. The context tile bands it as calm, normal, elevated or extreme.
+**VIX.** The Chicago Board Options Exchange (CBOE) volatility index, a market-implied measure of expected S&P 500 volatility over the next 30 days. The context tile bands it with the labels "calm", "normal", "elevated" and "extreme".
 
 **WAL.** Write-ahead logging, an SQLite mode in which readers and the single writer do not block each other. The database runs in this mode so the report can read while the program writes.
 
 **Wall-clock basis.** Returns measured between samples of the portfolio's own value taken on a fixed cadence, including weekends for crypto. The headline volatility and drawdown use this basis and annualise with calendar periods.
+
+**Warming.** A not-yet state: a watchlist symbol that is listed but has no price yet, an analytics figure short of its minimum observations, or the risk panel header while the value history has fewer than two returns.
 
 **Watchlist.** The symbols being followed, each with its latest price. One of them is the active symbol shown on the chart.
 
