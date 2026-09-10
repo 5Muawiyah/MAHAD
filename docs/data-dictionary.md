@@ -222,7 +222,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window: the analytics window in trading days (250 unless `--window` says otherwise) for the analytics rows, the configured 30 value-history returns (`config.VOLATILITY_WINDOW`) for the two volatility rows even when the history holds fewer; empty for the mark, exposure, P&L, concentration, stress, drawdown and value_samples rows |
+| window | the observation window: the analytics window in trading days (250 unless `--window` says otherwise) for the analytics rows, 90 (`config.CORRELATION_WINDOW`) for the three correlation rows, 250 (`config.RISK_WINDOW`) for the six backtest rows whatever `--window` was, and the configured 30 value-history returns (`config.VOLATILITY_WINDOW`) for the two volatility rows even when the history holds fewer; empty for the portfolio_value, cash, positions_value, mark, exposure, P&L, concentration, stress, drawdown and value_samples rows |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
 

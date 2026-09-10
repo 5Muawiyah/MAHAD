@@ -28,7 +28,7 @@ FR-04. Provider rows shall normalise into frozen (unchangeable once built) `Quot
 
 FR-05. A quote older than three poll intervals or fifteen seconds, whichever is longer, shall be marked stale; on a failed fetch the last good quote shall be kept and shown as stale. Proof: `test_staleness_window_floor_and_multiple` and `test_is_stale_boundary` in `test_normalisation.py`; `test_worker_poll_source_failure_keeps_last_good` in `test_robustness.py`.
 
-FR-06. Stock marks between polls shall be assembled into one-minute, one-hour and one-day bars, opening and closing buckets on period boundaries and ignoring out-of-order marks. Proof: `test_bucket_opens_tracks_and_closes_on_the_boundary`, `test_gap_closes_the_open_bucket_exactly_once`, `test_out_of_order_mark_is_ignored` and `test_stock_source_accumulates_intraday_buckets` in `test_market_data_providers.py`.
+FR-06. Stock marks between polls shall be assembled into one-minute, one-hour and one-day bars, opening and closing each bar (a bucket) on period boundaries and ignoring out-of-order marks. Proof: `test_bucket_opens_tracks_and_closes_on_the_boundary`, `test_gap_closes_the_open_bucket_exactly_once`, `test_out_of_order_mark_is_ignored` and `test_stock_source_accumulates_intraday_buckets` in `test_market_data_providers.py`.
 
 ### Charting
 
@@ -68,7 +68,7 @@ FR-20. Exposure, volatility (sample standard deviation over the last 30 returns,
 
 FR-21. The trading-day analytics shall compute historical and parametric VaR, Expected Shortfall, the Kupiec test and the Basel zone, beta, Sharpe, Sortino, EWMA volatility, correlation, concentration, stress replay and component VaR, each matching its worked vector. Proof: `test_check_b_historical_var`, `test_check_b_expected_shortfall`, `test_check_c_parametric_from_moments`, `test_check_e_kupiec`, `test_check_e_basel_zones`, `test_check_g_beta`, `test_check_h_sharpe`, `test_check_h_sortino`, `test_check_f_ewma_steps`, `test_check_k_correlation`, `test_check_j_concentration`, `test_check_l_stress_replay` and `test_component_var_answer_key` in `test_risk_metrics.py`.
 
-FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and coverage weight, and shall show each figure only once its minimum number of aligned observations is met, saying warming (short of its minimum observations) until then. Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`.
+FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and coverage weight, and shall show the section only once at least one common trading day of aligned history exists, saying warming until then, with each figure inside it left blank when its own formula lacks the inputs it needs (an empty series, a single return or a benchmark with no variance). Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`; `test_degenerate_inputs_return_none` in `test_risk_metrics.py`.
 
 FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it against the next trading day's realised return, and run in backcast mode until 250 live forecasts have accrued. Proof: `test_backtest_persistence_round_trip`, `test_accrual_resolves_with_the_prior_days_weights`, `test_accrual_is_idempotent_per_day`, `test_backtest_mode_labels` and `test_ex_ante_label_takes_over_at_the_window` in `test_worker_analytics.py`; `test_backcast_hand_vector` in `test_risk_metrics.py`.
 
@@ -98,7 +98,7 @@ FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, 
 
 FR-33. A corrupt or mismatched database file shall be backed up and recreated, a locked file shall not be backed up and recreated, and a file that cannot be opened shall degrade the session to memory with a visible notice. Proof: `test_open_repository_recovers_corrupt_file`, `test_open_repository_schema_mismatch_backs_up`, `test_open_repository_does_not_rotate_on_transient_lock` and `test_worker_db_open_failure_degrades_to_memory` in `test_robustness.py`; `test_db_notice_rides_a_discrete_signal_and_is_emitted_on_start` in `test_context_wiring_guards.py`.
 
-FR-34. The one-time migration shall rename stock rows whose provider is yfinance (the earlier stock source, now retired) to finnhub and crypto tickers quoted in the USDT or USDC stablecoins (tokens pegged to the dollar) to their USD pair, shall run once, roll back on failure, and skip a target that already exists. Proof: `test_migration_renames_providers_and_pairs`, `test_migration_is_a_no_op_on_relaunch`, `test_migration_skips_a_colliding_target` and `test_migration_failure_rolls_back_and_retries_next_launch` in `test_daily_bar_migration.py`.
+FR-34. The one-time migration shall rename stock rows whose provider is yfinance (the earlier stock source, now retired) to finnhub and crypto tickers quoted in the USDT or USDC stablecoins (tokens pegged to the dollar) to their USD pair, shall run once, roll back on failure, and skip a target that already exists. Proof: `test_migration_renames_providers_and_pairs`, `test_migration_is_a_no_op_on_relaunch`, `test_migration_skips_a_colliding_target`, `test_migration_carries_positions_and_the_usdc_variant` and `test_migration_failure_rolls_back_and_retries_next_launch` in `test_daily_bar_migration.py`.
 
 ### Keys and security
 
@@ -134,7 +134,7 @@ NFR-06. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,0
 
 NFR-07. Hostile or malformed input shall never raise out of an adapter, a validator or a worker method. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
 
-NFR-08. One background thread shall do all fetching, computing and writing; the window shall not block on the network, shall gate a symbol switch while one is in flight, and shall stop the thread cooperatively on close. Proof: `test_the_ui_imports_only_the_read_models_from_the_data_layer`, `test_the_ui_imports_the_engine_only_for_its_pure_helpers`, `test_the_engine_and_data_layers_never_import_upwards`, `test_the_worker_never_imports_the_ui` and `test_the_engine_the_report_and_the_config_import_no_qt` in `test_layering.py`; `test_symbol_switch_is_gated_while_in_flight` in `test_ui_layout_guards.py`; `test_closeevent_requests_interruption` in `test_spam_inputs.py`; the thread wiring is a manual check against `mahad/ui/main_window.py`.
+NFR-08. One background thread shall do all fetching, computing and writing; the window shall not block on the network, shall gate a symbol switch while one is in flight, and shall stop the thread cooperatively on close. Proof: `test_the_ui_imports_only_the_read_models_from_the_data_layer`, `test_the_ui_imports_the_engine_only_for_its_pure_helpers`, `test_the_engine_and_data_layers_never_import_upwards`, `test_the_worker_never_imports_the_ui` and `test_the_engine_the_report_and_the_config_import_no_qt` in `test_layering.py`; `test_symbol_switch_is_gated_while_in_flight` in `test_ui_layout_guards.py`; `test_closeevent_requests_interruption` in `test_spam_inputs.py`; `test_symbol_and_timeframe_intents_ride_queued_signals` and `test_the_worker_quits_its_thread_from_the_stop_slot` in `test_context_wiring_guards.py`.
 
 NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows, macOS and Linux. Proof: the GitHub Actions matrix covers the three versions on Ubuntu and Windows; macOS is a manual check.
 
@@ -221,7 +221,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
 | FR-21 | test_risk_metrics.py | 13 |
-| FR-22 | test_worker_analytics.py, test_returns.py | 5 |
+| FR-22 | test_worker_analytics.py, test_returns.py, test_risk_metrics.py | 6 |
 | FR-23 | test_worker_analytics.py, test_risk_metrics.py | 6 |
 | FR-24 | test_worker_daily.py, test_daily_bar_migration.py | 5 |
 | FR-25 | test_analytics_ui.py, test_worker_analytics.py | 8 |
@@ -233,7 +233,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-31 | test_robustness.py, test_persistence.py | 4 |
 | FR-32 | test_persistence.py, test_daily_bar_migration.py | 7 |
 | FR-33 | test_robustness.py, test_context_wiring_guards.py | 5 |
-| FR-34 | test_daily_bar_migration.py | 4 |
+| FR-34 | test_daily_bar_migration.py | 5 |
 | FR-35 | test_market_context.py, test_market_data_providers.py, test_context_wiring_guards.py | 5 |
 | FR-36 | test_context_wiring_guards.py | 1 |
 | FR-37 | test_security.py | 4 |
@@ -247,6 +247,6 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | NFR-05 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |
 | NFR-06 | test_stress.py | 7 |
 | NFR-07 | test_robustness.py, test_fuzz.py | 3 |
-| NFR-08 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, manual check | 7 |
+| NFR-08 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, test_context_wiring_guards.py | 9 |
 | NFR-09 | the CI matrix, manual check | 0 |
 | NFR-10 | test_context_wiring_guards.py, test_signals.py | 3 |

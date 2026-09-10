@@ -18,7 +18,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Bank Rate.** The Bank of England's official interest rate.
 
-**Basel traffic light.** The supervisory reading of a 99% VaR backtest over 250 days: green for 0 to 4 exceptions, yellow for 5 to 9, red for 10 or more.
+**Basel traffic light.** The supervisory reading of a 99% VaR backtest over 250 days: green for 0 to 4 exceptions, yellow for 5 to 9, red for 10 or more. Each colour is a zone, which is how the requirements and the report name it.
 
 **Basis.** The return series a figure is computed on. MAHAD keeps two: the wall-clock basis (the portfolio's own value sampled on a fixed cadence) and the trading-day basis (daily returns aligned to the US trading calendar). Every figure is labelled with its basis.
 
@@ -79,6 +79,10 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **OpenGL.** The graphics library a Qt window draws with. The Ubuntu CI runners lack it, so the suite runs there without a window.
 
 **Order statistic.** The k-th smallest value in a sorted sample. Historical VaR is an order statistic and Expected Shortfall the mean of the lowest m, which is why both can be reproduced by hand.
+
+**Overbought.** An RSI reading above 70: the price has risen fast enough that a pause or a fall is more likely than usual.
+
+**Oversold.** An RSI reading below 30: the price has fallen fast enough that a bounce is more likely than usual.
 
 **P&L.** Profit and loss. Realised P&L is booked when a sell closes part of a position; unrealised P&L is the gain or loss on the positions still open at the current mark.
 
