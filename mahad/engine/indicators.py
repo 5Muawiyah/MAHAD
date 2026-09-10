@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Sequence, Union
+from typing import Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -49,7 +49,7 @@ class IndicatorSettings:
         }
 
     @classmethod
-    def from_dict(cls, data: Optional[dict[str, object]]) -> IndicatorSettings:
+    def from_dict(cls, data: object) -> IndicatorSettings:
         if not isinstance(data, dict):
             return cls()
 

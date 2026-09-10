@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import datetime as _dt
 import logging
 import random
 import time
 from collections import deque
 from dataclasses import dataclass, replace
 from decimal import Decimal, InvalidOperation
-from typing import Optional, cast
+from typing import Mapping, Optional, cast
 
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 
@@ -27,18 +28,20 @@ from mahad.data.context_view import (DataIntegrityView, FxRateView, GapRow,
                                      classify_health)
 from mahad.data.repository import (ALERT_CAP, CONTEXT_KEY, INDICATORS_KEY,
                                    RISK_TIMEFRAME_KEY, SECTORS_KEY,
-                                   MahadRepository, PersistedTrade,
+                                   MahadRepository, PersistedAlert,
+                                   PersistedSymbol, PersistedTrade,
                                    open_repository)
 from mahad.data.source import (MarketDataSource, SourceError,
                                SourceErrorKind, is_crypto_symbol,
                                source_for_symbol)
 from mahad.data.symbols import (AlertRowView, AlertsView, WatchlistRow,
-                                WatchlistState, validate_add)
+                                WatchlistState, provider_for, validate_add)
 from mahad.engine.indicators import IndicatorSettings
 from mahad.engine.portfolio import (PortfolioState, Position as EngPosition,
+                                    TradeFill, place_order as _place_order,
                                     unrealised, portfolio_value)
-from mahad.engine.signals import (AlertRule, evaluate_alert, summary,
-                                  validate_params)
+from mahad.engine.signals import (AlertEvent, AlertRule, evaluate_alert,
+                                  summary, validate_params)
 from mahad.engine.context import curve_reading, spread_bp, vix_band
 from mahad.engine import returns as eng_returns
 from mahad.engine import risk_metrics as eng_rm
@@ -98,10 +101,10 @@ class PollWorker(QObject):
         self._timer: Optional[QTimer] = None
         self._source: Optional[MarketDataSource] = None
         self._repo: Optional[MahadRepository] = None
-        self._candles: tuple = ()
+        self._candles: tuple[Candle, ...] = ()
         self._last_quote: Optional[Quote] = None
         self._marks: dict[str, Quote] = {}  # in-memory last-known marks
-        self._persisted: list = []                  # cached PersistedSymbol list
+        self._persisted: list[PersistedSymbol] = []  # the cached watchlist rows
         self._settings = IndicatorSettings()
         # -- alert state (worker-thread only) -- #
         self._alerts: list[AlertRule] = []
@@ -111,18 +114,18 @@ class PollWorker(QObject):
         self._portfolio = PortfolioState(cash=Decimal(str(config.STARTING_CASH)),
                                          realised_pnl=Decimal("0"), positions=())
         self._starting_cash = Decimal(str(config.STARTING_CASH))
-        self._trades: list = []
+        self._trades: list[PersistedTrade] = []
         self._order_in_flight = False
         self._reset_in_flight = False               # single-flight reset
         self._held_cursor = 0
         # -- risk state (worker-thread only) -- #
         self._risk_timeframe = config.RISK_TIMEFRAME
-        self._value_history: deque = deque(maxlen=config.VALUE_HISTORY_CAP)
+        self._value_history: deque[ValueSample] = deque(maxlen=config.VALUE_HISTORY_CAP)
         self._peak_value: Optional[Decimal] = None
         self._peak_ts: Optional[float] = None
         # -- perf state (worker-confined) -- #
         self._adapters: dict[str, MarketDataSource] = {}   # cached provider adapters
-        self._history: dict[tuple[str, str], tuple] = {}   # candle cache (symbol, timeframe)
+        self._history: dict[tuple[str, str], tuple[Candle, ...]] = {}   # candle cache (symbol, timeframe)
         self._fail_streak = 0                              # consecutive active-fetch failures
         self._backoff_until = 0.0                          # capped backoff window
         self._monotonic = time.monotonic                   # injectable clock seam (tests)
@@ -132,7 +135,7 @@ class PollWorker(QObject):
         self._heartbeat: Optional[QTimer] = None   # the 5 s due-grid driver
         self._next_sample_due: Optional[float] = None   # the fixed wall-clock sample grid
         self._db_degraded = False                  # visible degraded persistence
-        self._last_error: Optional[tuple] = None   # (kind, message, since_ts) -> health chip
+        self._last_error: Optional[tuple[str, str, float]] = None   # (kind, message, since_ts) -> health chip
         self._ctx_yields = YieldCurveTile()        # context tiles (last-known, worker-confined)
         self._ctx_sentiment = SentimentTile()
         self._ctx_vix = VixTile()
@@ -142,13 +145,13 @@ class PollWorker(QObject):
         self._ctx_due: dict[str, float] = {}       # per-source wall-clock refresh dues
         self._ctx_has_key = False                  # presence only - the value is never logged
         # -- daily-series state (worker-confined) -- #
-        self._daily_series: dict[str, tuple] = {}  # official stock 1d candles (DailyBar/Tiingo)
-        self._provider_errors: dict[str, object] = {}   # provider -> None | (kind, msg, since)
+        self._daily_series: dict[str, tuple[Candle, ...]] = {}  # official stock 1d candles (DailyBar/Tiingo)
+        self._provider_errors: dict[str, Optional[tuple[str, str, float]]] = {}   # None when healthy
         self._daily_due: dict[str, float] = {}  # per-symbol daily-coverage dues
         # -- state (the risk-analytics suite; worker-confined) -- #
         self._risk_dirty = True                     # daily data changed -> rebuild
-        self._asset_returns: dict[str, list] = {}   # sym -> [(date, r)] (ADJUSTED closes)
-        self._asset_closes: dict[str, list] = {}    # sym -> [(date, adj_close)] (stress)
+        self._asset_returns: dict[str, list[tuple[_dt.date, float]]] = {}   # from adjusted closes
+        self._asset_closes: dict[str, list[tuple[_dt.date, float]]] = {}    # adjusted closes (stress)
         self._analytics: Optional[RiskAnalyticsView] = None
         self._sectors: dict[str, str] = {}          # profile2 cache + the local fallback
 
@@ -302,7 +305,7 @@ class PollWorker(QObject):
         self.snapshot_ready.emit(snap)
 
     # -- alert evaluation (pure engine, gated here on staleness) ------------- #
-    def _evaluate_alerts(self) -> list:
+    def _evaluate_alerts(self) -> list[AlertEvent]:
         active = self._symbol
         quote = self._last_quote
         if active is None:
@@ -324,7 +327,7 @@ class PollWorker(QObject):
             new_indices = [i for i, t in enumerate(closed_ts) if t > self._last_closed_ts]
 
         now = time.time()
-        events: list = []
+        events: list[AlertEvent] = []
         for rule in list(self._alerts):                  # snapshot: tolerate a concurrent change
             if rule.symbol != active or not rule.armed:
                 continue
@@ -436,7 +439,7 @@ class PollWorker(QObject):
             try:
                 self._repo.add(outcome.symbol, outcome.asset_class,  # type: ignore[union-attr] # repo seam guarded by the except boundary
                                outcome.quote_currency,
-                               _provider(outcome.asset_class, self._venue))
+                               provider_for(outcome.asset_class, self._venue))
                 self._fetch_sector_once(outcome.symbol)  # one profile2 call
                 self._reload_watchlist()
                 active = self._repo.active_symbol()  # type: ignore[union-attr] # repo seam guarded by the except boundary
@@ -450,7 +453,7 @@ class PollWorker(QObject):
         # "ok" (added) or "duplicate" (ignored) -> just refresh the panel
         self._emit_watchlist()
 
-    def _probe_symbol(self, symbol: str) -> tuple:
+    def _probe_symbol(self, symbol: str) -> tuple[bool, str]:
         # cheap quote-only existence check before we commit a new symbol
         try:
             res = self._get_source(symbol, held=True).fetch_mark(symbol)
@@ -610,7 +613,7 @@ class PollWorker(QObject):
         if self._repo is not None:
             self._persisted = self._repo.list_watchlist()
 
-    def _watchlist_symbols(self) -> list:
+    def _watchlist_symbols(self) -> list[str]:
         return [p.symbol for p in self._persisted]
 
     # -- alert helpers ------------------------------------------------------- #
@@ -623,7 +626,7 @@ class PollWorker(QObject):
             self._alerts = []
 
     @staticmethod
-    def _rule_from_row(row) -> AlertRule:
+    def _rule_from_row(row: PersistedAlert) -> AlertRule:
         return AlertRule(id=row.id, symbol=row.symbol, condition_type=row.condition_type,
                          params=dict(row.params), direction=row.direction,
                          armed=row.armed, fired_at=row.fired_at)
@@ -722,7 +725,7 @@ class PollWorker(QObject):
                 log.exception("held mark fetch failed (%s)", sym)
         return changed
 
-    def _mark_decimal(self, symbol):
+    def _mark_decimal(self, symbol: str) -> tuple[Optional[Decimal], bool]:
         q = self._marks.get(symbol)
         if q is None:
             return None, False
@@ -730,7 +733,7 @@ class PollWorker(QObject):
             q.stale or config.is_stale(q.ts, poll_interval_s=self._poll_interval_s))
 
     def _build_portfolio_view(self) -> PortfolioView:
-        marks: dict = {}
+        marks: dict[str, Decimal] = {}
         has_marks = False
         any_stale = False
         rows = []
@@ -763,7 +766,7 @@ class PollWorker(QObject):
             gbp_note=(self._ctx_fx.note if self._ctx_fx.available else ""))
 
     # -- value-history sampling + risk (worker thread) ------- #
-    def _value_now(self):
+    def _value_now(self) -> tuple[Decimal, Decimal, Decimal, bool]:
         cash = self._portfolio.cash
         positions_value = Decimal("0")
         stale = False
@@ -777,7 +780,7 @@ class PollWorker(QObject):
         value = cash + positions_value
         return value, positions_value, cash, (stale if self._portfolio.positions else False)
 
-    def _load_value_history(self):
+    def _load_value_history(self) -> None:
         try:
             peak = self._repo.get_peak() if self._repo is not None else None
             self._peak_value = peak.peak_value if peak is not None else None
@@ -792,7 +795,7 @@ class PollWorker(QObject):
             self._peak_value = None
             self._peak_ts = None
 
-    def _start_heartbeat(self):
+    def _start_heartbeat(self) -> None:
         # one timer drives value sampling and the slow context/daily refreshes
         self._next_sample_due = (self._wallclock()
                                  + config.risk_timeframe_seconds(self._risk_timeframe))
@@ -803,7 +806,7 @@ class PollWorker(QObject):
         self._heartbeat.start()
 
     @Slot()
-    def _on_heartbeat(self):
+    def _on_heartbeat(self) -> None:
         if self._stop or _interrupted():
             return
         now = self._wallclock()
@@ -821,7 +824,7 @@ class PollWorker(QObject):
             self._rebuild_risk_analytics()
 
     @Slot()
-    def _sample_value_history(self):
+    def _sample_value_history(self) -> None:
         if self._stop or self._repo is None:
             return
         try:
@@ -846,7 +849,7 @@ class PollWorker(QObject):
             log.exception("value-history sample failed; skipping this tick")
 
     @Slot(str)
-    def set_risk_timeframe(self, timeframe):
+    def set_risk_timeframe(self, timeframe: str) -> None:
         # changing cadence re-bases the value-history; the old series can't be re-spaced
         if timeframe not in config.VALID_RISK_TIMEFRAMES:
             return
@@ -868,7 +871,7 @@ class PollWorker(QObject):
         self.settings_applied.emit("applied (next cycle)")
         self._emit_snapshot(None)
 
-    def _build_risk_view(self):
+    def _build_risk_view(self) -> RiskView:
         cash = self._portfolio.cash
         positions_value = Decimal("0")
         any_stale = False
@@ -924,7 +927,8 @@ class PollWorker(QObject):
             spark=spark, spark_trough_idx=trough_idx,
             history=tuple((s.ts, s.value, s.stale) for s in samples))   # export rows
 
-    def _emit_order_result(self, ok, fill_mark=None, summary="", reason="") -> None:
+    def _emit_order_result(self, ok: bool, fill_mark: Optional[Decimal] = None,
+                           summary: str = "", reason: str = "") -> None:
         self.order_result.emit({
             "ok": bool(ok),
             "fill_mark": (str(fill_mark) if fill_mark is not None else None),
@@ -933,7 +937,6 @@ class PollWorker(QObject):
     @Slot(object)
     def place_order(self, payload: object) -> None:
         # fills against the mark the UI froze at click; rejects a second concurrent submit
-        from mahad.engine.portfolio import place_order as _place
         if not isinstance(payload, dict):
             return
         if self._stop:                                         # drop intents after shutdown
@@ -966,10 +969,11 @@ class PollWorker(QObject):
                     frozen_ts, poll_interval_s=self._poll_interval_s):  # gate the fill mark
                 self._emit_order_result(False, reason="stale price - waiting for a fresh quote")
                 return
-            result = _place(self._portfolio, side, symbol, raw_qty, fill_mark)
+            result = _place_order(self._portfolio, side, symbol, raw_qty, fill_mark)
             if not result.ok:
                 self._emit_order_result(False, reason=result.reason)
                 return
+            assert result.fill is not None                    # ok=True carries a fill (engine contract)
             try:                                              # persist-before-adopt
                 self._persist_fill(result.state, result.fill)
             except Exception:
@@ -978,8 +982,8 @@ class PollWorker(QObject):
                 return
             self._portfolio = result.state                    # adopt only after a clean commit
             self._refresh_analytics_view()  # weights changed
-            self._emit_order_result(True, fill_mark=result.fill.fill_price,  # type: ignore[union-attr] # ok=True implies a fill (engine contract)
-                                    summary=f"filled @ {result.fill.fill_price}")  # type: ignore[union-attr] # ok=True implies a fill (engine contract)
+            self._emit_order_result(True, fill_mark=result.fill.fill_price,
+                                    summary=f"filled @ {result.fill.fill_price}")
             self._emit_snapshot(None)
         except Exception:                                     # structural never-raise
             log.exception("place_order failed on a malformed intent")
@@ -987,7 +991,7 @@ class PollWorker(QObject):
         finally:
             self._order_in_flight = False
 
-    def _persist_fill(self, state, fill) -> None:
+    def _persist_fill(self, state: PortfolioState, fill: TradeFill) -> None:
         pos = state.position(fill.symbol)
         trade = PersistedTrade(
             ts=time.time(), symbol=fill.symbol, side=fill.side, quantity=fill.quantity,
@@ -1050,7 +1054,7 @@ class PollWorker(QObject):
         self._emit_snapshot(None)
 
     # -- the daily-series coverage for the risk suite --- #
-    def _daily_coverage_symbols(self) -> list:
+    def _daily_coverage_symbols(self) -> list[str]:
         # held positions, the active stock, plus the benchmark the risk maths needs
         out: list[str] = []
         for p in self._portfolio.positions:
@@ -1063,7 +1067,7 @@ class PollWorker(QObject):
             out.append(config.BENCHMARK_SYMBOL)
         return out
 
-    def _refresh_daily_if_due(self, now) -> None:
+    def _refresh_daily_if_due(self, now: float) -> None:
         # at most one daily fetch per tick, to stay inside the free-tier rate limits
         if self._repo is None:
             return
@@ -1094,7 +1098,7 @@ class PollWorker(QObject):
                     self._risk_dirty = True  # rebuild on new data
                 return
 
-    def _refresh_daily_symbol(self, symbol) -> bool:
+    def _refresh_daily_symbol(self, symbol: str) -> bool:
         try:
             if is_crypto_symbol(symbol):
                 return self._refresh_daily_crypto(symbol)
@@ -1103,7 +1107,7 @@ class PollWorker(QObject):
             log.exception("daily refresh failed (%s)", symbol)
             return False
 
-    def _refresh_daily_stock(self, symbol) -> bool:
+    def _refresh_daily_stock(self, symbol: str) -> bool:
         src = self._get_source(symbol)
         fetcher = getattr(src, "fetch_daily_history", None)
         if not callable(fetcher):
@@ -1121,7 +1125,6 @@ class PollWorker(QObject):
             log.exception("latest_daily_bar_ts failed (%s)", symbol)
         start_date = None
         if latest is not None:
-            import datetime as _dt
             start_date = _dt.datetime.fromtimestamp(
                 latest, _dt.UTC).date().isoformat()
         res = fetcher(symbol, start_date)
@@ -1153,7 +1156,7 @@ class PollWorker(QObject):
         self._ensure_stock_history(symbol)
         return True
 
-    def _refresh_daily_crypto(self, symbol) -> bool:
+    def _refresh_daily_crypto(self, symbol: str) -> bool:
         src = self._get_source(symbol)
         fetch_ohlc = getattr(src, "fetch_ohlc", None)
         if not callable(fetch_ohlc):
@@ -1188,7 +1191,8 @@ class PollWorker(QObject):
         except Exception:
             log.exception("data migration failed; continuing")
 
-    def _chart_candles(self, symbol, timeframe, fetched):
+    def _chart_candles(self, symbol: str, timeframe: str,
+                       fetched: tuple[Candle, ...]) -> tuple[Candle, ...]:
         crypto = is_crypto_symbol(symbol)
         if not crypto and timeframe in ("1d", *RESAMPLE_TIMEFRAMES):
             self._ensure_stock_history(symbol)
@@ -1246,7 +1250,7 @@ class PollWorker(QObject):
         kind = getattr(getattr(error, "kind", None), "value", "unknown")
         self._provider_errors[provider] = (str(kind), str(error), since)
 
-    def _provider_lines(self) -> tuple:
+    def _provider_lines(self) -> tuple[tuple[str, str], ...]:
         # only providers actually hit this session show up
         out = []
         for name in ("finnhub", "tiingo", "kraken"):
@@ -1317,8 +1321,8 @@ class PollWorker(QObject):
             self._risk_dirty = False
 
     def _build_asset_data(self) -> None:
-        out_r: dict[str, list] = {}
-        out_c: dict[str, list] = {}
+        out_r: dict[str, list[tuple[_dt.date, float]]] = {}
+        out_c: dict[str, list[tuple[_dt.date, float]]] = {}
         if self._repo is None:
             self._asset_returns, self._asset_closes = out_r, out_c
             return
@@ -1341,7 +1345,7 @@ class PollWorker(QObject):
                 out_r[sym] = rets
         self._asset_returns, self._asset_closes = out_r, out_c
 
-    def _current_weights_and_value(self) -> tuple[dict, float]:
+    def _current_weights_and_value(self) -> tuple[dict[str, float], float]:
         positions = []
         for p in self._portfolio.positions:
             q = self._marks.get(p.symbol)
@@ -1400,8 +1404,8 @@ class PollWorker(QObject):
         held = {p.symbol for p in self._portfolio.positions}
         corr_in = {s: [r for _, r in self._asset_returns[s]]
                    for s in sorted(held) if s in self._asset_returns}
-        corr_symbols: tuple = ()
-        corr_matrix: tuple = ()
+        corr_symbols: tuple[str, ...] = ()
+        corr_matrix: tuple[tuple[Optional[float], ...], ...] = ()
         if len(corr_in) >= 2:
             corr_symbols, corr_matrix = eng_rm.correlation_matrix(
                 corr_in, config.CORRELATION_WINDOW)
@@ -1425,7 +1429,7 @@ class PollWorker(QObject):
             comp = eng_rm.component_var(
                 {s: weights[s] for s in pr.included if s in weights},
                 pr.aligned, config.COMPONENT_VAR_CONFIDENCE)
-        contributions: tuple = ()
+        contributions: tuple[ContributionRow, ...] = ()
         comp_sigma = comp_var_pct = comp_var_usd = None
         if comp is not None:
             comp_sigma = comp.portfolio_sigma
@@ -1532,7 +1536,6 @@ class PollWorker(QObject):
     def _stress_window_return(self, scenario: str, symbol: str, start: str,
                               end: str) -> Optional[tuple[float, str]]:
         # prefer the cached close-to-close return, fall back to a cited constant, else nothing
-        import datetime as _dt
         closes = self._asset_closes.get(symbol)
         if closes:
             d0 = _dt.date.fromisoformat(start)
@@ -1545,7 +1548,7 @@ class PollWorker(QObject):
         const = config.STRESS_CONSTANTS.get((scenario, symbol))
         return None if const is None else (const, "constant")
 
-    def _stress_rows(self, weights: dict, value: float) -> tuple:
+    def _stress_rows(self, weights: dict[str, float], value: float) -> tuple[StressRow, ...]:
         rows = []
         for name, start, end in config.STRESS_SCENARIOS:
             window_returns: dict[str, tuple[float, str]] = {}
@@ -1568,9 +1571,8 @@ class PollWorker(QObject):
         # settle yesterday's open forecasts against realised returns, then log today's
         if self._repo is None:
             return
-        import datetime as _dt
         # resolution first, independent of the current book's grid
-        day_maps: dict = {}
+        day_maps: dict[_dt.date, dict[str, float]] = {}
         for sym, rows in self._asset_returns.items():
             for d, r in rows:
                 day_maps.setdefault(d, {})[sym] = r
@@ -1624,7 +1626,7 @@ class PollWorker(QObject):
             log.exception("backtest forecast persist failed")
 
     # -- market context (worker thread, slow cadence) --- #
-    def _load_context_cache(self):
+    def _load_context_cache(self) -> None:
         # restore cached tiles and stagger the first fetches so they don't all fire at once
         try:
             self._ctx_has_key = bool(read_env_key())
@@ -1664,11 +1666,12 @@ class PollWorker(QObject):
                          "boe": now + 10.0, "fx": now + 12.0}
 
     @staticmethod
-    def _yields_tile(data, fetched_ts=None, note=""):
-        def _f(key):
+    def _yields_tile(data: Mapping[str, object], fetched_ts: Optional[float] = None,
+                     note: str = "") -> YieldCurveTile:
+        def _f(key: str) -> Optional[float]:
             val = data.get(key)
             try:
-                return None if val is None else float(val)
+                return None if val is None else float(val)  # type: ignore[arg-type]
             except (TypeError, ValueError):
                 return None
         sp = spread_bp(_f("y2y"), _f("y10y"))
@@ -1678,9 +1681,10 @@ class PollWorker(QObject):
                               reading=curve_reading(sp), note=note)
 
     @staticmethod
-    def _sentiment_tile(data, fetched_ts=None, note=""):
+    def _sentiment_tile(data: Mapping[str, object], fetched_ts: Optional[float] = None,
+                        note: str = "") -> SentimentTile:
         try:
-            value = int(data.get("value"))  # type: ignore[arg-type] # guarded by caller
+            value = int(data.get("value"))  # type: ignore[call-overload] # guarded by caller
         except (TypeError, ValueError):
             value = None
         return SentimentTile(available=(value is not None),
@@ -1690,14 +1694,15 @@ class PollWorker(QObject):
                              note=note)
 
     @staticmethod
-    def _vix_tile(data, fetched_ts=None, note=""):
+    def _vix_tile(data: Mapping[str, object], fetched_ts: Optional[float] = None,
+                  note: str = "") -> VixTile:
         try:
             value = float(data.get("value"))  # type: ignore[arg-type] # guarded by caller
         except (TypeError, ValueError):
             value = None
         change = data.get("change")
         try:
-            change = None if change is None else float(change)
+            change = None if change is None else float(change)  # type: ignore[arg-type]
         except (TypeError, ValueError):
             change = None
         return VixTile(available=(value is not None), needs_key=False,
@@ -1705,11 +1710,12 @@ class PollWorker(QObject):
                        value=value, change=change, band=vix_band(value), note=note)
 
     @staticmethod
-    def _ukrates_tile(data, fetched_ts=None, note=""):
-        def _f(key):
+    def _ukrates_tile(data: Mapping[str, object], fetched_ts: Optional[float] = None,
+                      note: str = "") -> UkRatesTile:
+        def _f(key: str) -> Optional[float]:
             val = data.get(key)
             try:
-                return None if val is None else float(val)
+                return None if val is None else float(val)  # type: ignore[arg-type]
             except (TypeError, ValueError):
                 return None
         sonia, bank = _f("sonia"), _f("bank_rate")
@@ -1722,7 +1728,8 @@ class PollWorker(QObject):
                            note=note)
 
     @staticmethod
-    def _fx_view(data, fetched_ts=None, note=""):
+    def _fx_view(data: Mapping[str, object], fetched_ts: Optional[float] = None,
+                 note: str = "") -> FxRateView:
         try:
             rate = float(data.get("rate"))         # type: ignore[arg-type]
         except (TypeError, ValueError):
@@ -1731,7 +1738,7 @@ class PollWorker(QObject):
                           as_of=str(data.get("as_of") or ""),
                           fetched_ts=fetched_ts, note=note)
 
-    def _refresh_context_if_due(self, now):
+    def _refresh_context_if_due(self, now: float) -> bool:
         # one context refresh per tick at most; True when one ran
         for kind in ("treasury", "fng", "vix", "boe", "fx"):
             if now >= self._ctx_due.get(kind, float("inf")):
@@ -1740,12 +1747,12 @@ class PollWorker(QObject):
         return False
 
     @staticmethod
-    def _fail_note(tile):
-        if getattr(tile, "available", False) and getattr(tile, "as_of", ""):
+    def _fail_note(tile: YieldCurveTile | SentimentTile | VixTile | UkRatesTile | FxRateView) -> str:
+        if tile.available and tile.as_of:
             return f"refresh failed - showing {tile.as_of}"
         return "unavailable - retrying"
 
-    def _refresh_context(self, kind, now):
+    def _refresh_context(self, kind: str, now: float) -> None:
         ok = False
         try:
             if kind == "treasury":
@@ -1813,9 +1820,9 @@ class PollWorker(QObject):
             self._persist_context_cache()
         self._emit_snapshot(None)
 
-    def _persist_context_cache(self):
+    def _persist_context_cache(self) -> None:
         try:
-            payload: dict = {}
+            payload: dict[str, dict[str, object]] = {}
             y = self._ctx_yields
             if y.available:
                 payload["yields"] = {"as_of": y.as_of, "fetched_ts": y.fetched_ts,
@@ -1845,7 +1852,7 @@ class PollWorker(QObject):
         except Exception:
             log.exception("context cache persist failed; tiles stay in-memory")
 
-    def _build_context_view(self):
+    def _build_context_view(self) -> MarketContextView:
         y, v, f = self._ctx_yields, self._ctx_vix, self._ctx_sentiment
         parts = []
         parts.append(f"10Y {y.y10y:.2f}" if (y.available and y.y10y is not None)
@@ -1861,7 +1868,7 @@ class PollWorker(QObject):
                                  ukrates=self._ctx_ukrates,
                                  summary=" · ".join(parts))
 
-    def _build_health_view(self):
+    def _build_health_view(self) -> HealthView:
         providers = self._provider_lines()
         if self._last_error is None:
             return HealthView(state="ok", reason="data ok", providers=providers)
@@ -1928,7 +1935,7 @@ class PollWorker(QObject):
                 log.exception("in-memory DB also failed; persistence disabled")
                 self._repo = None
 
-    def _get_setting(self, key: str):
+    def _get_setting(self, key: str) -> object:
         if self._repo is None:
             return None
         try:
@@ -1937,7 +1944,7 @@ class PollWorker(QObject):
             log.exception("get_setting failed")
             return None
 
-    def _set_setting(self, key: str, value) -> None:
+    def _set_setting(self, key: str, value: object) -> None:
         if self._repo is not None:
             self._repo.set_setting(key, value)
 
@@ -1955,7 +1962,3 @@ class _CryptoDailyRow:
     div_cash: float
     split_factor: float
 
-
-def _provider(asset_class: str, venue: str) -> str:
-    from mahad.data.symbols import provider_for
-    return provider_for(asset_class, venue)
