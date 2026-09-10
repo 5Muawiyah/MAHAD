@@ -1,5 +1,4 @@
-# Qt-free stand-in for PySide6.QtCore so the worker imports headless: install()
-# must run BEFORE mahad.worker is imported. Set MAHAD_REAL_QT=1 to skip stubbing.
+# a Qt-free stand-in for PySide6.QtCore, installed before mahad.worker is imported (MAHAD_REAL_QT=1 skips it)
 from __future__ import annotations
 
 import os

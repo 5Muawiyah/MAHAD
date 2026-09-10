@@ -1,5 +1,4 @@
-# Caps and big-but-bounded workloads. Budgets are loose upper bounds (CI-safe);
-# the perf suite records the real numbers.
+# caps and big-but-bounded workloads, with loose upper bounds so CI stays green
 from __future__ import annotations
 
 import time

@@ -1,10 +1,4 @@
-"""Performance benchmarks - pytest-benchmark.
-
-Compute-side timing of the latency targets. Asserted budgets are loose
-(CI-safe); the harness records the real medians from --benchmark-json. Run via:
-    python -m pytest tests/test_perf.py --benchmark-only
-Excluded from the coverage step. Headless, Qt-free, tmp DBs.
-"""
+# compute-side timing budgets with pytest-benchmark; the asserted medians are loose so CI stays green
 from __future__ import annotations
 
 import time
