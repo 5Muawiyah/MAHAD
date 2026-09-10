@@ -16,7 +16,7 @@
   <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="200" y="50" width="150" height="90"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="275" y="80" text-anchor="middle">worker</text>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="275" y="101" text-anchor="middle">one background thread</text>
-  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="275" y="118" text-anchor="middle">fetch, compute, persist</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="275" y="118" text-anchor="middle">fetch, compute, save</text>
 
   <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="380" y="50" width="150" height="90"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="455" y="80" text-anchor="middle">engine</text>
@@ -26,7 +26,7 @@
   <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="560" y="50" width="150" height="90"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="635" y="80" text-anchor="middle">data</text>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="101" text-anchor="middle">provider adapters</text>
-  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="118" text-anchor="middle">and the repository</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="118" text-anchor="middle">and the database code</text>
 
   <rect fill="#EEF4FF" stroke="#4C8DFF" stroke-width="2" rx="8" x="740" y="50" width="150" height="90"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="815" y="76" text-anchor="middle">providers</text>
@@ -48,7 +48,7 @@
   <rect fill="#EEF4FF" stroke="#4C8DFF" stroke-width="2" rx="8" x="560" y="220" width="150" height="80"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="635" y="248" text-anchor="middle">SQLite</text>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="268" text-anchor="middle">~/.mahad/mahad.db</text>
-  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="284" text-anchor="middle">WAL, one writer</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="284" text-anchor="middle">one writer at a time</text>
 
   <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="635" y1="140" x2="635" y2="218"/>
   <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#4C8DFF" x="645" y="184">reads and writes</text>
