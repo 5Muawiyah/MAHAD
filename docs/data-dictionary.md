@@ -1,6 +1,6 @@
 # Data dictionary
 
-This document describes the SQLite schema the application writes, the provider fields it consumes and how they normalise, the figures it derives, and the columns of the report CSV. The schema section was produced by creating a fresh database through `mahad/data/repository.py` and reading `sqlite_master`.
+The SQLite schema the application writes, the provider fields it consumes and how they normalise, the figures it derives, and the columns of the report CSV.
 
 ## The SQLite schema
 
@@ -176,9 +176,9 @@ A file whose version differs from the code's is backed up and recreated on open.
 | Finnhub quote | `t` (price time) | `Quote.exchange_ts`; a zero payload means an unknown symbol |
 | Finnhub profile | `finnhubIndustry` | the sector name cached in the `sector_map` setting |
 | Kraken Ticker | `c[0]` (last trade), else the midpoint of `b[0]` and `a[0]` | `Quote.mark`; the pair key is matched back to the requested symbol through the XBT and XDG aliases |
-| Kraken OHLC | `[time, open, high, low, close, vwap, volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
+| Kraken OHLC (open, high, low, close bars) | `[time, open, high, low, close, vwap, volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
 | Tiingo daily | `date, open, high, low, close, adjClose, volume, divCash, splitFactor` | a `daily_bars` row; the analytics read `adj_close` |
-| Tiingo IEX | `date, open, high, low, close, volume` | closed one-minute or one-hour `Candle` rows merged into the sampled series |
+| Tiingo IEX (its intraday feed) | `date, open, high, low, close, volume` | closed one-minute or one-hour `Candle` rows merged into the sampled series |
 | Treasury CSV | `Date, 3 Mo, 2 Yr, 10 Yr, 30 Yr` | the yield-curve tile; the newest row with both the two-year and ten-year legs |
 | FRED | `observations[].date, value` | the VIX tile; a dot means a missing value and is skipped |
 | alternative.me | `data[0].value, value_classification, timestamp` | the sentiment tile, rejected outside 0 to 100 |
@@ -204,10 +204,10 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | EWMA volatility | EWMA volatility | trading-day | the window, seeded with its variance | percent per day |
 | Beta | Beta | trading-day | the common dates in the window | ratio |
 | Sharpe and Sortino | Sharpe and Sortino | trading-day | 250 days, annualised with 252 | ratio |
-| Correlation and its summary | Correlation and concentration | trading-day | 90 observations | rho |
+| Correlation and its summary | Correlation and concentration | trading-day | 90 observations | rho (the correlation coefficient) |
 | HHI, effective N, sector HHI | Correlation and concentration | position weights now | now | index and count |
 | Drawdown duration | Drawdown duration | wall-clock | the value history | periods |
-| Component VaR and shares | Component VaR (Euler decomposition) | trading-day | 250 days at 95% | fraction, USD and share |
+| Component VaR and shares | Component VaR (Euler decomposition, the split whose parts add to the whole) | trading-day | 250 days at 95% | fraction, USD and share |
 | Return on VaR | Return on VaR and rolling VaR | mixed: ledger P&L over the 95% VaR in USD | now | ratio |
 | Rolling VaR | Return on VaR and rolling VaR | trading-day | 60-day windows, 40 points | fraction |
 | Stress replay | Stress replay | scenario windows on cached closes, else the cited constants | the scenario | USD |
@@ -222,8 +222,8 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window in trading days, where one applies |
+| window | the observation window: trading days for the analytics rows, value-history samples for the volatility rows |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
 
-The report values positions at the last cached daily close rather than a live quote, and its basis column says so on every row that depends on a mark.
+The report values positions at the last cached daily close rather than a live quote; the portfolio value, positions value, mark and unrealised P&L rows say so in their basis column, and the figures built on them (exposure, concentration, the stress replays, the P&L ratios) inherit that mark.
