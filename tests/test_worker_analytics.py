@@ -1,5 +1,4 @@
-# Worker-assembly tests: how PollWorker builds the RiskAnalyticsView, the
-# backtest accrual, and stress legs. Headless, tmp_path DBs, no network.
+# how PollWorker assembles the RiskAnalyticsView, the backtest accrual and the stress legs, headless on tmp_path databases
 from __future__ import annotations
 
 import datetime as dt

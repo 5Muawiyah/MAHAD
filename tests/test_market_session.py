@@ -95,9 +95,8 @@ def test_computed_2027_matches_the_published_nyse_list():
         dt.date(2027, 11, 25),  # Thanksgiving
         dt.date(2027, 12, 24)})  # Christmas observed (Dec 25 = Saturday)
     assert holidays_full(2027) == published
-    # Christmas Eve IS the observed full holiday in 2027 -> no half-day; the
-    # day after Thanksgiving is the only early close. July 3 2027 is a
-    # Saturday -> no July half-day.
+    # in 2027 Christmas Eve is the observed full holiday and 3 July is a Saturday, so the day after
+    # Thanksgiving is the only early close
     assert early_closes(2027) == {dt.date(2027, 11, 26): dt.time(13, 0)}
 
 

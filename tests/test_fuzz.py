@@ -104,10 +104,8 @@ def test_volatility_matches_statistics_stdev(returns):
     ref = statistics.stdev(used) * 100.0
     assert res.defined and res.n_returns == len(used)
     assert math.isclose(res.per_period_pct, ref, rel_tol=1e-9, abs_tol=1e-12)
-    # abs_tol mirrors the per-period assert above: the engine's numeric stdev
-    # leaves ~1e-15 cancellation noise on identical inputs where the exact
-    # statistics.stdev reference returns 0.0, and a pure rel_tol can never
-    # match a 0 expectation. Test-only tolerance; the locked maths are untouched.
+    # abs_tol absorbs the ~1e-15 cancellation noise the engine's stdev leaves on identical inputs, where the
+    # exact statistics.stdev reference returns 0.0 and no rel_tol can match
     assert math.isclose(res.annualised_pct, (ref / 100.0) * math.sqrt(365) * 100.0,
                         rel_tol=1e-9, abs_tol=1e-10)
 

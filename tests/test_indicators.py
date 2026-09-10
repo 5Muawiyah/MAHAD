@@ -1,6 +1,5 @@
-# Expected values are hand-derived from each formula in the comments so a
-# non-author can reproduce them. EMA seeds at index n-1 with the SMA of the
-# first n; RSI follows Wilder (1978), SMA-seeded.
+# expected values are hand-derived from each formula so anyone can reproduce them (EMA seeded at index n-1 with the
+# SMA of the first n, RSI per Wilder 1978 with an SMA seed)
 from __future__ import annotations
 
 import math

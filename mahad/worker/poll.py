@@ -432,7 +432,7 @@ class PollWorker(AlertsMixin, PortfolioMixin, DailyHistoryMixin, AnalyticsMixin,
         self._source = self._get_source(self._symbol) if self._symbol else None
 
     def _get_source(self, symbol: str, held: bool = False) -> MarketDataSource:
-        # adapters are cached per (asset, tier); held marks get a longer timeout
+        # adapters are cached per (asset, tier); held marks get the shorter timeout
         tier = "held" if held else "active"
         key = (f"crypto:{self._venue}:{tier}" if is_crypto_symbol(symbol)
                else f"stock:{tier}")

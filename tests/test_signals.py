@@ -1,7 +1,6 @@
-# Expected values are hand-derived inline so a non-author can reproduce them.
-# Vectors are chosen to fail at least one assertion against a plausible wrong
-# implementation (equality fires, strict/non-strict swapped, fast/slow swapped,
-# forming bar included, RSI off the live mark, no-replay missing).
+# expected values are hand-derived inline, and each vector fails at least one plausible wrong implementation
+# (equality fires, strict and non-strict swapped, fast and slow swapped, the forming bar included, RSI off the
+# live mark, a missing no-replay guard)
 from __future__ import annotations
 
 import math
@@ -118,8 +117,8 @@ def test_crossover_no_signal_across_a_data_gap_intraday():
 
 
 def test_sma_ema_crossover_direction_is_decisive_against_a_swap():
-  # d = SMA - EMA (fast=SMA, slow=EMA). Arm UP, assert it fires; assert a DOWN
-  # alert on the SAME pair does NOT fire (a fast/slow swap flips both -> decisive).
+  # d = SMA - EMA with SMA fast and EMA slow: the UP alert fires and a DOWN alert on the same pair does not,
+  # which a fast/slow swap would flip
   # closes [10,11,12,13,14,10] (rising then a drop), period 3, alpha=2/(3+1)=0.5:
   # SMA: idx4 = mean(12,13,14) = 13; idx5 = mean(13,14,10) = 12.333
   # EMA (SMA-seeded at idx2=11): idx3=12, idx4=13, idx5 = 0.5*10 + 0.5*13 = 11.5
