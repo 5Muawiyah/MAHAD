@@ -129,7 +129,7 @@ class AlertsMixin(WorkerState):
                 self._repo.remove_alert(alert_id)
             except Exception:
                 log.exception("remove_alert failed")
-                return                                # no desync: the row is still armed on disk
+                return                                # no desync: the row is still on disk
         self._alerts = [s for s in self._alerts if s.id != alert_id]
         self._emit_alerts()
 
