@@ -12,6 +12,18 @@
 
 <p align="center"><i>One window: a live price chart, a watchlist, the risk panel, and a simulated portfolio with live profit and loss.</i></p>
 
+**Start here:** the [plain-English overview](docs/overview.md) if you are not technical, or the [technical guide](docs/architecture.md) if you are.
+
+| Document | What it covers |
+|---|---|
+| [Overview](docs/overview.md) | what MAHAD is, a tour of the screens, what the numbers mean |
+| [Technical guide](docs/architecture.md) | the layering, the worker thread, persistence, the providers, the tests |
+| [Requirements](docs/requirements.md) | the functional and non-functional requirements, user stories, traceability to tests |
+| [Data dictionary](docs/data-dictionary.md) | the SQLite schema, provider fields, derived figures, the report CSV |
+| [Risk methodology](docs/risk-methodology.md) | every formula and convention |
+| [Verification](docs/verification.md) | the hand-worked vectors the tests pin the formulas to |
+| [Glossary](docs/glossary.md) | the terms, in plain English |
+
 MAHAD is a desktop risk tool that runs on **live market data**. It charts stocks and crypto, runs a **simulated USD portfolio** with live profit and loss, and layers a full **market-risk analytics suite** on top. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
@@ -86,6 +98,20 @@ For a technical reader, MAHAD shows:
 - **Live market-data integration** across several providers, each behind a typed adapter that fails gracefully: a missing or rejected key shows a clear message that names the source, never a crash.
 - A **risk methodology** a risk analyst would recognise, every formula verified against a hand-computed reference.
 - A **strictly layered, headless-tested codebase** (ui to worker to engine to data; the engine is pure and Qt-free) with a **headless test suite** that runs on every push.
+
+## How it is built
+
+<p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
+
+The window renders and sends intents; one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that returns failures as values and owns the SQLite file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots back through Qt signals. The [technical guide](docs/architecture.md) has the diagrams and the module map.
+
+## Report export
+
+```
+python -m mahad.report
+```
+
+Writes the book's risk figures to a CSV from the app's own database, read-only, so it runs whether or not the window is open. `--db`, `--out`, `--confidence` and `--window` are the flags; the [data dictionary](docs/data-dictionary.md) lists the columns.
 
 ## Tech stack
 

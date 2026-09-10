@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="340" viewBox="0 0 900 340" role="img" aria-labelledby="title">
+  <title id="title">MAHAD layering: ui, worker, engine, data, with the providers and the SQLite database</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4C8DFF"/>
+    </marker>
+  </defs>
+  <rect width="900" height="340" fill="#FFFFFF"/>
+
+  <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="20" y="50" width="150" height="90"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="95" y="80" text-anchor="middle">ui</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="95" y="101" text-anchor="middle">PySide6 and pyqtgraph</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="95" y="118" text-anchor="middle">renders, sends intents</text>
+
+  <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="200" y="50" width="150" height="90"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="275" y="80" text-anchor="middle">worker</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="275" y="101" text-anchor="middle">one background thread</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="275" y="118" text-anchor="middle">fetch, compute, persist</text>
+
+  <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="380" y="50" width="150" height="90"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="455" y="80" text-anchor="middle">engine</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="455" y="101" text-anchor="middle">pure Python maths</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="455" y="118" text-anchor="middle">no Qt, headless tests</text>
+
+  <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="560" y="50" width="150" height="90"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="635" y="80" text-anchor="middle">data</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="101" text-anchor="middle">provider adapters</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="118" text-anchor="middle">and the repository</text>
+
+  <rect fill="#EEF4FF" stroke="#4C8DFF" stroke-width="2" rx="8" x="740" y="50" width="150" height="90"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="815" y="76" text-anchor="middle">providers</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="815" y="96" text-anchor="middle">Finnhub, Tiingo, Kraken</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="815" y="112" text-anchor="middle">Treasury, FRED, BoE</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="815" y="128" text-anchor="middle">Frankfurter, alternative.me</text>
+
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="170" y1="95" x2="198" y2="95"/>
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="350" y1="95" x2="378" y2="95"/>
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="530" y1="95" x2="558" y2="95"/>
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="710" y1="95" x2="738" y2="95"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#4C8DFF" x="455" y="36" text-anchor="middle">imports run one way, left to right; the worker hands snapshots back to the ui through Qt signals</text>
+
+  <rect fill="#FFFFFF" stroke="#4C8DFF" stroke-width="2" rx="8" x="380" y="220" width="150" height="80"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="455" y="248" text-anchor="middle">report</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="455" y="268" text-anchor="middle">python -m mahad.report</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="455" y="284" text-anchor="middle">engine and data only</text>
+
+  <rect fill="#EEF4FF" stroke="#4C8DFF" stroke-width="2" rx="8" x="560" y="220" width="150" height="80"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1F2933" x="635" y="248" text-anchor="middle">SQLite</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="268" text-anchor="middle">~/.mahad/mahad.db</text>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#52606D" x="635" y="284" text-anchor="middle">WAL, one writer</text>
+
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="635" y1="140" x2="635" y2="218"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#4C8DFF" x="645" y="184">reads and writes</text>
+  <line stroke="#4C8DFF" stroke-width="2" marker-end="url(#arrow)" x1="455" y1="220" x2="455" y2="142"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#4C8DFF" x="463" y="184">uses the engine</text>
+  <line stroke="#4C8DFF" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)" x1="530" y1="260" x2="558" y2="260"/>
+  <text font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#4C8DFF" x="544" y="318" text-anchor="middle">read-only</text>
+</svg>
