@@ -122,9 +122,9 @@ FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift
 
 NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear and Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows continuous-integration (CI) jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
 
-NFR-02. No trading credentials and no real-money path shall exist in the code. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
+NFR-02. No trading credentials and no real-money path shall exist in the code: this is FR-36, kept in the numbering so the non-functional list stays complete.
 
-NFR-03. The test suite shall run headless with no network and no display, and the report module shall load no module of the Qt window toolkit. Proof: `test_importing_the_report_pulls_in_no_qt` in `test_report.py`; the Ubuntu CI jobs run the suite on runners without the OpenGL libraries a Qt window needs.
+NFR-03. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without the OpenGL libraries a Qt window needs; the report module's own Qt-free rule is FR-39.
 
 NFR-04. Painted text shall meet the WCAG AA contrast standard (a 4.5 to 1 ratio for normal text), and state shall never be conveyed by colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
 
@@ -243,8 +243,8 @@ The book is USD only and long only; short positions and margin are not modelled.
 | FR-39 | test_report.py | 6 |
 | FR-40 | test_command_palette.py, test_context_wiring_guards.py | 3 |
 | NFR-01 | test_market_data_providers.py, test_fx_rates_providers.py, test_market_context.py, test_worker_context.py, the Windows CI jobs | 7 |
-| NFR-02 | test_context_wiring_guards.py | 1 |
-| NFR-03 | test_report.py, the Ubuntu CI jobs | 1 |
+| NFR-02 | FR-36 | 0 |
+| NFR-03 | the Ubuntu CI jobs | 0 |
 | NFR-04 | test_analytics_ui.py, test_ui_layout_guards.py | 5 |
 | NFR-05 | test_perf.py | 9 |
 | NFR-06 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |

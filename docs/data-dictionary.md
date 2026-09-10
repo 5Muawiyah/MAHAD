@@ -92,7 +92,7 @@ Unique on (portfolio_id, symbol_id).
 
 ### trades
 
-Append-only. Each row carries its own symbol string so the CSV export needs no join.
+Rows are never updated or removed singly; the table is emptied only by a reset that asked to clear the log after a successful export. Each row carries its own symbol string so the CSV export needs no join.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
