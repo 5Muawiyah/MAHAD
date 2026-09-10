@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime as _dt
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Protocol
 
 from mahad import config
 from mahad.data.models import Candle
@@ -12,6 +12,23 @@ from mahad.data.source import is_crypto_symbol
 from mahad.engine.resample import RESAMPLE_TIMEFRAMES, resample_daily_candles
 from mahad.engine.returns import needs_full_repull
 from mahad.worker.state import WorkerState
+
+
+class DailyBarLike(Protocol):
+    # the fields both producers carry: the repository's rows and the Tiingo adapter's
+    @property
+    def ts(self) -> float: ...
+    @property
+    def open(self) -> float: ...
+    @property
+    def high(self) -> float: ...
+    @property
+    def low(self) -> float: ...
+    @property
+    def close(self) -> float: ...
+    @property
+    def volume(self) -> float: ...
+
 
 log = logging.getLogger("mahad.worker")
 
@@ -184,10 +201,10 @@ class DailyHistoryMixin(WorkerState):
         # cache first, fall back to a Tiingo pull only when nothing is stored
         if not symbol or is_crypto_symbol(symbol) or symbol in self._daily_series:
             return
-        rows: list = []
+        rows: list[DailyBarLike] = []
         try:
-            rows = (self._repo.list_daily_bars(symbol, limit=config.HISTORY_CAP)
-                    if self._repo is not None else [])
+            rows = list(self._repo.list_daily_bars(symbol, limit=config.HISTORY_CAP)
+                        if self._repo is not None else [])
         except Exception:
             log.exception("daily-bar cache read failed (%s)", symbol)
         if not rows:
