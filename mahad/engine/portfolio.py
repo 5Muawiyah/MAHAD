@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import csv
+import io
+import time
 from dataclasses import dataclass, replace
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Iterable, Mapping, Optional
@@ -183,11 +186,7 @@ def total_pnl(state: PortfolioState, marks: Mapping[str, object]) -> Decimal:
     return state.realised_pnl + unrealised(state, marks)
 
 
-# trade log + CSV: no Qt, no file I/O; imports sit here beside their only use
-import csv as _csv  # noqa: E402 (module-level helpers, kept with their use)
-import io as _io            # noqa: E402
-import time as _time        # noqa: E402
-
+# -- trade log and CSV export: no Qt, no file I/O -- #
 CSV_COLUMNS = ("ts", "symbol", "side", "quantity", "fill_price",
                "avg_cost_at_fill", "qty_before", "qty_after", "realised_pnl")
 
@@ -223,14 +222,14 @@ def _qty_str(d: object) -> str:
 
 
 def fmt_ts(ts: float) -> str:
-    return _time.strftime("%Y-%m-%d %H:%M:%S", _time.localtime(float(ts)))
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(float(ts)))
 
 
 def build_trade_csv(records: Iterable[TradeRecord], starting_cash: object) -> str:
     # leading "# starting_cash" preamble line, then the header, then one row per fill
-    buf = _io.StringIO()
+    buf = io.StringIO()
     buf.write(f"# starting_cash,{_plain(money(starting_cash))}\n")
-    w = _csv.writer(buf, lineterminator="\n")
+    w = csv.writer(buf, lineterminator="\n")
     w.writerow(CSV_COLUMNS)
     for r in records:
         w.writerow((fmt_ts(r.ts), r.symbol, r.side, _qty_str(r.quantity),

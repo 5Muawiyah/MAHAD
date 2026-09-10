@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as _dt
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
@@ -88,12 +89,12 @@ VALUE_HISTORY_CSV_HEADER = "ts_iso_utc,ts_epoch,portfolio_value,stale"
 
 
 def build_value_history_csv(rows: tuple[tuple[float, float, bool], ...]) -> str:
-    import datetime as _dt
     lines = [VALUE_HISTORY_CSV_HEADER]
     for ts, value, stale in rows:
         iso = _dt.datetime.fromtimestamp(float(ts), _dt.UTC).isoformat()
         lines.append(f"{iso},{float(ts):.3f},{value!r},{str(bool(stale)).lower()}")
     return "\n".join(lines) + "\n"
+
 
 @dataclass(frozen=True, slots=True)
 class StressRow:
@@ -180,7 +181,8 @@ class RiskAnalyticsView:
     var_history: tuple[float, ...] = ()
     var_trend: str = ""                        # "rising" | "falling" | "flat"
 
-def analytics_summary(view: RiskAnalyticsView) -> str:
+
+def analytics_summary(view: Optional[RiskAnalyticsView]) -> str:
     if view is None or not view.available:
         note = getattr(view, "note", "") if view is not None else ""
         return note or "warming"
@@ -206,7 +208,8 @@ def backtest_chip_text(view: RiskAnalyticsView) -> str:
         return f"{head} · accruing ({view.accruing_n}/{view.window})"
     return f"{head} · ex-ante"
 
-def build_risk_snapshot_csv(analytics: RiskAnalyticsView,
+
+def build_risk_snapshot_csv(analytics: Optional[RiskAnalyticsView],
                             locked: Optional[RiskView] = None,
                             now_iso: str = "") -> str:
     lines = ["metric,value,units,convention,as_of"]
