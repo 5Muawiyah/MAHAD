@@ -8,7 +8,7 @@ The file is `~/.mahad/mahad.db`, opened in WAL mode with foreign keys on. Money 
 
 ### symbols
 
-One row per instrument the application has seen, watchlisted or not.
+One row per instrument currently known, watchlisted or not; the row is deleted when the symbol leaves the watchlist, which is why a trade's link is set to null rather than cascaded.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
@@ -183,7 +183,7 @@ A file whose version differs from the code's is backed up and recreated on open.
 | FRED | `observations[].date, value` | the VIX tile; a dot means a missing value and is skipped |
 | alternative.me | `data[0].value, value_classification, timestamp` | the sentiment tile, rejected outside 0 to 100 |
 | Frankfurter | `rates.GBP` or `rates.GBP.ECB`, `date` | the FX view, rejected outside 0.01 to 100 |
-| Bank of England CSV | `IUDSOIA`, `IUDBEDR` columns with a date column | the UK-rates tile, the latest value per series |
+| Bank of England CSV | `IUDSOIA` (SONIA) and `IUDBEDR` (Bank Rate) columns with a date column | the UK-rates tile, the latest value per series |
 
 Stock marks between polls are turned into one-minute, one-hour and one-day bars by `data/sampled_bars.py`: a mark opens a bucket at the period boundary, later marks update the high, low and close, and the bucket closes when a mark arrives in the next period.
 

@@ -18,7 +18,7 @@ Test names are functions in `tests/`; the file follows each run of names.
 
 ### Market data
 
-FR-01. The program shall fetch live US stock quotes from Finnhub with a free key and shall show a clear needs-a-key state on the chart and in its watchlist row when no key is configured. Proof: `test_finnhub_mark_is_quote_c_with_exchange_ts`, `test_finnhub_without_key_is_needs_key` and `test_stock_source_keyless_finnhub_is_needs_key` in `test_market_data_providers.py`; `test_keyless_finnhub_chart_state_carries_the_friendly_copy` and `test_keyless_finnhub_watchlist_row_flags_needs_key` in `test_worker_scheduling.py`.
+FR-01. The program shall fetch live US stock quotes from Finnhub with a free key and shall carry the keyless message on the chart snapshot and flag the watchlist row as needing a key when no key is configured. Proof: `test_finnhub_mark_is_quote_c_with_exchange_ts`, `test_finnhub_without_key_is_needs_key` and `test_stock_source_keyless_finnhub_is_needs_key` in `test_market_data_providers.py`; `test_keyless_finnhub_chart_state_carries_the_friendly_copy` and `test_keyless_finnhub_watchlist_row_flags_needs_key` in `test_worker_scheduling.py`.
 
 FR-02. The program shall fetch crypto marks and candles from Kraken's public endpoints without a key, batching the marks of every held pair into one call. Proof: `test_kraken_fetch_assembles_quote_and_candles`, `test_kraken_ohlc_parses_and_marks_the_forming_bar` and `test_kraken_batch_covers_every_requested_pair` in `test_market_data_providers.py`; `test_held_crypto_marks_ride_one_batch_call` in `test_worker_scheduling.py`.
 
@@ -94,7 +94,7 @@ FR-31. Alerts shall pause while the quote is stale, shall persist the fire befor
 
 ### Persistence
 
-FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, value history, daily bars and backtest rows shall be stored in the database so that a restart reads them back, and the schema shall carry a version row. Proof: `test_schema_version_row_created`, `test_add_alert_persists_and_lists`, `test_position_upsert_then_delete_at_zero`, `test_value_history_append_list_and_stale_flag_roundtrip`, `test_peak_read_write_roundtrip` and `test_indicator_settings_roundtrip_and_defensive` in `test_persistence.py`; `test_backtest_persistence_round_trip` in `test_worker_analytics.py`; `test_daily_bars_round_trip_ordered_and_capped` and `test_migration_marker_survives_reopen` in `test_daily_bar_migration.py`.
+FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, value history, daily bars and backtest rows shall be stored in the database so that a restart reads them back, and the schema shall carry a version row. Proof: `test_schema_version_row_created`, `test_add_alert_persists_and_lists`, `test_position_upsert_then_delete_at_zero`, `test_value_history_append_list_and_stale_flag_roundtrip`, `test_peak_read_write_roundtrip`, `test_indicator_settings_roundtrip_and_defensive` and `test_reset_clears_positions_cash_realised_retains_trades` in `test_persistence.py`; `test_csv_rows_are_self_contained` in `test_portfolio.py`; `test_backtest_persistence_round_trip` in `test_worker_analytics.py`; `test_daily_bars_round_trip_ordered_and_capped` and `test_migration_marker_survives_reopen` in `test_daily_bar_migration.py`.
 
 FR-33. A corrupt or mismatched database file shall be backed up and recreated, a locked file shall not be backed up and recreated, and a file that cannot be opened shall degrade the session to memory with a visible notice. Proof: `test_open_repository_recovers_corrupt_file`, `test_open_repository_schema_mismatch_backs_up`, `test_open_repository_does_not_rotate_on_transient_lock` and `test_worker_db_open_failure_degrades_to_memory` in `test_robustness.py`; `test_db_notice_rides_a_discrete_signal_and_is_emitted_on_start` in `test_context_wiring_guards.py`.
 
@@ -231,7 +231,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-29 | test_signals.py, test_persistence.py | 5 |
 | FR-30 | test_signals.py, test_spam_inputs.py, test_worker_switch.py | 4 |
 | FR-31 | test_robustness.py, test_persistence.py | 4 |
-| FR-32 | test_persistence.py, test_worker_analytics.py, test_daily_bar_migration.py | 9 |
+| FR-32 | test_persistence.py, test_portfolio.py, test_worker_analytics.py, test_daily_bar_migration.py | 11 |
 | FR-33 | test_robustness.py, test_context_wiring_guards.py | 5 |
 | FR-34 | test_daily_bar_migration.py | 5 |
 | FR-35 | test_market_context.py, test_market_data_providers.py, test_context_wiring_guards.py | 6 |
