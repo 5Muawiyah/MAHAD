@@ -56,7 +56,7 @@ FR-15. Quantities shall be positive with at most eight decimal places; cash shal
 
 FR-16. The ledger shall use exact decimals, round money half-up to the cent, keep the average cost at full precision, book realised profit and loss (P&L) on sells, and reconstruct cash and realised P&L from its own trade log. Proof: `test_money_rounds_half_up`, `test_avg_cost_kept_full_precision_changes_realised`, `test_sell_to_reduce_books_realised_and_deletes_at_zero` and `test_csv_reconstructs_the_ledger` in `test_portfolio.py`; `test_cash_never_negative_and_reconstruction_matches` in `test_fuzz.py`; `test_thousand_trades_ledger_exact` in `test_stress.py`.
 
-FR-17. The portfolio view shall show cash, positions, and realised, unrealised and total P&L marked to the latest quotes, flagging the view stale when any mark is stale or missing. Proof: `test_unrealised_value_total_signs` in `test_portfolio.py`; `test_realised_plus_unrealised_is_total` in `test_fuzz.py`; `test_missing_mark_flags_all_three_valuation_views_stale` and `test_fresh_mark_keeps_all_three_views_non_stale` in `test_worker_context.py`.
+FR-17. The portfolio view shall show cash, positions, and realised, unrealised and total P&L marked to the latest quotes, flagging the view stale when any mark is stale or missing. Proof: `test_unrealised_value_total_signs` in `test_portfolio.py`; `test_realised_plus_unrealised_is_total` in `test_fuzz.py`; `test_missing_mark_flags_all_three_valuation_views_stale`, `test_an_old_mark_flags_all_three_views_stale` and `test_fresh_mark_keeps_all_three_views_non_stale` in `test_worker_context.py`.
 
 FR-18. A reset shall clear positions, cash and realised P&L back to the starting cash, keep the trade log unless an export succeeded and clearing was requested, clear the value history and the backtest series and re-seed the peak; a reset requested while one is in flight shall be dropped; and the trade-log panel's Clear control shall empty the log only after a successful export and only while the log still holds the exported count. Proof: `test_reset_clears_positions_cash_realised_retains_trades`, `test_reset_clears_value_history_and_reseeds_peak` in `test_persistence.py`; `test_reset_clears_the_backtest_series` in `test_worker_analytics.py`; `test_reset_in_flight_drops_reentrant`, `test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested` and `test_clear_trade_log_count_guard` in `test_spam_inputs.py`.
 
@@ -94,7 +94,7 @@ FR-31. Alerts shall pause while the quote is stale, shall persist the fire befor
 
 ### Persistence
 
-FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, value history, daily bars and backtest rows shall be stored in the database so that a restart reads them back, and the schema shall carry a version row. Proof: `test_schema_version_row_created`, `test_add_alert_persists_and_lists`, `test_position_upsert_then_delete_at_zero`, `test_value_history_append_list_and_stale_flag_roundtrip` and `test_peak_read_write_roundtrip` in `test_persistence.py`; `test_daily_bars_round_trip_ordered_and_capped` and `test_migration_marker_survives_reopen` in `test_daily_bar_migration.py`.
+FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, value history, daily bars and backtest rows shall be stored in the database so that a restart reads them back, and the schema shall carry a version row. Proof: `test_schema_version_row_created`, `test_add_alert_persists_and_lists`, `test_position_upsert_then_delete_at_zero`, `test_value_history_append_list_and_stale_flag_roundtrip`, `test_peak_read_write_roundtrip` and `test_indicator_settings_roundtrip_and_defensive` in `test_persistence.py`; `test_backtest_persistence_round_trip` in `test_worker_analytics.py`; `test_daily_bars_round_trip_ordered_and_capped` and `test_migration_marker_survives_reopen` in `test_daily_bar_migration.py`.
 
 FR-33. A corrupt or mismatched database file shall be backed up and recreated, a locked file shall not be backed up and recreated, and a file that cannot be opened shall degrade the session to memory with a visible notice. Proof: `test_open_repository_recovers_corrupt_file`, `test_open_repository_schema_mismatch_backs_up`, `test_open_repository_does_not_rotate_on_transient_lock` and `test_worker_db_open_failure_degrades_to_memory` in `test_robustness.py`; `test_db_notice_rides_a_discrete_signal_and_is_emitted_on_start` in `test_context_wiring_guards.py`.
 
@@ -216,7 +216,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-14 | test_portfolio.py, test_robustness.py, test_spam_inputs.py | 7 |
 | FR-15 | test_portfolio.py, test_fuzz.py | 6 |
 | FR-16 | test_portfolio.py, test_fuzz.py, test_stress.py | 6 |
-| FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 4 |
+| FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 5 |
 | FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 6 |
 | FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
@@ -231,7 +231,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-29 | test_signals.py, test_persistence.py | 5 |
 | FR-30 | test_signals.py, test_spam_inputs.py, test_worker_switch.py | 4 |
 | FR-31 | test_robustness.py, test_persistence.py | 4 |
-| FR-32 | test_persistence.py, test_daily_bar_migration.py | 7 |
+| FR-32 | test_persistence.py, test_worker_analytics.py, test_daily_bar_migration.py | 9 |
 | FR-33 | test_robustness.py, test_context_wiring_guards.py | 5 |
 | FR-34 | test_daily_bar_migration.py | 5 |
 | FR-35 | test_market_context.py, test_market_data_providers.py, test_context_wiring_guards.py | 6 |

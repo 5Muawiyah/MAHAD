@@ -208,7 +208,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | HHI, effective N, sector HHI | Correlation and concentration | position weights now | now | index and count |
 | Drawdown duration | Drawdown duration | wall-clock | the value history | periods |
 | Component VaR and shares | Component VaR (Euler decomposition, the split whose parts add to the whole) | trading-day | 250 days at 95% | fraction, USD and share |
-| Return on VaR | Return on VaR and rolling VaR | mixed: ledger P&L over the 95% VaR in USD | now | ratio |
+| Return on VaR | Return on VaR and rolling VaR | mixed: ledger P&L over the 95% VaR in USD | 250 days for the VaR leg, the P&L to date | ratio |
 | Rolling VaR | Return on VaR and rolling VaR | trading-day | 60-day windows, 40 points | fraction |
 | Stress replay | Stress replay | scenario windows on cached closes, else the per-asset constants in `config.STRESS_CONSTANTS` | the scenario | USD |
 

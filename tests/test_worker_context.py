@@ -259,6 +259,17 @@ def test_fresh_mark_keeps_all_three_views_non_stale():
     assert w._value_now()[3] is False
 
 
+def test_an_old_mark_flags_all_three_views_stale():
+    w, _repo, _state = _worker()
+    _hold_position(w)
+    import time as _t
+    old = _t.time() - 10 * w._poll_interval_s          # present, but past the staleness window
+    w._marks["MSFT"] = Quote(symbol="MSFT", mark=110.0, ts=old, source="fake", stale=False)
+    assert w._build_portfolio_view().any_marks_stale is True
+    assert w._build_risk_view().any_stale is True
+    assert w._value_now()[3] is True
+
+
 def test_riskview_carries_the_exportable_history_rows():
     w, _repo, _state = _worker()
     w._value_history.append(ValueSample(ts=1.0, value=100.0, stale=False))
