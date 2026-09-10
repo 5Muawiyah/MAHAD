@@ -285,6 +285,14 @@ def test_worker_poll_source_failure_keeps_last_good(tmp_path):
     w.stop()
 
 
+def test_stop_quits_the_thread_it_runs_on(tmp_path):
+    w = _worker(tmp_path)
+    thread = w.thread()                            # the stub thread every stub object lives on
+    before = thread.quit_calls
+    w.stop()
+    assert thread.quit_calls == before + 1         # the loop ends after the stop, not before it
+
+
 @pytest.mark.parametrize("payload", [
     None, "x", 42, [],
     {"side": "buy"},                                          # missing fields

@@ -69,6 +69,21 @@ def test_the_engine_and_data_layers_never_import_upwards():
                 assert not _within(target, "mahad.worker"), f"{path} imports {target}"
 
 
+def test_the_data_layer_imports_only_itself_and_the_config():
+    for path, targets in _layer_imports("data").items():
+        for target in targets:
+            if _within(target, "mahad"):
+                assert _within(target, "mahad.data") or _within(target, "mahad.config"), f"{path} imports {target}"
+
+
+def test_the_engine_imports_only_itself_the_data_layer_and_the_config():
+    allowed = ("mahad.engine", "mahad.data", "mahad.config")
+    for path, targets in _layer_imports("engine").items():
+        for target in targets:
+            if _within(target, "mahad"):
+                assert any(_within(target, p) for p in allowed), f"{path} imports {target}"
+
+
 def test_the_worker_never_imports_the_ui():
     for path, targets in _layer_imports("worker").items():
         for target in targets:

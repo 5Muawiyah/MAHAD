@@ -75,14 +75,17 @@ class QObject:
     def __init__(self, parent=None) -> None:
         self._parent = parent
 
-    def thread(self) -> None:
-        return None
+    def thread(self) -> QThread:
+        return _CURRENT_THREAD                  # every stub object lives on the one stub thread
 
 
 class QThread:
     # only what the worker's stop touches
+    def __init__(self) -> None:
+        self.quit_calls = 0
+
     def quit(self) -> None:
-        pass
+        self.quit_calls += 1
 
     @staticmethod
     def currentThread() -> QThread:  # noqa: N802 (Qt API)
