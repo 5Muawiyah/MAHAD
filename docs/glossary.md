@@ -2,7 +2,7 @@
 
 Plain-English definitions of the terms the MAHAD documents use, in alphabetical order.
 
-**2s10s.** The difference between the ten-year and two-year US Treasury yields, in basis points. A negative value (an inverted curve) has often preceded recessions; the context tile calls under 25 basis points flat and anything wider normal.
+**2s10s.** The difference between the ten-year and two-year US Treasury yields, in basis points. A negative value (an inverted curve) has often preceded recessions; the context tile calls a negative spread inverted, under 25 basis points flat and anything wider normal.
 
 **Adapter.** A small module that talks to one data provider and turns its answers into the program's own `Quote` and `Candle` shapes. Each adapter returns failures as values rather than raising exceptions.
 
