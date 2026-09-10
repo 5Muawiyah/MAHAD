@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import time
 from collections import deque
 from decimal import Decimal, InvalidOperation
 from typing import Optional
@@ -12,6 +11,7 @@ from PySide6.QtCore import Slot
 from mahad import config
 from mahad.data.portfolio_view import ExposureRow, PortfolioView, PositionRow, RiskView, TradeRow
 from mahad.data.repository import PersistedTrade
+from mahad.data.source import is_crypto_symbol
 from mahad.engine.portfolio import (PortfolioState, Position as EngPosition, TradeFill,
                                     place_order as _place_order, unrealised, portfolio_value)
 from mahad.engine.risk import (ValueSample, exposure as _exposure,
@@ -54,7 +54,7 @@ class PortfolioMixin(WorkerState):
         rows = []
         for p in self._portfolio.positions:
             m, stale = self._mark_decimal(p.symbol)
-            asset_class = "crypto" if "/" in p.symbol else "stock"
+            asset_class = "crypto" if is_crypto_symbol(p.symbol) else "stock"
             if m is not None:
                 marks[p.symbol] = m
                 has_marks = True
@@ -280,7 +280,7 @@ class PortfolioMixin(WorkerState):
     def _persist_fill(self, state: PortfolioState, fill: TradeFill) -> None:
         pos = state.position(fill.symbol)
         trade = PersistedTrade(
-            ts=time.time(), symbol=fill.symbol, side=fill.side, quantity=fill.quantity,
+            ts=self._wallclock(), symbol=fill.symbol, side=fill.side, quantity=fill.quantity,
             fill_price=fill.fill_price, avg_cost_at_fill=fill.avg_cost_at_fill,
             qty_before=fill.qty_before, qty_after=fill.qty_after,
             realised_pnl=fill.realised_pnl)
@@ -316,7 +316,7 @@ class PortfolioMixin(WorkerState):
                 self._peak_value, self._peak_ts = peak.peak_value, peak.peak_ts
             except Exception:
                 log.exception("post-reset peak load failed; seeding from cash")
-                self._peak_value, self._peak_ts = self._portfolio.cash, time.time()
+                self._peak_value, self._peak_ts = self._portfolio.cash, self._wallclock()
             self._emit_snapshot(None)
         finally:
             self._reset_in_flight = False

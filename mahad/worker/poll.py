@@ -39,7 +39,6 @@ log = logging.getLogger("mahad.worker")
 
 def _interrupted() -> bool:
     try:
-        from PySide6.QtCore import QThread
         t = QThread.currentThread()
         return bool(t is not None and t.isInterruptionRequested())
     except Exception:
@@ -271,8 +270,8 @@ class PollWorker(AlertsMixin, PortfolioMixin, DailyHistoryMixin, AnalyticsMixin,
         sess_state: str
         sess_summary: str
         if self._symbol:                                  # session computed worker-side
-            asset_cls = "crypto" if "/" in self._symbol else "stock"
-            sess_state, sess_summary = session_line(asset_cls, time.time())
+            asset_cls = "crypto" if is_crypto_symbol(self._symbol) else "stock"
+            sess_state, sess_summary = session_line(asset_cls, self._wallclock())
         else:
             sess_state, sess_summary = "", ""
         snap = replace(snap, portfolio=self._build_portfolio_view(),

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import time
 from dataclasses import replace
 from typing import Optional, cast
 
@@ -39,9 +38,9 @@ class AlertsMixin(WorkerState):
         else:
             new_indices = [i for i, t in enumerate(closed_ts) if t > self._last_closed_ts]
 
-        now = time.time()
+        now = self._wallclock()
         events: list[AlertEvent] = []
-        for rule in list(self._alerts):                  # snapshot: tolerate a concurrent change
+        for rule in list(self._alerts):                  # a copy, since the loop writes entries back by index
             if rule.symbol != active or not rule.armed:
                 continue
             try:
