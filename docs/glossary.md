@@ -20,6 +20,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Basis.** The return series a figure is computed on. MAHAD keeps two: the wall-clock basis (the portfolio's own value sampled on a fixed cadence) and the trading-day basis (daily returns aligned to the US trading calendar). Every figure is labelled with its basis.
 
+**Basis point.** One hundredth of a percentage point: 35 basis points is 0.35 percentage points.
+
 **Beta.** How much the portfolio moves for a given move in a benchmark, here the SPY fund: the covariance of the two return series divided by the benchmark's variance.
 
 **Book.** The portfolio as a desk calls it: the cash and the positions the ledger holds.
@@ -48,7 +50,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Exposure.** The value held in positions as a share of the whole portfolio, cash included.
 
-**Fear and Greed index.** A daily crypto sentiment score from 0 (extreme fear) to 100 (extreme greed) published by alternative.me.
+**Fear & Greed index.** A daily crypto sentiment score from 0 (extreme fear) to 100 (extreme greed) published by alternative.me.
 
 **Fixture.** A captured provider payload or a small known data set stored with the tests, so the adapters and calculations are checked against real shapes without any network.
 
@@ -108,7 +110,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Timeframe.** The size of a chart bar: one minute, one hour, one day, three days, one week or one month.
 
-**Toast.** A short notice that appears in the corner of the window and fades, used when an alert fires or an order is refused.
+**Toast.** A short notice that appears in the corner of the window and fades, used when an alert fires. A refused order shows its reason on the ticket instead, or in the status bar once the ticket has closed.
 
 **Trading-day basis.** Returns measured from one US trading day's close to the next, with weekends and holidays folded into the following day. The analytics section runs on this basis and annualises with 252 days.
 

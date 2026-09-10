@@ -77,7 +77,7 @@ The single virtual book. One row, created on first run with the starting cash an
 
 ### positions
 
-Open long positions; a row is deleted when its quantity reaches zero.
+Open long positions (holdings bought and not yet sold); a row is deleted when its quantity reaches zero.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
@@ -222,7 +222,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window: trading days for the analytics rows, the number of value-history returns for the volatility rows |
+| window | the observation window: trading days for the analytics rows, the configured window of 30 value-history returns (`config.VOLATILITY_WINDOW`) for the volatility rows, whatever the history holds |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
 
