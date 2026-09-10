@@ -78,7 +78,7 @@ FR-25. The analytics section shall (a) state its window and as-of date (the date
 
 ### Market context
 
-FR-26. The context tiles shall (a) show the Treasury curve with the 2s10s spread and its reading, the VIX with its band, the crypto Fear & Greed index and the two UK rates; (b) refresh at most one source per heartbeat tick and each source every 12 hours; (c) cache the tiles across restarts; (d) keep the last good values with a note after a failure. Proof: (a) `test_treasury_picks_the_latest_row_regardless_of_order`, `test_spread_bp_hand_checked_vectors`, `test_vix_band_edges` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; (a) `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; (b) `test_one_context_fetch_per_heartbeat_tick`, (c) `test_context_success_builds_tiles_and_persists_the_cache`, (d) `test_context_failure_keeps_cached_values_with_an_honest_note` and (c) `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
+FR-26. The context tiles shall (a) show the Treasury curve with the 2s10s spread and its reading, the VIX with its band, the crypto Fear & Greed index and the two UK rates; (b) refresh at most one source per heartbeat tick and each source every 12 hours; (c) cache the tiles across restarts; (d) keep the last good values with a note after a failure. Proof: (a) `test_treasury_picks_the_latest_row_regardless_of_order`, `test_spread_bp_hand_checked_vectors`, `test_curve_reading_bands`, `test_vix_band_edges` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; (a) `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; (b) `test_one_context_fetch_per_heartbeat_tick`, (c) `test_context_success_builds_tiles_and_persists_the_cache`, (d) `test_context_failure_keeps_cached_values_with_an_honest_note` and (c) `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
 
 FR-27. The VIX tile shall show a keyless state without a key for FRED (the Federal Reserve Bank of St. Louis's data service) and shall never show a cached value once the key is gone. Proof: `test_vix_without_a_key_is_the_designed_keyless_state` and `test_cached_vix_is_not_shown_when_the_key_is_gone` in `test_worker_context.py`.
 
@@ -227,7 +227,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-23 | test_worker_analytics.py, test_risk_metrics.py | 6 |
 | FR-24 | test_worker_daily.py, test_daily_bar_migration.py | 5 |
 | FR-25 | test_analytics_ui.py, test_worker_analytics.py | 8 |
-| FR-26 | test_market_context.py, test_fx_rates_providers.py, test_worker_context.py | 9 |
+| FR-26 | test_market_context.py, test_fx_rates_providers.py, test_worker_context.py | 10 |
 | FR-27 | test_worker_context.py | 2 |
 | FR-28 | test_fx_rates_providers.py | 3 |
 | FR-29 | test_signals.py, test_persistence.py | 5 |
