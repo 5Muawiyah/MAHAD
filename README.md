@@ -17,18 +17,18 @@
 | Document | What it covers |
 |---|---|
 | [Overview](docs/overview.md) | what MAHAD is, a tour of the screens, what the numbers mean |
-| [Technical guide](docs/architecture.md) | the layering, the worker thread, the database, the providers, the tests |
+| [Technical guide](docs/architecture.md) | how the code is split into layers, the background thread that does the work, the database, the eight data sources, the tests |
 | [Requirements](docs/requirements.md) | what the program must do and how well, the user journeys with their acceptance checks, and which test proves each point |
 | [Data dictionary](docs/data-dictionary.md) | the database's tables and columns, the provider fields, the derived figures, the report file |
 | [Risk methodology](docs/risk-methodology.md) | every formula and convention |
 | [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a risk desk works by, one screen) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a bank's risk team works by, one screen) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
-The window shows one symbol's price chart (a symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD) with two moving averages (smoothed lines of recent prices) and the RSI (relative strength index, a momentum gauge) drawn over it, in bars (slices of time) from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX index of expected market volatility (volatility is the typical size of a day's move, as a percentage), the crypto Fear & Greed index (a daily crypto sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates. One-shot alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
+The window shows one symbol's price chart (a symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD) with two indicators drawn over it, a pair of moving averages (smoothed lines of recent prices) and the RSI (relative strength index, a momentum gauge), in bars (slices of time) from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX index of expected market volatility (volatility is the typical size of a day's move, as a percentage), the crypto Fear & Greed index (a daily crypto sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates. Alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -66,7 +66,7 @@ The market backdrop in one place, at the foot of the risk panel: the 10-year Tre
 
 <img src="docs/images/order-ticket.png" alt="Simulated order ticket" width="420" align="right">
 
-Place a simulated buy or sell from the order ticket. The trade is recorded against a virtual USD portfolio, and cash, positions and live profit and loss update at once. No real order is ever placed, and no trading account is involved.
+Place a simulated buy or sell from the order ticket. The ticket shows the live price as the mark and the estimated cost, and its button reads Confirm buy; the trade lands in the virtual portfolio the moment it is confirmed. No real order is ever placed, and no trading account is involved.
 
 <br clear="all">
 
@@ -86,13 +86,13 @@ Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each
 
 ## What this demonstrates
 
-The window is a PySide6 and Qt desktop application (Qt is the window toolkit and PySide6 its Python form) whose dark colour scheme meets the AA level of the Web Content Accessibility Guidelines (WCAG) for the contrast between text and its background. A missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md), and the test suite runs without a display on every change sent to GitHub, as the badge above shows.
+The window is a PySide6 and Qt desktop application (Qt is the window toolkit and PySide6 its Python form) whose dark colour scheme meets the AA level of the Web Content Accessibility Guidelines (WCAG) for the contrast between text and its background. A missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md), and the test suite runs with no window open on every change sent to GitHub, as the badge above shows.
 
 ## How it is built
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-The screen asks, a background thread does the work and reports back. The window (the ui layer) renders and sends intents (requests such as add a symbol or place an order); one background worker thread fetches, computes and writes; the engine does the calculations in pure Python with no Qt, so the tests call it directly; the data layer wraps each of the eight providers in an adapter (a small module that talks to one provider) that reports failures as values rather than raising errors, and owns the SQLite database file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
+The screen asks, a background thread does the work and reports back (a thread is a line of work that runs alongside the window's own). The window (the ui layer) renders and sends intents (requests such as add a symbol or place an order); one background worker thread fetches, computes and writes; the engine does the calculations in pure Python with no Qt, so the tests call it directly; the data layer wraps each of the eight providers (the market data sources) in an adapter (a small module that talks to one provider) that turns a failed fetch into a message rather than a crash, and owns the SQLite database file (a database held in one file). Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
 
 ## Report export
 
@@ -100,7 +100,7 @@ The screen asks, a background thread does the work and reports back. The window 
 python -m mahad.report
 ```
 
-Writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet opens) from the app's own database, read-only, so it runs whether or not the window is open. `--db`, `--out`, `--confidence` and `--window` are the flags; the [data dictionary](docs/data-dictionary.md) lists the columns.
+Writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet opens) from the app's own database, read-only, so it runs whether or not the window is open. `--db`, `--out`, `--confidence` and `--window` are the options it takes; the [data dictionary](docs/data-dictionary.md) lists the columns.
 
 ## Tech stack
 
@@ -121,7 +121,7 @@ MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK r
 
 ### API keys (optional, free)
 
-Live stock quotes and history, and the VIX tile, use free, email-only keys. Without them MAHAD still runs, and the stock screens show a "needs a free key" message that points back here; everything keyless keeps working.
+Live stock quotes and history, and the VIX tile, use free keys whose sign-up asks only for an email address. Without them MAHAD still runs, and the stock screens show a "needs a free key" message that points back here; everything keyless keeps working.
 
 | Key | What it adds | Where to get it (free) |
 |---|---|---|
