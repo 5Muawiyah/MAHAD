@@ -4,7 +4,7 @@
 
 ### A desktop market-risk workstation for live stock and crypto markets
 
-![Python](https://img.shields.io/badge/python-3.13-blue) &nbsp;[![tests](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml/badge.svg)](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml) &nbsp;![Built with](https://img.shields.io/badge/built%20with-PySide6%20%2F%20Qt-41cd52)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue) &nbsp;[![tests](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml/badge.svg)](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml) &nbsp;![Built with](https://img.shields.io/badge/built%20with-PySide6%20%2F%20Qt-41cd52)
 
 </div>
 
@@ -85,15 +85,15 @@ For a technical reader, MAHAD shows:
 - **Python** and a **PySide6 / Qt** desktop application with a custom dark design system that meets WCAG AA contrast.
 - **Live market-data integration** across several providers, each behind a typed adapter that fails gracefully: a missing or rejected key shows a clear message that names the source, never a crash.
 - A **risk methodology** a risk analyst would recognise, every formula verified against a hand-computed reference.
-- A **strictly layered, headless-tested codebase** (ui to worker to engine to data; the engine is pure and Qt-free) with **697 passing tests**.
+- A **strictly layered, headless-tested codebase** (ui to worker to engine to data; the engine is pure and Qt-free) with a **headless test suite** that runs on every push.
 
 ## Tech stack
 
-Python 3.13 · PySide6 / Qt · pyqtgraph · pandas · numpy · SQLite via SQLAlchemy. Live data from Finnhub and Tiingo (stocks), a keyless Kraken adapter (crypto), the US Treasury, FRED, and the Bank of England.
+Python 3.11 to 3.13 · PySide6 / Qt · pyqtgraph · pandas · numpy · SQLite via SQLAlchemy. Live data from Finnhub and Tiingo (stocks), a keyless Kraken adapter (crypto), the US Treasury, FRED, and the Bank of England.
 
 ## Getting started
 
-MAHAD needs **Python 3.13** (the supported range is 3.11 to 3.13; newer versions are not validated for MAHAD yet). Then:
+MAHAD needs **Python 3.11, 3.12 or 3.13** (newer versions are not validated for MAHAD yet). Then:
 
 ```
 git clone https://github.com/5Muawiyah/MAHAD.git
