@@ -212,6 +212,7 @@ class AnalyticsMixin(WorkerState):
             thr = 0.05 * var_hist[0]
             var_trend = ("rising" if delta > thr
                          else "falling" if delta < -thr else "flat")
+        ewma = eng_rm.ewma_volatility(rets)
         return RiskAnalyticsView(
             available=True, note="", n=pr.n, window=config.RISK_WINDOW,
             as_of=(pr.dates[-1].isoformat() if pr.dates else ""),
@@ -239,8 +240,7 @@ class AnalyticsMixin(WorkerState):
             rf_as_of=(self._ctx_yields.as_of if rf_annual is not None else ""),
             rf_source=("US Treasury 3M par yield" if rf_annual is not None
                        else ""),
-            ewma_vol_pct=(lambda v: v * 100.0 if v is not None else None)(
-                eng_rm.ewma_volatility(rets)),
+            ewma_vol_pct=ewma * 100.0 if ewma is not None else None,
             corr_symbols=corr_symbols, corr_matrix=corr_matrix,
             corr_window=config.CORRELATION_WINDOW,
             corr_avg=(corr_sum.avg if corr_sum else None),
