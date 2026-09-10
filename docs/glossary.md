@@ -26,6 +26,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Candle.** One bar of price history: the open, high, low and close over a period, with the volume traded. The last candle is usually still forming.
 
+**CI.** Continuous integration: the GitHub Actions workflow in `.github/workflows/tests.yml` that runs the checks and the suite on every push, on Ubuntu and Windows across Python 3.11, 3.12 and 3.13.
+
 **Component VaR.** A split of the portfolio's parametric VaR across its positions so that the parts add up to the whole. A hedge shows a negative share.
 
 **Concentration.** How lopsided the book is. Measured with the HHI on position weights and, when sector names are known, on sector weights.
@@ -72,7 +74,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Parametric VaR.** VaR computed from the mean and standard deviation of returns on the assumption that they are normally distributed.
 
-**Provider.** An external service the program reads prices or reference data from: Finnhub, Tiingo, Kraken, Frankfurter, the US Treasury, FRED, the Bank of England and alternative.me.
+**Provider.** An external service the program reads prices or reference data from: Finnhub, Tiingo, Kraken, Frankfurter, the US Treasury, FRED (the Federal Reserve Bank of St. Louis's data service), the Bank of England and alternative.me.
 
 **Quote.** The latest price of a symbol with its timestamp and source, and a flag when it has gone stale.
 

@@ -4,7 +4,7 @@ The SQLite schema the application writes, the provider fields it consumes and ho
 
 ## The SQLite schema
 
-The file is `~/.mahad/mahad.db`, opened in WAL mode with foreign keys on. Money and quantities are stored as text and read back as exact `Decimal` values. Timestamps are epoch seconds (UTC) stored as floats. Every foreign key cascades on delete except a trade's link to its symbol, which is set to null so the trade log survives a symbol's removal.
+The file is `~/.mahad/mahad.db`, opened in WAL mode with foreign keys on. Money and quantities are stored as text and read back as exact `Decimal` values. Timestamps are epoch seconds (seconds since 1 January 1970, UTC) stored as floats. Every foreign key cascades on delete except a trade's link to its symbol, which is set to null so the trade log survives a symbol's removal.
 
 ### symbols
 
@@ -175,7 +175,7 @@ A file whose version differs from the code's is backed up and recreated on open.
 | Finnhub quote | `c` (current price) | `Quote.mark`, when it is a finite positive number |
 | Finnhub quote | `t` (price time) | `Quote.exchange_ts`; a zero payload means an unknown symbol |
 | Finnhub profile | `finnhubIndustry` | the sector name cached in the `sector_map` setting |
-| Kraken Ticker | `c[0]` (the last trade), else the midpoint of `b[0]` (the best bid) and `a[0]` (the best ask) | `Quote.mark`; the pair key is matched back to the requested symbol through the XBT and XDG aliases |
+| Kraken Ticker | `c[0]` (the last trade), else the midpoint of `b[0]` (the best bid) and `a[0]` (the best ask) | `Quote.mark`; the pair key is matched back to the requested symbol through the XBT and XDG aliases (Kraken's older codes for BTC and DOGE) |
 | Kraken OHLC (open, high, low, close bars) | `[time, open, high, low, close, vwap (volume-weighted average price), volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
 | Tiingo daily | `date, open, high, low, close, adjClose, volume, divCash, splitFactor` | a `daily_bars` row; the analytics read `adj_close` |
 | Tiingo IEX (its intraday feed) | `date, open, high, low, close, volume` | closed one-minute or one-hour `Candle` rows merged into the sampled series |
@@ -222,7 +222,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window: trading days for the analytics rows, value-history samples for the volatility rows |
+| window | the observation window: trading days for the analytics rows, the number of value-history returns for the volatility rows |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
 

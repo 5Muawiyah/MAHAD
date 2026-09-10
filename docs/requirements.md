@@ -2,7 +2,7 @@
 
 ## Purpose and scope
 
-MAHAD is a single-user desktop workstation that runs a simulated USD portfolio on live market data and reports market-risk figures over it. The requirements below are what the program as it stands in the repository is required to do and not to do; each names the test in the suite that proves it.
+MAHAD is a single-user desktop workstation that runs a simulated USD portfolio on live market data and reports market-risk figures over it. The requirements below are what the program as it stands in the repository is required to do and not to do; each names the test, or the check, that proves it.
 
 In scope: live stock and crypto prices with charting and indicators, a watchlist, simulated orders against an exact ledger, the risk figures on two bases, the market-context tiles, one-shot alerts, local persistence, the handling of the three optional free keys, and the headless report export.
 
@@ -40,7 +40,7 @@ FR-09. The header shall show the market session (open, closed with the next open
 
 ### Watchlist
 
-FR-10. Adding a symbol shall reject empty, malformed and non-USD entries with a stated reason, ignore duplicates, and refuse additions beyond 20 symbols. Proof: `test_validate_add_outcomes` in `test_persistence.py`; `test_empty_and_whitespace_rejected`, `test_non_usd_rejected_verbatim`, `test_duplicate_ignored_case_insensitive` and `test_watchlist_cap_message` in `test_invalid_entry.py`; `test_validate_add_total` in `test_fuzz.py`.
+FR-10. Adding a symbol shall reject empty, malformed and non-USD entries with a stated reason, ignore duplicates, and refuse additions beyond 20 symbols. Proof: `test_validate_add_outcomes` in `test_persistence.py`; `test_empty_and_whitespace_rejected`, `test_malformed_symbol_rejected_with_the_charset_reason`, `test_non_usd_rejected_verbatim`, `test_duplicate_ignored_case_insensitive` and `test_watchlist_cap_message` in `test_invalid_entry.py`; `test_validate_add_total` in `test_fuzz.py`.
 
 FR-11. Before a symbol is saved the worker shall probe the provider once; an unresolvable symbol or a failed probe shall be rejected inline and never added. Proof: `test_unresolvable_symbol_rejected_inline_not_added`, `test_probe_timeout_rejects_with_could_not_verify` and `test_resolving_symbol_is_added` in `test_validate_add_probe.py`.
 
@@ -62,7 +62,7 @@ FR-18. A reset shall clear positions, cash and realised P&L back to the starting
 
 ### Risk analytics
 
-FR-19. The portfolio value shall be sampled on a fixed wall-clock grid at the chosen risk timeframe, catching up one sample after a sleep and re-anchoring when the timeframe changes; the series shall persist up to 1,000 samples. Proof: `test_sleep_catchup_takes_one_sample_and_preserves_the_grid`, `test_heartbeat_no_sample_before_due` and `test_set_risk_timeframe_reanchors_the_grid` in `test_worker_context.py`; `test_value_history_capped_prune_drops_oldest` in `test_persistence.py`.
+FR-19. The portfolio value shall be sampled on a fixed wall-clock grid at the chosen risk timeframe, catching up one sample after a sleep and re-anchoring when the timeframe changes; the series shall persist, pruned to the configured cap of 1,000 samples. Proof: `test_sleep_catchup_takes_one_sample_and_preserves_the_grid`, `test_heartbeat_no_sample_before_due` and `test_set_risk_timeframe_reanchors_the_grid` in `test_worker_context.py`; `test_value_history_capped_prune_drops_oldest` in `test_persistence.py`; `test_value_history_cap_is_the_configured_thousand` and `test_ten_k_value_samples_bounded_deque_and_risk` in `test_stress.py`.
 
 FR-20. Exposure, volatility (sample standard deviation over the last 30 returns, annualised on the calendar basis), maximum drawdown (seeded from the persisted peak) and drawdown duration shall be computed on the value history and match the hand-worked vectors. Proof: `test_exposure_overall_fraction_and_abs`, `test_volatility_ddof1_per_period_and_annualised`, `test_volatility_rolling_window_cap_min_available_30`, `test_max_drawdown_core_vector` and `test_max_drawdown_seeded_persisted_peak_survives_capping` in `test_risk.py`; `test_volatility_matches_statistics_stdev` in `test_fuzz.py`; `test_check_i_drawdown_duration` in `test_risk_metrics.py`.
 
@@ -74,13 +74,13 @@ FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it a
 
 FR-24. Daily history shall be cached per symbol for every held position, the active stock and the SPY benchmark (the exchange-traded fund that tracks the S&P 500): fetched as a delta from the latest cached date, re-pulled in full when a corporate action (a dividend or split that changes the adjusted history) is seen, refreshed at most one symbol per tick of the worker's five-second heartbeat timer. Proof: `test_coverage_set_is_positions_active_stock_and_benchmark`, `test_stock_delta_fetch_starts_at_the_latest_cached_date`, `test_corporate_action_in_the_delta_triggers_a_full_repull` and `test_at_most_one_coverage_fetch_per_tick` in `test_worker_daily.py`; `test_daily_bars_upsert_is_idempotent_and_updates` in `test_daily_bar_migration.py`.
 
-FR-25. The analytics section shall state its window and as-of date on one line, each block of figures shall carry a tooltip stating its method, and the section shall name the missing key when stock history is keyless. Proof: `test_analytics_section_states_its_window_and_as_of`, `test_row_formats_are_pinned`, `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards` in `test_analytics_ui.py`; `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
+FR-25. The analytics section shall state its window and as-of date on one line, each block of figures shall carry a tooltip stating its method, and the section shall name the missing key when stock history is keyless. Proof: `test_analytics_section_states_its_window_and_as_of`, `test_analytics_tooltips_state_their_methods`, `test_row_formats_are_pinned`, `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards` in `test_analytics_ui.py`; `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
 
 ### Market context
 
 FR-26. The context tiles shall show the Treasury curve with the 2s10s spread and its reading, the VIX with its band, the crypto Fear and Greed index and the two UK rates, refreshing at most one source per heartbeat tick and each source every 12 hours, caching the tiles across restarts and keeping the last good values with a note after a failure. Proof: `test_treasury_picks_the_latest_row_regardless_of_order`, `test_spread_bp_hand_checked_vectors`, `test_vix_band_edges` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_one_context_fetch_per_heartbeat_tick`, `test_context_success_builds_tiles_and_persists_the_cache`, `test_context_failure_keeps_cached_values_with_an_honest_note` and `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
 
-FR-27. The VIX tile shall show a keyless state without a FRED key and shall never show a cached value once the key is gone. Proof: `test_vix_without_a_key_is_the_designed_keyless_state` and `test_cached_vix_is_not_shown_when_the_key_is_gone` in `test_worker_context.py`.
+FR-27. The VIX tile shall show a keyless state without a key for FRED (the Federal Reserve Bank of St. Louis's data service) and shall never show a cached value once the key is gone. Proof: `test_vix_without_a_key_is_the_designed_keyless_state` and `test_cached_vix_is_not_shown_when_the_key_is_gone` in `test_worker_context.py`.
 
 FR-28. The GBP figures shall be a display-only conversion at the European Central Bank (ECB) reference rate and shall never enter the ledger. Proof: `test_fx_parses_the_reference_rate` and `test_portfolio_gbp_view_is_display_only` in `test_fx_rates_providers.py`.
 
@@ -98,7 +98,7 @@ FR-32. The watchlist, indicator settings, alerts, portfolio, positions, trades, 
 
 FR-33. A corrupt or mismatched database file shall be backed up and recreated, a locked file shall not be rotated, and a file that cannot be opened shall degrade the session to memory with a visible notice. Proof: `test_open_repository_recovers_corrupt_file`, `test_open_repository_schema_mismatch_backs_up`, `test_open_repository_does_not_rotate_on_transient_lock` and `test_worker_db_open_failure_degrades_to_memory` in `test_robustness.py`; `test_db_notice_rides_a_discrete_signal_and_is_emitted_on_start` in `test_context_wiring_guards.py`.
 
-FR-34. The one-time migration shall rename stock rows whose provider is yfinance (the earlier stock source, now retired) to finnhub and crypto tickers quoted in the USDT or USDC stablecoins to their USD pair, shall run once, roll back on failure, and skip a target that already exists. Proof: `test_migration_renames_providers_and_pairs`, `test_migration_is_a_no_op_on_relaunch`, `test_migration_skips_a_colliding_target` and `test_migration_failure_rolls_back_and_retries_next_launch` in `test_daily_bar_migration.py`.
+FR-34. The one-time migration shall rename stock rows whose provider is yfinance (the earlier stock source, now retired) to finnhub and crypto tickers quoted in the USDT or USDC stablecoins (tokens pegged to the dollar) to their USD pair, shall run once, roll back on failure, and skip a target that already exists. Proof: `test_migration_renames_providers_and_pairs`, `test_migration_is_a_no_op_on_relaunch`, `test_migration_skips_a_colliding_target` and `test_migration_failure_rolls_back_and_retries_next_launch` in `test_daily_bar_migration.py`.
 
 ### Keys and security
 
@@ -106,7 +106,7 @@ FR-35. The three keys shall be read from a `.env` file or the environment, never
 
 FR-36. The program shall hold no trading credential of any kind and shall call only Kraken's public endpoints. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
 
-FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings land as literals, markup and path traversal are rejected at the symbol gate, and parameters are canonicalised before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
+FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup and path traversal (text shaped like a file path) are rejected at the symbol gate, and parameters are canonicalised before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
 
 ### Exports and the report
 
@@ -120,7 +120,7 @@ FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift
 
 ## Non-functional requirements
 
-NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear and Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows CI jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
+NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear and Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows continuous-integration (CI) jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
 
 NFR-02. No trading credentials and no real-money path shall exist in the code. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
 
@@ -132,7 +132,7 @@ NFR-05. Compute-side latency, measured as benchmark medians wherever the suite r
 
 NFR-06. Without a network the program shall keep the last good prices marked stale, back off to at most 60 seconds between attempts, pause alerts, and show the cached context tiles. Proof: `test_worker_poll_source_failure_keeps_last_good` and `test_worker_stale_quote_pauses_alerts_no_fire` in `test_robustness.py`; `test_backoff_caps_at_config_ceiling` and `test_backoff_resets_on_success_and_user_intent_bypasses` in `test_worker_switch.py`; `test_context_failure_keeps_cached_values_with_an_honest_note` and `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
 
-NFR-07. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and repeated snapshots shall not grow. Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
+NFR-07. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the heap by less than 8 MiB. Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_ten_k_value_samples_bounded_deque_and_risk`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
 
 NFR-08. Hostile or malformed input shall never raise out of an adapter, a validator or a worker method. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
 
@@ -211,7 +211,7 @@ The book is USD only and long only; short positions and margin are not modelled.
 | FR-07 | test_chart_timeframes.py, test_resample.py | 5 |
 | FR-08 | test_indicators.py, test_persistence.py | 6 |
 | FR-09 | test_market_session.py | 5 |
-| FR-10 | test_persistence.py, test_invalid_entry.py, test_fuzz.py | 6 |
+| FR-10 | test_persistence.py, test_invalid_entry.py, test_fuzz.py | 7 |
 | FR-11 | test_validate_add_probe.py | 3 |
 | FR-12 | test_watchlist_remove.py | 3 |
 | FR-13 | test_persistence.py | 2 |
@@ -220,13 +220,13 @@ The book is USD only and long only; short positions and margin are not modelled.
 | FR-16 | test_portfolio.py, test_fuzz.py, test_stress.py | 6 |
 | FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 4 |
 | FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 5 |
-| FR-19 | test_worker_context.py, test_persistence.py | 4 |
+| FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 6 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
 | FR-21 | test_risk_metrics.py | 13 |
 | FR-22 | test_worker_analytics.py, test_returns.py | 5 |
 | FR-23 | test_worker_analytics.py, test_risk_metrics.py | 6 |
 | FR-24 | test_worker_daily.py, test_daily_bar_migration.py | 5 |
-| FR-25 | test_analytics_ui.py, test_worker_analytics.py | 7 |
+| FR-25 | test_analytics_ui.py, test_worker_analytics.py | 8 |
 | FR-26 | test_market_context.py, test_fx_rates_providers.py, test_worker_context.py | 9 |
 | FR-27 | test_worker_context.py | 2 |
 | FR-28 | test_fx_rates_providers.py | 2 |
@@ -248,7 +248,7 @@ The book is USD only and long only; short positions and margin are not modelled.
 | NFR-04 | test_analytics_ui.py, test_ui_layout_guards.py | 5 |
 | NFR-05 | test_perf.py | 9 |
 | NFR-06 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |
-| NFR-07 | test_stress.py | 6 |
+| NFR-07 | test_stress.py | 8 |
 | NFR-08 | test_robustness.py, test_fuzz.py | 3 |
 | NFR-09 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, manual check | 7 |
 | NFR-10 | the CI matrix, manual check | 0 |
