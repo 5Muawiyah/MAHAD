@@ -86,9 +86,9 @@ def test_asset_returns_consume_the_adjusted_close_column(tmp_path):
 
 def test_the_view_and_the_report_agree_on_the_same_book(tmp_path):
     from mahad import config, report
-    from tests.test_report import AAPL, MSFT, _seed
+    from tests._book import AAPL, MSFT, seed
     path = tmp_path / "book.db"
-    _seed(path)
+    seed(path)
     repo = report.open_read_only(path)
     try:
         by = {r.metric: r.value for r in report.build_rows(repo, confidence=0.95,
@@ -115,6 +115,7 @@ def test_the_view_and_the_report_agree_on_the_same_book(tmp_path):
     assert view.hhi == pytest.approx(by["hhi"]) and view.effective_n == pytest.approx(by["effective_n"])
     assert view.corr_avg == pytest.approx(by["corr_avg"])
     w.stop()
+
 
 def test_view_gates_on_n_not_coverage(tmp_path):
     # disjoint histories: full included weight but n == 0, so still unavailable
