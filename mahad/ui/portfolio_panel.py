@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, cast
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (QAbstractItemView, QFrame, QHBoxLayout, QHeaderView,
@@ -31,7 +31,7 @@ def _qty(d) -> str:
     q = Decimal(d).normalize()
     if q == q.to_integral_value():
         return format(q.to_integral_value(), "f")
-    if -q.as_tuple().exponent < 2:
+    if -cast(int, q.as_tuple().exponent) < 2:
         return format(q.quantize(Decimal("0.01")), "f")
     return format(q, "f")
 
@@ -98,6 +98,7 @@ class PortfolioPanel(QWidget):
         for _c in range(len(_COLS)):                       # Symbol left, numerics right
             _it = self._table.horizontalHeaderItem(_c)
             _al = (Qt.AlignmentFlag.AlignLeft if _c == 0 else Qt.AlignmentFlag.AlignRight)
+            assert _it is not None
             _it.setTextAlignment(int(_al | Qt.AlignmentFlag.AlignVCenter))
         self._table.verticalHeader().setVisible(False)
         self._table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)

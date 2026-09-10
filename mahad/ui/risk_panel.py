@@ -373,7 +373,7 @@ class RiskPanel(QFrame):
         self.setObjectName("RiskPanelRoot")
         self._collapsed = False
         self._roomy = False
-        self._last_view = None
+        self._last_view: Optional[RiskView] = None
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(theme.S3)
@@ -413,7 +413,7 @@ class RiskPanel(QFrame):
         head_w.setObjectName("PanelHead")        # shared header band QSS
         head_w.setLayout(head)
         head_w.setCursor(Qt.CursorShape.PointingHandCursor)
-        head_w.mousePressEvent = self._on_head_press
+        head_w.mousePressEvent = self._on_head_press  # type: ignore[method-assign]
         root.addWidget(head_w)
         self._csv_err = QLabel("")                       # inline export failure
         self._csv_err.setObjectName("RiskHint")
@@ -549,7 +549,7 @@ class RiskPanel(QFrame):
         ra_head_w.setObjectName("CtxHead")
         ra_head_w.setLayout(ra_head)
         ra_head_w.setCursor(Qt.CursorShape.PointingHandCursor)
-        ra_head_w.mousePressEvent = lambda _e: self.toggle_analytics()
+        ra_head_w.mousePressEvent = lambda _e: self.toggle_analytics()  # type: ignore[method-assign]
         self._body.addWidget(ra_head_w)
         self._ra_body = QWidget()
         self._ra_body.setObjectName("RiskSubGroup")
@@ -717,7 +717,7 @@ class RiskPanel(QFrame):
         ctx_head_w.setObjectName("CtxHead")
         ctx_head_w.setLayout(ctx_head)
         ctx_head_w.setCursor(Qt.CursorShape.PointingHandCursor)
-        ctx_head_w.mousePressEvent = lambda _e: self.toggle_context()
+        ctx_head_w.mousePressEvent = lambda _e: self.toggle_context()  # type: ignore[method-assign]
         self._body.addWidget(ctx_head_w)
         self._ctx_body = QWidget()
         self._ctx_body.setObjectName("RiskSubGroup")
@@ -896,7 +896,7 @@ class RiskPanel(QFrame):
     def _render_stress(self, rows: tuple) -> None:
         while self._ra_stress_grid.count():
             it = self._ra_stress_grid.takeAt(0)
-            w = it.widget()
+            w = it.widget() if it is not None else None
             if w is not None:
                 w.hide()
                 w.setParent(None)
@@ -948,14 +948,14 @@ class RiskPanel(QFrame):
             self._ra_stress_grid.addWidget(n, r, 0)
             self._ra_stress_grid.addWidget(cell, r, 1, Qt.AlignmentFlag.AlignTop)
 
-    def _render_varhistory(self, view: object) -> None:
-        hist = getattr(view, "var_history", ()) if view else ()
-        if not hist:
+    def _render_varhistory(self, view: Optional[RiskAnalyticsView]) -> None:
+        if view is None or not view.var_history:
             self._ra_varhist_name.setVisible(False)
             self._ra_varhist_line.setVisible(False)
             self._ra_varhist_spark.setVisible(False)
             self._ra_varhist_spark.set_data(())
             return
+        hist = view.var_history
         self._ra_varhist_name.setVisible(True)
         self._ra_varhist_spark.setVisible(True)
         self._ra_varhist_spark.set_data(hist)
@@ -964,21 +964,20 @@ class RiskPanel(QFrame):
             f"VaR95 {hist[-1] * 100.0:.2f}% (60d roll){trend}")
         self._ra_varhist_line.setVisible(True)
 
-    def _render_diversification(self, view: object) -> None:
+    def _render_diversification(self, view: Optional[RiskAnalyticsView]) -> None:
         grid = self._ra_sector_grid
         while grid.count():
             it = grid.takeAt(0)
-            wdg = it.widget()
+            wdg = it.widget() if it is not None else None
             if wdg is not None:
                 wdg.hide()
                 wdg.setParent(None)
                 wdg.deleteLater()
-        sectors = getattr(view, "sector_weights", ()) if view else ()
-        avg = getattr(view, "corr_avg", None) if view else None
-        if not sectors and avg is None:
+        if view is None or (not view.sector_weights and view.corr_avg is None):
             self._ra_divers_name.setVisible(False)
             self._ra_divers_line.setVisible(False)
             return
+        sectors, avg = view.sector_weights, view.corr_avg
         self._ra_divers_name.setVisible(True)
         self._ra_divers_name.setText("DIVERSIFICATION · % OF INVESTED")
         if avg is not None:
@@ -1008,23 +1007,23 @@ class RiskPanel(QFrame):
             grid.addWidget(nm, r, 0)
             grid.addWidget(val, r, 1)
 
-    def _render_contributions(self, view: object) -> None:
+    def _render_contributions(self, view: Optional[RiskAnalyticsView]) -> None:
         grid = self._ra_contrib_grid
         while grid.count():
             it = grid.takeAt(0)
-            w = it.widget()
+            w = it.widget() if it is not None else None
             if w is not None:
                 w.hide()
                 w.setParent(None)
                 w.deleteLater()
-        contribs = getattr(view, "contributions", ()) if view else ()
-        if not contribs:
+        if view is None or not view.contributions:
             self._ra_contrib_name.setVisible(False)
             self._ra_contrib_state.setVisible(False)
             return
+        contribs = view.contributions
         cap = 6
         n = len(contribs)
-        conf = getattr(view, "comp_confidence", 0.95)
+        conf = view.comp_confidence
         self._ra_contrib_name.setText(
             f"RISK CONTRIBUTIONS · COMP VAR {conf * 100.0:.0f}%"
             + (f" · FIRST {cap} OF {n}" if n > cap else ""))
@@ -1103,7 +1102,7 @@ class RiskPanel(QFrame):
     def _render_pos_rows(self, view: RiskView) -> None:
         while self._pos_grid.count():
             it = self._pos_grid.takeAt(0)
-            w = it.widget()
+            w = it.widget() if it is not None else None
             if w is not None:
                 w.hide()                         # remove old rows now
                 w.setParent(None)

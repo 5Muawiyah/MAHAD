@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from typing import Iterable, cast
 
-from PySide6.QtCore import QPoint, Qt, QThread, QTimer, Signal, Slot
+from PySide6.QtCore import QPoint, QRect, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout,
                                QLabel, QMainWindow, QPushButton, QScrollArea,
@@ -11,6 +12,7 @@ from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout,
                                QToolButton, QVBoxLayout, QWidget)
 
 from mahad import config
+from mahad.data.context_view import DataIntegrityView
 from mahad.data.symbols import AlertsView, WatchlistState
 from mahad.engine.snapshot import RenderSnapshot
 from mahad.ui import theme
@@ -59,9 +61,9 @@ class MainWindow(QMainWindow):
     def __init__(self, symbol: str | None = None, timeframe: str | None = None) -> None:
         super().__init__()
         _app = QApplication.instance()
-        if _app is not None:
+        if isinstance(_app, QApplication):
             _app.setApplicationDisplayName("")
-        self._symbol = symbol or config.DEFAULT_SYMBOL
+        self._symbol: str | None = symbol or config.DEFAULT_SYMBOL
         self._timeframe = timeframe or config.DEFAULT_TIMEFRAME
         self._risk_timeframe = config.RISK_TIMEFRAME
         # custom frameless frame; guarded for platforms without a window handle
@@ -71,9 +73,9 @@ class MainWindow(QMainWindow):
             pass
         self._resize_margin = 6
         self._resize_edges = None                # active manual-resize edge set
-        self._move_origin = None                 # manual-move drag origin
+        self._move_origin: QPoint | None = None  # manual-move drag origin
         self._is_maxed = False                   # explicit maximise state
-        self._normal_geom = None                 # geometry to restore to
+        self._normal_geom: QRect | None = None   # geometry to restore to
         self._wl_collapsed = False               # right-dock collapse memory
         self._risk_collapsed = False
         self._clamping = False                   # work-area clamp re-entry guard
@@ -501,17 +503,17 @@ class MainWindow(QMainWindow):
         status.addWidget(self._health_dot)
         status.addWidget(self._health_label)
         self._health_label.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._health_label.mousePressEvent = \
-            lambda _e: self._toggle_integrity_popover()
-        self._integrity_view = None
-        self._integrity_pop = None
+        self._health_label.mousePressEvent = (  # type: ignore[method-assign]
+            lambda _e: self._toggle_integrity_popover())
+        self._integrity_view: DataIntegrityView | None = None
+        self._integrity_pop: QFrame | None = None
         self._statusbar_label = QLabel("USD · last poll -")
         self._statusbar_label.setStyleSheet(
             f"QLabel {{ font-family: {theme.FONT_MONO}; font-size: 11px; color: {theme.TEXT_3};"
             f" background: transparent; }}")
         self._statusbar_label.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._statusbar_label.mousePressEvent = \
-            lambda _e: self._toggle_integrity_popover()
+        self._statusbar_label.mousePressEvent = (  # type: ignore[method-assign]
+            lambda _e: self._toggle_integrity_popover())
         status.addWidget(self._statusbar_label)
         # shown once the worker reports the in-memory fallback
         self._db_notice_label = QLabel("NO SAVED DATA")
@@ -630,7 +632,7 @@ class MainWindow(QMainWindow):
     def _on_alert_events(self, events: object) -> None:
         # never-dropped channel: one toast per fire, bump unread
         try:
-            evs = list(events)
+            evs = list(cast('Iterable[object]', events))
         except TypeError:
             return
         for ev in evs:
@@ -977,10 +979,10 @@ class MainWindow(QMainWindow):
             ("F1", self._show_help),
         )
         for seq, handler in pairs:
-            QShortcut(QKeySequence(seq), self, activated=handler)
+            QShortcut(QKeySequence(seq), self).activated.connect(handler)
         for tf, seq in (("1m", "Ctrl+1"), ("1h", "Ctrl+2"), ("1d", "Ctrl+3")):
-            QShortcut(QKeySequence(seq), self,
-                      activated=lambda t=tf: self._timeframe_shortcut(t))
+            QShortcut(QKeySequence(seq), self).activated.connect(
+                lambda t=tf: self._timeframe_shortcut(t))
         self._btn_new_order.setToolTip("Place a simulated order (Ctrl+N)")
         self._btn_new_alert.setToolTip("Arm a one-shot alert (Ctrl+Shift+A)")
         self._btn_add.setToolTip("Add a symbol to the watchlist (Ctrl+K)")
@@ -1094,7 +1096,7 @@ class MainWindow(QMainWindow):
         if not icon.isNull():
             self.setWindowIcon(icon)
             app = QApplication.instance()
-            if app is not None:
+            if isinstance(app, QApplication):
                 app.setWindowIcon(icon)
 
     # -- modal scrim ----------------------------------------------- #

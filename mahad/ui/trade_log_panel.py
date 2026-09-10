@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, cast
 
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtWidgets import (QAbstractItemView, QFileDialog, QHBoxLayout,
@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QFileDialog, QHBoxLayout,
                                QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from mahad.data.portfolio_view import PortfolioView
-from mahad.engine.portfolio import build_trade_csv, fmt_ts, money
+from mahad.engine.portfolio import TradeRecord, build_trade_csv, fmt_ts, money
 from mahad.ui import theme
 
 _COLS = ["Time", "Symbol", "Side", "Qty", "Fill price", "Avg cost at fill", "Realised P&L"]
@@ -25,7 +25,7 @@ def _qty(d) -> str:
     q = Decimal(d).normalize()
     if q == q.to_integral_value():
         return format(q.to_integral_value(), "f")
-    if -q.as_tuple().exponent < 2:
+    if -cast(int, q.as_tuple().exponent) < 2:
         return format(q.quantize(Decimal("0.01")), "f")
     return format(q, "f")
 
@@ -41,7 +41,7 @@ class TradeLogPanel(QWidget):
         self._view: Optional[PortfolioView] = None
         self._export_ok = False
         self._exported_count = -1
-        self._trade_sig = None               # skip redundant rebuilds
+        self._trade_sig: Optional[tuple[int, Optional[float]]] = None   # skip redundant rebuilds
         root = QVBoxLayout(self)
         root.setContentsMargins(theme.S4, theme.S3, theme.S4, theme.S4)
         root.setSpacing(theme.S3)
@@ -171,7 +171,8 @@ class TradeLogPanel(QWidget):
             if not path:                            # cancelled, retain log
                 return
             try:
-                csv_text = build_trade_csv(trades, starting_cash)
+                # TradeRow mirrors TradeRecord field for field
+                csv_text = build_trade_csv(cast('tuple[TradeRecord, ...]', trades), starting_cash)
                 with open(path, "w", encoding="utf-8", newline="") as fh:
                     fh.write(csv_text)
             except Exception as exc:                # keep failures out of the event loop

@@ -26,6 +26,13 @@ _TIP_NOTE = ("Tip: arm a price threshold just inside the live mark "
              "(use mark - 0.1%) - it fires within about one poll.")
 
 
+
+def _spin_value(box: QWidget) -> int:
+    spin = box.findChild(QSpinBox)
+    assert spin is not None
+    return spin.value()
+
+
 class AlertDialog(QDialog):
     arm_requested = Signal(object)            # dict: condition_type, params, direction
 
@@ -253,9 +260,9 @@ class AlertDialog(QDialog):
 
     def _raw_params(self) -> dict:
         ct = self._condition_type()
-        sma = self._sma.findChild(QSpinBox).value()
-        ema = self._ema.findChild(QSpinBox).value()
-        rsi = self._rsi.findChild(QSpinBox).value()
+        sma = _spin_value(self._sma)
+        ema = _spin_value(self._ema)
+        rsi = _spin_value(self._rsi)
         if ct == PRICE_SMA_CROSS:
             return {"sma_period": sma}
         if ct == SMA_EMA_CROSS:
@@ -278,7 +285,7 @@ class AlertDialog(QDialog):
             self._arm.setEnabled(False)
             return
         ok, params, reason = validate_params(ct, self._raw_params())
-        if not ok:
+        if not ok or params is None:
             self._error.setText(reason)
             self._error.show()
             self._arm.setEnabled(False)

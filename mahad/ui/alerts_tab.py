@@ -98,7 +98,7 @@ class AlertsTab(QWidget):
         # drop rows but keep the empty label and trailing stretch
         while self._list.count() > 2:
             item = self._list.takeAt(0)
-            w = item.widget()
+            w = item.widget() if item is not None else None
             if w is not None and w is not self._empty:
                 w.deleteLater()
         self._empty.setVisible(view.is_empty)

@@ -503,16 +503,17 @@ class ChartView(QWidget):
             pass
 
     def _render_rsi(self, snap: RenderSnapshot) -> None:
-        rsi_on = snap.rsi is not None
-        if rsi_on:
+        rsi = snap.rsi
+        rsi_on = rsi is not None
+        if rsi is not None:
             try:
-                self._rsi_tag.setText(f"RSI {snap.rsi.period}")
+                self._rsi_tag.setText(f"RSI {rsi.period}")
                 self._place_rsi_tag()
             except Exception:  # nosec B110 - degrade boundary
                 pass
-        if rsi_on and snap.rsi.points:
-            self._rsi_curve.setData([p[0] for p in snap.rsi.points],
-                                    [p[1] for p in snap.rsi.points])
+        if rsi is not None and rsi.points:
+            self._rsi_curve.setData([p[0] for p in rsi.points],
+                                    [p[1] for p in rsi.points])
             self._rsi_curve.setOpacity(1.0 if snap.live else 0.45)
         else:
             self._rsi_curve.setData([], [])

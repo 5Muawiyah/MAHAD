@@ -209,7 +209,7 @@ class WatchlistPanel(QFrame):
         hh.addWidget(self._summary)
         head.setCursor(Qt.CursorShape.PointingHandCursor)
         self._head = head
-        head.mousePressEvent = self._on_head_press           # click anywhere on the header to toggle
+        head.mousePressEvent = self._on_head_press  # type: ignore[method-assign]  # a click anywhere on the header toggles
         root.addWidget(head)
 
         add_box = QWidget()
@@ -383,9 +383,9 @@ class WatchlistPanel(QFrame):
         # otherwise tear down and rebuild; the list is small so this is cheap
         while self._rows_layout.count():
             item = self._rows_layout.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.deleteLater()
+            old = item.widget() if item is not None else None
+            if old is not None:
+                old.deleteLater()
         self._row_widgets = []
 
         if not state.rows:
