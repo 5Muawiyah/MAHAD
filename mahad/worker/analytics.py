@@ -53,9 +53,8 @@ class AnalyticsMixin(WorkerState):
     def _rebuild_risk_analytics(self) -> None:
         try:
             self._build_asset_data()
-            self._refresh_analytics_view()
             self._accrue_backtest()
-            self._refresh_analytics_view()            # counts may have moved
+            self._refresh_analytics_view()            # after the accrual, so the counts are current
             self._integrity = self._build_integrity_view()
             self._risk_dirty = False
             self._emit_snapshot(None)

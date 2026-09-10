@@ -205,9 +205,10 @@ class PollWorker(AlertsMixin, PortfolioMixin, DailyHistoryMixin, AnalyticsMixin,
     def _poll(self) -> None:
         if self._stop or _interrupted() or not self._symbol or self._source is None:
             return
-        if self._monotonic() < self._backoff_until:                # capped backoff
-            return                                                 # (timer ticks skipped; user
-        result = self._source.fetch(self._symbol, self._timeframe)  # intents clear the window)
+        # inside a capped backoff the timer ticks are skipped; a user intent clears the window
+        if self._monotonic() < self._backoff_until:
+            return
+        result = self._source.fetch(self._symbol, self._timeframe)
         _active_provider = "kraken" if is_crypto_symbol(self._symbol) else "finnhub"
         error_reason: Optional[str] = None
         if result.ok:
