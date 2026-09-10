@@ -4,7 +4,7 @@
 
 MAHAD is a single-user desktop workstation that runs a simulated USD portfolio on live market data and reports market-risk figures over it. The requirements below are what the program as it stands in the repository is required to do and not to do; each names the test, or the check, that proves it.
 
-In scope: live stock and crypto prices with charting and indicators, a watchlist, simulated orders against an exact ledger, the risk figures on two bases, the market-context tiles, one-shot alerts, local persistence, the handling of the three optional free keys, and the headless report export.
+In scope: live stock and crypto prices with charting and indicators, a watchlist, simulated orders against an exact ledger, the risk figures on two bases, the market-context tiles, one-shot alerts, local persistence, the handling of the three optional free keys, and the report export, which runs headless (without the window).
 
 Out of scope: any connection to a brokerage or trading account, any real order, any currency other than USD for the book (a GBP view is display only), multi-user or networked operation, and any form of investment advice.
 
@@ -24,7 +24,7 @@ FR-02. The program shall fetch crypto marks and candles from Kraken's public end
 
 FR-03. Every provider failure shall be returned as a typed value (timeout, network, empty, bad data, needs key, invalid key, unknown) and never raised into the worker. Proof: `test_kraken_network_failure_is_a_value`, `test_finnhub_401_is_invalid_key`, `test_tiingo_network_failure_is_a_value` and `test_kraken_malformed_payload_is_a_value` in `test_market_data_providers.py`; `test_treasury_failures_are_values_never_raises` in `test_market_context.py`; `test_fx_failures_are_values` in `test_fx_rates_providers.py`.
 
-FR-04. Provider rows shall normalise into frozen `Quote` and `Candle` values: malformed and non-positive rows dropped, duplicates removed, bars sorted, capped at 500, and the last bar flagged as forming. Proof: `test_ohlcv_normalises_sorts_dedupes_and_marks_forming`, `test_dedupe_key_is_symbol_timeframe_ts` and `test_history_cap_keeps_most_recent` in `test_normalisation.py`; `test_normalize_ohlcv_total_on_junk` in `test_fuzz.py`.
+FR-04. Provider rows shall normalise into frozen (unchangeable once built) `Quote` and `Candle` values: malformed and non-positive rows dropped, duplicates removed, bars sorted, capped at 500, and the last bar flagged as forming. Proof: `test_ohlcv_normalises_sorts_dedupes_and_marks_forming`, `test_dedupe_key_is_symbol_timeframe_ts` and `test_history_cap_keeps_most_recent` in `test_normalisation.py`; `test_normalize_ohlcv_total_on_junk` in `test_fuzz.py`.
 
 FR-05. A quote older than three poll intervals or fifteen seconds, whichever is longer, shall be marked stale; on a failed fetch the last good quote shall be kept and shown as stale. Proof: `test_staleness_window_floor_and_multiple` and `test_is_stale_boundary` in `test_normalisation.py`; `test_worker_poll_source_failure_keeps_last_good` in `test_robustness.py`.
 
@@ -106,7 +106,7 @@ FR-35. The three keys shall be read from a `.env` file or the environment, never
 
 FR-36. The program shall hold no trading credential of any kind and shall call only Kraken's public endpoints. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
 
-FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup and path traversal (text shaped like a file path) are rejected at the symbol gate, and parameters are canonicalised before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
+FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup (HTML-style tags) and path traversal (text shaped like a file path) are rejected at the symbol gate, and parameters are canonicalised (written in one fixed form) before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
 
 ### Exports and the report
 
@@ -132,7 +132,7 @@ NFR-05. Compute-side latency, measured as benchmark medians wherever the suite r
 
 NFR-06. Without a network the program shall keep the last good prices marked stale, back off to at most 60 seconds between attempts, pause alerts, and show the cached context tiles. Proof: `test_worker_poll_source_failure_keeps_last_good` and `test_worker_stale_quote_pauses_alerts_no_fire` in `test_robustness.py`; `test_backoff_caps_at_config_ceiling` and `test_backoff_resets_on_success_and_user_intent_bypasses` in `test_worker_switch.py`; `test_context_failure_keeps_cached_values_with_an_honest_note` and `test_load_context_cache_restores_tiles_offline` in `test_worker_context.py`.
 
-NFR-07. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the heap by less than 8 MiB. Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_ten_k_value_samples_bounded_deque_and_risk`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
+NFR-07. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the program's memory by less than 8 MiB (8 x 1,048,576 bytes). Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_ten_k_value_samples_bounded_deque_and_risk`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
 
 NFR-08. Hostile or malformed input shall never raise out of an adapter, a validator or a worker method. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
 

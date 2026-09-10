@@ -44,7 +44,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Ex-ante.** Computed in advance. An ex-ante backtest series is one where every forecast was recorded before the day it covered.
 
-**Expected Shortfall (ES).** The average loss on the days that breach the VaR. At the same confidence it is never smaller than the VaR. MAHAD reports it at 97.5%, the level the Basel market-risk rules moved to.
+**Expected Shortfall (ES).** The average loss over the worst days in the window, the VaR day included, so at the same confidence it is never smaller than the VaR. MAHAD reports it at 97.5%, the level the Basel market-risk rules moved to.
 
 **Exposure.** The value held in positions as a share of the whole portfolio, cash included.
 
@@ -53,6 +53,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **Fixture.** A captured provider payload or a small known data set stored with the tests, so the adapters and calculations are checked against real shapes without any network.
 
 **Forming bar.** The candle for the current period, which changes until the period ends. Indicators and alerts ignore it.
+
+**Headless.** Running without a window: the test suite and the report export both run this way, with no display and no Qt widgets.
 
 **Heartbeat.** The worker's five-second timer that drives the slow work off a wall-clock grid: sampling the portfolio value, refreshing one context source, refreshing one symbol's daily history, rebuilding the analytics.
 
