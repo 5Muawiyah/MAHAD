@@ -4,17 +4,17 @@ MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, a risk 
 
 ## Who it is for
 
-MAHAD is for anyone who wants to see how a risk desk's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents, where every figure has a stated method and a test. On a laptop and real prices it runs the standard calculations risk teams in banks and funds use to answer one question all day, how much could we lose if prices move against us and how sure are we, so the figures can be checked line by line. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) the hand-worked answers the tests check against.
+MAHAD is for anyone who wants to see how a risk desk's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents, where every figure has a stated method and a test. It runs on a laptop, with real prices, the standard calculations risk teams in banks and funds use to answer one question all day: how much could we lose if prices move against us, and how sure are we. Every figure can be checked line by line. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) the hand-worked answers the tests check against.
 
 ## A guided tour
 
 ![The MAHAD dashboard](images/dashboard.png)
 
-The chart of the active symbol fills the left, price in the corner (here Apple at 312.06 USD, up 0.59%), and the watchlist and risk panel sit on the right. The portfolio tab at the bottom, beside the alerts and trade log tabs, shows cash, total value, and profit and loss split into realised (on trades already closed) and unrealised (on positions still held).
+The chart of the active symbol fills the left, price in the corner (here Apple at 312.06 USD, up 0.59%) and the 1m to 1mo buttons beside the symbol setting how much time each bar covers; the watchlist and risk panel sit on the right. The portfolio tab at the bottom, beside the alerts and trade log tabs, shows cash, total value, and profit and loss split into realised (on trades already closed) and unrealised (on positions still held).
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
-The chart draws the closing price with a 20-day simple and a 12-day exponential moving average over it, and below it the 14-day relative strength index, a 0 to 100 gauge read as overbought above 70 and oversold below 30. The 1m to 1mo buttons at the top left set how much time each bar covers, and every line is drawn on completed bars only.
+The chart draws the closing price with a 20-day simple and a 12-day exponential moving average over it, and below it the 14-day relative strength index, a 0 to 100 gauge read as overbought above 70 and oversold below 30. Every line is drawn on completed bars only.
 
 ![Watchlist](images/watchlist.png)
 
