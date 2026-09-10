@@ -311,6 +311,7 @@ class PortfolioMixin(WorkerState):
             self._portfolio = PortfolioState(cash=pp.cash, realised_pnl=pp.realised_pnl,
                                              positions=())
             self._value_history = deque(maxlen=config.VALUE_HISTORY_CAP)   # re-base
+            self._refresh_analytics_view()  # the book is empty, so the old figures must not stand
             try:
                 peak = self._repo.get_peak()
                 self._peak_value, self._peak_ts = peak.peak_value, peak.peak_ts

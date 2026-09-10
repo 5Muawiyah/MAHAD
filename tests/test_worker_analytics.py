@@ -301,6 +301,23 @@ def test_accrual_resolves_on_the_forecasts_own_next_day(tmp_path):
     assert resolved[0].realised_pct == pytest.approx(aapl[true_next], abs=1e-12)
 
 
+def test_reset_clears_the_analytics_view(tmp_path):
+    from tests._book import AAPL, MSFT, seed
+    path = tmp_path / "reset.db"
+    seed(path)
+    w = PollWorker(symbol="AAPL", timeframe="1d", db_url=f"sqlite:///{path.as_posix()}")
+    w._open_repo()
+    w._load_portfolio()
+    w._load_sectors()
+    w._wallclock = lambda: 1000.0
+    for sym, bars in (("AAPL", AAPL), ("MSFT", MSFT)):
+        w._marks[sym] = Quote(sym, bars[-1].close, time.time(), "test")
+    w._rebuild_risk_analytics()
+    assert w._analytics.available and w._analytics.hhi is not None
+    w.reset_portfolio({})
+    assert w._analytics.available is False and "no positions" in w._analytics.note
+    w.stop()
+
 def test_reset_clears_the_backtest_series(tmp_path):
     w = _worker(tmp_path)
     repo = w._repo
