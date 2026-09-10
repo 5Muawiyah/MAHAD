@@ -26,7 +26,7 @@ The top of the panel shows exposure (how much of the value, its net asset value 
 
 ![The risk panel with the market context section open](images/market-context.png)
 
-The market context section is the backdrop: the US Treasury 10-year yield and the gap between the two-year and ten-year yields (35 [basis points](glossary.md#basis-point), or 0.35 percentage points; the ten-year paying more is the normal shape). Below them sit the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear) and the two UK rates, [SONIA](glossary.md#sonia) and the [Bank Rate](glossary.md#bank-rate).
+The market context section is the backdrop: the US Treasury 10-year yield and the gap between the two-year and ten-year yields (35 [basis points](glossary.md#basis-point); the ten-year paying more is the normal shape). Below them sit the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear) and the two UK rates, [SONIA](glossary.md#sonia) and the [Bank Rate](glossary.md#bank-rate).
 
 ![Simulated order ticket](images/order-ticket.png)
 
@@ -71,7 +71,7 @@ MAHAD holds no brokerage account and cannot place a real order. The portfolio is
 
 ## The report export
 
-`python -m mahad.report` writes the portfolio's risk figures to a CSV file without opening the window and without writing to the database, so it runs while the program is open. Every row carries seven columns: the metric, its value and unit, the basis, the period where the figure has one, the date and a note.
+`python -m mahad.report` writes the portfolio's risk figures to a CSV file without opening the window and without writing to the database, so it runs while the program is open. Every row carries seven columns: the metric, its value and unit, the basis it is worked out on, the period where the figure has one, the date and a note.
 
 ## How to run it
 
