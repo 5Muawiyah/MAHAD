@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mahad"
-description = "A desktop market-risk workstation for live stock and crypto markets"
+description = "A desktop risk tool for live stock and crypto markets"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11,<3.14"
