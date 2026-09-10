@@ -1,6 +1,6 @@
 # MAHAD in plain English
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, and nothing is ever sent to a broker.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a risk desk works by, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, and nothing is ever sent to a broker.
 
 ## Who it is for
 
@@ -10,7 +10,7 @@ MAHAD is for anyone who wants to see how a risk desk's figures are produced and 
 
 ![The MAHAD dashboard](images/dashboard.png)
 
-The chart of the active symbol fills the left, price in the corner (here Apple at 312.06 USD, up 0.59%), and the watchlist and risk panel sit on the right. Along the bottom are three tabs: alerts, the portfolio and the trade log. The portfolio tab shows cash, total value, and profit and loss split into realised (on trades already closed) and unrealised (on positions still held).
+The chart of the active symbol fills the left, price in the corner (here Apple at 312.06 USD, up 0.59%), and the watchlist and risk panel sit on the right. The portfolio tab at the bottom, beside the alerts and trade log tabs, shows cash, total value, and profit and loss split into realised (on trades already closed) and unrealised (on positions still held).
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
@@ -48,7 +48,7 @@ Historical VaR reads the figure from what happened instead: with 100 days of ret
 
 The backtest checks the VaR against what happened: at 99% over 250 trading days the loss should breach it two or three times. The Basel traffic light, which banking supervisors use, calls up to four breaches green, five to nine yellow and ten or more red; the Kupiec test asks the same question statistically and also flags a model that breaches too rarely.
 
-Drawdown is the fall from a peak. A value that goes 100, 110, 99, 104.5, 112, 108 has a maximum drawdown of minus 10%, the fall from 110 to 99. Concentration uses the Herfindahl-Hirschman Index: weights of 50%, 30% and 20% give 0.38, equivalent to about 2.6 equal positions. Beta says how much the portfolio moves with the market: 1.16 means a 1% market move tends to bring a 1.16% move. Sharpe divides the return above a risk-free rate (what a three-month US Treasury bill pays, read from the same Treasury data as the yield tile and shown in the analytics section) by the variation it took to earn it; Sortino divides the plain return by the downside variation only.
+Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 has a maximum drawdown of minus 10%, the fall from 110 to 99. Concentration uses the Herfindahl-Hirschman Index: weights of 50%, 30% and 20% give 0.38, equivalent to about 2.6 equal positions. Beta says how much the portfolio moves with the market: 1.16 means a 1% market move tends to bring a 1.16% move. Sharpe divides the return above a risk-free rate (what a three-month US Treasury bill pays, read from the same Treasury data as the yield tile and shown in the analytics section) by the variation it took to earn it; Sortino divides the plain return by the downside variation only.
 
 ## Where the data comes from
 
@@ -71,7 +71,7 @@ MAHAD holds no brokerage account and cannot place a real order; it uses only Kra
 
 ## The report export
 
-`python -m mahad.report` writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet opens) without the window and without writing to the database, so it can run while the program is open. Every row states the metric, its value and unit, its period and series, the date, and a note when the database lacks something the figure needs.
+`python -m mahad.report` writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet opens) without the window and without writing to the database, so it can run while the program is open. Every row states the metric, its value and unit, the period it covers and the price history it is measured on (its basis), the date, and a note when the database lacks something the figure needs.
 
 ## How to run it
 

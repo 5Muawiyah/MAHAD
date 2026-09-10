@@ -18,13 +18,13 @@
 |---|---|
 | [Overview](docs/overview.md) | what MAHAD is, a tour of the screens, what the numbers mean |
 | [Technical guide](docs/architecture.md) | the layering, the worker thread, persistence, the providers, the tests |
-| [Requirements](docs/requirements.md) | the functional and non-functional requirements, user stories, traceability to tests |
-| [Data dictionary](docs/data-dictionary.md) | the SQLite schema, provider fields, derived figures, the report CSV |
+| [Requirements](docs/requirements.md) | what the program must do and how well, the user journeys with their acceptance checks, and which test proves each point |
+| [Data dictionary](docs/data-dictionary.md) | the database's tables and columns, the provider fields, the derived figures, the report file |
 | [Risk methodology](docs/risk-methodology.md) | every formula and convention |
 | [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a risk desk works by, one screen) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
@@ -58,7 +58,7 @@ On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) 
 
 <img src="docs/images/market-context.png" alt="The risk panel with the market context section open" width="330" align="right">
 
-The market backdrop in one place, at the foot of the risk panel: the 10-year Treasury yield and the 2s10s spread (the gap between two- and ten-year yields), the VIX volatility index, the crypto Fear & Greed index, and the UK rates (SONIA, the sterling overnight rate, and the Bank Rate). All of these but the VIX run without a key; the VIX tile needs the free FRED key.
+The market backdrop in one place, at the foot of the risk panel: the 10-year Treasury yield and the 2s10s spread (the gap between two- and ten-year yields), the VIX volatility index, the crypto Fear & Greed index, and the UK rates (SONIA, the sterling overnight rate, and the Bank Rate). All of these but the VIX run without a key; the VIX tile needs the free key for FRED, the St. Louis Fed's data service.
 
 <br clear="all">
 
@@ -86,13 +86,13 @@ Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each
 
 ## What this demonstrates
 
-The window is a PySide6 and Qt desktop application (Qt is the window toolkit) with a dark design system that meets the WCAG AA contrast standard. Each of the eight data sources sits behind an adapter (a small module that talks to one provider) that reports failures as values rather than raising errors, so a missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md). The code is layered one way (ui to worker to engine to data), the engine is pure Python with no Qt, and the suite runs without a display on every push, as the badge above shows.
+The window is a PySide6 and Qt desktop application (Qt is the window toolkit and PySide6 its Python form) with a dark design system that meets the WCAG AA contrast standard. Each of the eight data sources sits behind an adapter (a small module that talks to one provider) that reports failures as values rather than raising errors, so a missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md). The code is layered one way (ui to worker to engine to data), the engine is pure Python with no Qt, and the test suite runs without a display on every change sent to GitHub, as the badge above shows.
 
 ## How it is built
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-In plain terms, the screen asks, a background thread does the work and reports back. The window renders and sends intents (requests such as add a symbol or place an order); one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that reports failures as values and owns the SQLite database file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and the module map.
+The screen asks, a background thread does the work and reports back. The window renders and sends intents (requests such as add a symbol or place an order); one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that reports failures as values and owns the SQLite database file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
 
 ## Report export
 
@@ -117,7 +117,7 @@ cd MAHAD
 
 On Windows double-click `MAHAD.bat`, which sets up its own environment on the first run and then launches; on macOS or Linux run `bash run.sh`.
 
-MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK rates and the Fear & Greed gauge all work with no key, and a live BTC/USD chart appears within seconds of selecting it in the watchlist.
+MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK rates and the Fear & Greed gauge all work with no key.
 
 ### API keys (optional, free)
 
@@ -138,7 +138,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The suite is headless (no network, no display): it covers the risk maths, the data adapters (checked against saved sample responses from each provider), and the window's source text (the strings, colours and wiring the design depends on).
+The suite is headless (no network, no display): it covers the risk maths, the data adapters (checked against saved sample responses from each provider), and the window's source code (the words on screen, the colours and the shortcuts the design depends on).
 
 ---
 
