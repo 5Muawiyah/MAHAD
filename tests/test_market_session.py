@@ -13,7 +13,7 @@ from mahad.engine.market_session import (CLOSE_T, OPEN_T, _coarse_relative,
 HOLIDAYS_FULL = holidays_full(2026)  # computed per-year, not a hand-typed constant
 EARLY_CLOSES = early_closes(2026)
 
-UTC = dt.timezone.utc
+UTC = dt.UTC
 
 
 def at(y, m, d, hh, mm):
@@ -131,7 +131,7 @@ def test_holidays_and_early_closes_stay_disjoint_across_years():
 
 def test_session_state_uses_the_computed_year_2027():
     def at(y, mo, d, h, mi=0):
-        return dt.datetime(y, mo, d, h, mi, tzinfo=dt.timezone.utc)
+        return dt.datetime(y, mo, d, h, mi, tzinfo=dt.UTC)
     # MLK Day 2027 (Jan 18): 11:00 ET = 16:00 UTC - closed despite a weekday
     assert session_state("stock", at(2027, 1, 18, 16, 0)) == "closed"
     # next day, same wall-clock instant, is a regular open Tuesday

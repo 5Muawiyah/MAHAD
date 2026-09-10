@@ -47,7 +47,7 @@ include = ["mahad*"]
 
 [tool.ruff]
 line-length = 118
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -73,11 +73,13 @@ ignore = [
 # Tests use odd inputs and long literal tables by design.
 "tests/*" = ["E501", "SIM117", "B017", "E402", "RUF001", "RUF059", "RUF015", "B905", "RUF007", "RUF005", "E731"]
 "mahad/engine/signals.py" = ["SIM102"]   # the nested condition is intentional
+"mahad/engine/returns.py" = ["UP017"]    # pinned to the verification vectors; timezone.utc stays as written
+"mahad/data/source.py" = ["UP042"]       # a StrEnum would change str() on the error kinds
 
 # --- mypy -------------------------------------------------------------------
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 
 # pyqtgraph ships no type stubs.
 [[tool.mypy.overrides]]

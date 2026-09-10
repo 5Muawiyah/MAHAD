@@ -5,7 +5,7 @@ import datetime as dt
 from mahad.data.models import Candle
 from mahad.engine.resample import RESAMPLE_TIMEFRAMES, resample_daily_candles
 
-UTC = dt.timezone.utc
+UTC = dt.UTC
 
 
 def _day(y, m, d, o, h, lo, c, v=10.0):

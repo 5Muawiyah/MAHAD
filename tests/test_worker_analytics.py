@@ -40,7 +40,7 @@ def _trading_bars(start: dt.date, closes, adj_offset=0.0):
     while i < len(closes):
         if is_us_trading_day(d):
             ts = dt.datetime(d.year, d.month, d.day,
-                             tzinfo=dt.timezone.utc).timestamp()
+                             tzinfo=dt.UTC).timestamp()
             c = closes[i]
             out.append(_Bar(ts=ts, open=c, high=c + 1, low=c - 1, close=c,
                             adj_close=c + adj_offset, volume=1e6,
@@ -197,7 +197,7 @@ def test_accrual_resolves_with_the_prior_days_weights(tmp_path):
     last_r = w._asset_returns["AAPL"][-1][1]           # -0.019608
     prior_day = grid[-2]
     prior_ts = dt.datetime(prior_day.year, prior_day.month, prior_day.day,
-                           tzinfo=dt.timezone.utc).timestamp()
+                           tzinfo=dt.UTC).timestamp()
     # stored weights 0.5 -> realised -0.98%; current ~0.09 -> -0.18%.
     # var99 = 0.5% sits between: only the stored-weights path excepts.
     w._repo.upsert_backtest_forecast(prior_ts, 0.005, {"AAPL": 0.5})
@@ -260,7 +260,7 @@ def test_accrual_resolves_on_the_forecasts_own_next_day(tmp_path):
     w._build_asset_data()
     aapl = dict(w._asset_returns["AAPL"])
     f_day = dt.date(2026, 5, 5)                        # an early AAPL-book forecast
-    f_ts = dt.datetime(2026, 5, 5, tzinfo=dt.timezone.utc).timestamp()
+    f_ts = dt.datetime(2026, 5, 5, tzinfo=dt.UTC).timestamp()
     w._repo.upsert_backtest_forecast(f_ts, 0.001, {"AAPL": 1.0})
     w._accrue_backtest()
     resolved = w._repo.list_resolved_backtest_rows()

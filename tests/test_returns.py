@@ -10,7 +10,7 @@ from mahad.engine import returns as R
 
 def _ts(d: dt.date) -> float:
     return dt.datetime(d.year, d.month, d.day,
-                       tzinfo=dt.timezone.utc).timestamp()
+                       tzinfo=dt.UTC).timestamp()
 
 
 # hand-checked reference values, the answer key

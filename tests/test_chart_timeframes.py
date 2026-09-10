@@ -12,7 +12,7 @@ from mahad import config
 from mahad.data.models import Candle
 from tests.test_worker_switch import _series, _worker
 
-UTC = dt.timezone.utc
+UTC = dt.UTC
 
 
 def _daily(symbol, items):

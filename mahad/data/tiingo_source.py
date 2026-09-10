@@ -53,7 +53,7 @@ def _parse_tiingo_date(raw: object) -> Optional[float]:
     if not text:
         return None
     try:
-        dt = _dt.datetime.fromisoformat(text).replace(tzinfo=_dt.timezone.utc)
+        dt = _dt.datetime.fromisoformat(text).replace(tzinfo=_dt.UTC)
     except ValueError:
         return None
     return dt.timestamp()

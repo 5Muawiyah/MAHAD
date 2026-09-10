@@ -90,7 +90,7 @@ def early_closes(year: int) -> dict[_dt.date, _dt.time]:
 def _new_york(now_utc: _dt.datetime) -> _dt.datetime:
     # falls back to the US DST rule of thumb when IANA tz data is missing
     if now_utc.tzinfo is None:
-        now_utc = now_utc.replace(tzinfo=_dt.timezone.utc)
+        now_utc = now_utc.replace(tzinfo=_dt.UTC)
     try:
         from zoneinfo import ZoneInfo
         return now_utc.astimezone(ZoneInfo(_NY))
@@ -112,9 +112,9 @@ def session_state(asset_class: str,
     if asset_class == "crypto":
         return "open24"
     if now_utc is None:
-        now = _dt.datetime.now(_dt.timezone.utc)
+        now = _dt.datetime.now(_dt.UTC)
     elif isinstance(now_utc, (int, float)):
-        now = _dt.datetime.fromtimestamp(float(now_utc), _dt.timezone.utc)
+        now = _dt.datetime.fromtimestamp(float(now_utc), _dt.UTC)
     else:
         now = now_utc
     local = _new_york(now)
@@ -136,11 +136,11 @@ def _is_trading_day(d: _dt.date) -> bool:
 
 def _as_utc(now_utc: _dt.datetime | float | None) -> _dt.datetime:
     if now_utc is None:
-        return _dt.datetime.now(_dt.timezone.utc)
+        return _dt.datetime.now(_dt.UTC)
     if isinstance(now_utc, (int, float)):
-        return _dt.datetime.fromtimestamp(float(now_utc), _dt.timezone.utc)
+        return _dt.datetime.fromtimestamp(float(now_utc), _dt.UTC)
     if now_utc.tzinfo is None:
-        return now_utc.replace(tzinfo=_dt.timezone.utc)
+        return now_utc.replace(tzinfo=_dt.UTC)
     return now_utc
 
 

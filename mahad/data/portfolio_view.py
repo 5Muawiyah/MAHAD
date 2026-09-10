@@ -91,7 +91,7 @@ def build_value_history_csv(rows: tuple[tuple[float, float, bool], ...]) -> str:
     import datetime as _dt
     lines = [VALUE_HISTORY_CSV_HEADER]
     for ts, value, stale in rows:
-        iso = _dt.datetime.fromtimestamp(float(ts), _dt.timezone.utc).isoformat()
+        iso = _dt.datetime.fromtimestamp(float(ts), _dt.UTC).isoformat()
         lines.append(f"{iso},{float(ts):.3f},{value!r},{str(bool(stale)).lower()}")
     return "\n".join(lines) + "\n"
 

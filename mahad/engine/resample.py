@@ -25,7 +25,7 @@ def resample_daily_candles(daily: Sequence[Candle], timeframe: str) -> tuple[Can
     sym = daily[0].symbol
     groups: list[tuple[tuple[int, ...], list[Candle]]] = []
     for i, cd in enumerate(daily):
-        d = _dt.datetime.fromtimestamp(cd.ts, _dt.timezone.utc).date()
+        d = _dt.datetime.fromtimestamp(cd.ts, _dt.UTC).date()
         key = _bucket_key(d, timeframe, i)
         if groups and groups[-1][0] == key:
             groups[-1][1].append(cd)

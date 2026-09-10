@@ -1123,7 +1123,7 @@ class PollWorker(QObject):
         if latest is not None:
             import datetime as _dt
             start_date = _dt.datetime.fromtimestamp(
-                latest, _dt.timezone.utc).date().isoformat()
+                latest, _dt.UTC).date().isoformat()
         res = fetcher(symbol, start_date)
         if not getattr(res, "ok", False):
             self._note_provider("tiingo", getattr(res, "error", None))
@@ -1582,7 +1582,7 @@ class PollWorker(QObject):
         union_dates = sorted(day_maps)
         for row in open_rows:
             f_date = _dt.datetime.fromtimestamp(
-                row.forecast_ts, _dt.timezone.utc).date()
+                row.forecast_ts, _dt.UTC).date()
             # the forecast's own next trading day with usable returns
             resolved = False
             for nxt in union_dates:
@@ -1617,7 +1617,7 @@ class PollWorker(QObject):
             return
         last = list(pr.dates)[-1]
         last_ts = _dt.datetime(last.year, last.month, last.day,
-                               tzinfo=_dt.timezone.utc).timestamp()
+                               tzinfo=_dt.UTC).timestamp()
         try:
             self._repo.upsert_backtest_forecast(last_ts, var99.value, weights)
         except Exception:

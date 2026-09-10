@@ -212,7 +212,7 @@ def fetch_fear_greed(timeout: float = CONTEXT_TIMEOUT_S,
         value = int(str(first.get("value")))
         classification = str(first.get("value_classification") or "").strip()
         ts = float(str(first.get("timestamp")))
-        as_of = _dt.datetime.fromtimestamp(ts, _dt.timezone.utc).date().isoformat()
+        as_of = _dt.datetime.fromtimestamp(ts, _dt.UTC).date().isoformat()
         if not 0 <= value <= 100:
             raise ValueError(f"value out of range: {value}")
         return ContextResult(source, data={"value": value, "as_of": as_of,
