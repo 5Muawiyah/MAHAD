@@ -9,6 +9,7 @@ from mahad import config
 from mahad.data.portfolio_view import ContributionRow, RiskAnalyticsView, StressRow
 from mahad.data.repository import SECTORS_KEY
 from mahad.data.source import is_crypto_symbol
+from mahad.engine.analytics import backtest_summary, sector_map, stress_rows
 from mahad.engine import returns as eng_returns
 from mahad.engine import risk_metrics as eng_rm
 from mahad.engine.portfolio import unrealised
@@ -19,13 +20,7 @@ log = logging.getLogger("mahad.worker")
 
 class AnalyticsMixin(WorkerState):
     def _load_sectors(self) -> None:
-        # local fallback map, overlaid with whatever profile2 lookups we've cached
-        self._sectors = dict(config.DEFAULT_SECTOR_MAP)
-        cached = self._get_setting(SECTORS_KEY)
-        if isinstance(cached, dict):
-            for k, v in cached.items():
-                if isinstance(k, str) and isinstance(v, str) and v:
-                    self._sectors[k] = v
+        self._sectors = sector_map(self._get_setting(SECTORS_KEY))
 
     def _sector_for(self, symbol: str) -> str:
         if is_crypto_symbol(symbol):
@@ -194,21 +189,9 @@ class AnalyticsMixin(WorkerState):
                 x, t = self._repo.backtest_counts(config.RISK_WINDOW)
             except Exception:
                 log.exception("backtest counts read failed")
-        mode = "ex-ante" if t >= config.RISK_WINDOW else "accruing"
-        bx, bt = x, t
-        if t < config.RISK_WINDOW:
-            # roll the trailing window across the full cached series
-            pr_full = eng_returns.portfolio_returns(weights,
-                                                    self._asset_returns,
-                                                    window=0)
-            bc = eng_rm.backcast_exceptions(list(pr_full.returns),
-                                            config.BACKTEST_CONFIDENCE,
-                                            config.RISK_WINDOW)
-            if bc is not None and bc.observations > 0:
-                mode = "backcast"
-                bx, bt = bc.exceptions, bc.observations
-        kup = (eng_rm.kupiec_pof(bx, bt, 1.0 - config.BACKTEST_CONFIDENCE)
-               if bt > 0 else None)
+        backtest = backtest_summary(x, t, weights, self._asset_returns)
+        mode, bx, bt, kup = (backtest.mode, backtest.exceptions,
+                             backtest.observations, backtest.kupiec)
         # P&L-to-risk linkage: total P&L against the 1-day 95% VaR
         marks_dec = {}
         for p in self._portfolio.positions:
@@ -281,39 +264,8 @@ class AnalyticsMixin(WorkerState):
             unreal_to_var95=unreal_to_var,
             var_history=var_hist, var_trend=var_trend)
 
-    def _stress_window_return(self, scenario: str, symbol: str, start: str,
-                              end: str) -> Optional[tuple[float, str]]:
-        # prefer the cached close-to-close return, fall back to a cited constant, else nothing
-        closes = self._asset_closes.get(symbol)
-        if closes:
-            d0 = _dt.date.fromisoformat(start)
-            d1 = _dt.date.fromisoformat(end)
-            inside = [(d, c) for d, c in closes if d0 <= d <= d1]
-            if (len(inside) >= 2
-                    and (inside[0][0] - d0).days <= 5
-                    and (d1 - inside[-1][0]).days <= 5):
-                return (inside[-1][1] / inside[0][1] - 1.0, "cache")
-        const = config.STRESS_CONSTANTS.get((scenario, symbol))
-        return None if const is None else (const, "constant")
-
     def _stress_rows(self, weights: dict[str, float], value: float) -> tuple[StressRow, ...]:
-        rows = []
-        for name, start, end in config.STRESS_SCENARIOS:
-            window_returns: dict[str, tuple[float, str]] = {}
-            for sym in weights:
-                entry = self._stress_window_return(name, sym, start, end)
-                if entry is not None:
-                    window_returns[sym] = entry
-            res = eng_rm.stress_replay(name, start, end, value, weights,
-                                       window_returns)
-            rows.append(StressRow(
-                scenario=name, start=start, end=end, pl_usd=res.pl_usd,
-                covered_weight=res.covered_weight,
-                legs_no_data=tuple(leg.symbol for leg in res.legs
-                                   if leg.window_return is None),
-                constant_legs=tuple(leg.symbol for leg in res.legs
-                                    if leg.source == "constant")))
-        return tuple(rows)
+        return stress_rows(weights, value, self._asset_closes)
 
     def _accrue_backtest(self) -> None:
         # settle yesterday's open forecasts against realised returns, then log today's

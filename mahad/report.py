@@ -13,6 +13,7 @@ from mahad import config
 from mahad.data.repository import (CONTEXT_KEY, RISK_TIMEFRAME_KEY, SECTORS_KEY,
                                    MahadRepository)
 from mahad.data.source import is_crypto_symbol
+from mahad.engine.analytics import backtest_summary, sector_map, stress_rows
 from mahad.engine import returns as eng_returns
 from mahad.engine import risk_metrics as eng_rm
 from mahad.engine.risk import (ValueSample, exposure, max_drawdown, simple_returns,
@@ -51,30 +52,6 @@ def open_read_only(path: Path) -> MahadRepository:
         return MahadRepository(read_only_url(path), create_tables=False)
     except Exception as exc:
         raise ReportError(f"could not open {path} read-only: {exc}") from None
-
-
-def _window_return(closes: dict[str, list[tuple[_dt.date, float]]], scenario: str,
-                   symbol: str, start: str, end: str) -> Optional[tuple[float, str]]:
-    # the cached close-to-close return over the window, else the cited constant, else nothing
-    series = closes.get(symbol)
-    if series:
-        d0, d1 = _dt.date.fromisoformat(start), _dt.date.fromisoformat(end)
-        inside = [(d, c) for d, c in series if d0 <= d <= d1]
-        if (len(inside) >= 2 and (inside[0][0] - d0).days <= 5
-                and (d1 - inside[-1][0]).days <= 5):
-            return inside[-1][1] / inside[0][1] - 1.0, "cache"
-    const = config.STRESS_CONSTANTS.get((scenario, symbol))
-    return None if const is None else (const, "constant")
-
-
-def _sectors(repo: MahadRepository) -> dict[str, str]:
-    sectors = dict(config.DEFAULT_SECTOR_MAP)
-    cached = repo.get_setting(SECTORS_KEY)
-    if isinstance(cached, dict):
-        for k, v in cached.items():
-            if isinstance(k, str) and isinstance(v, str) and v:
-                sectors[k] = v
-    return sectors
 
 
 def _risk_free_annual_pct(repo: MahadRepository) -> Optional[float]:
@@ -219,7 +196,7 @@ def build_rows(repo: MahadRepository, *, confidence: float = 0.95,
                         f"{pair[0]} and {pair[1]}" if pair else "the most or least correlated pair",
                         corr_win, day_as_of, corr_note))
 
-    sectors = _sectors(repo)
+    sectors = sector_map(repo.get_setting(SECTORS_KEY))
     position_values = {s: q * m for s, q, m in marked}
     conc = eng_rm.concentration(
         position_values,
@@ -251,14 +228,8 @@ def build_rows(repo: MahadRepository, *, confidence: float = 0.95,
 
     # -- the backtest at the Basel window, as the panel runs it -- #
     x, t = repo.backtest_counts(config.RISK_WINDOW)
-    mode = "ex-ante" if t >= config.RISK_WINDOW else "accruing"
-    bx, bt = x, t
-    if t < config.RISK_WINDOW:
-        full = eng_returns.portfolio_returns(weights, asset_returns, window=0)
-        bc = eng_rm.backcast_exceptions(list(full.returns), config.BACKTEST_CONFIDENCE,
-                                        config.RISK_WINDOW)
-        if bc is not None and bc.observations > 0:
-            mode, bx, bt = "backcast", bc.exceptions, bc.observations
+    backtest = backtest_summary(x, t, weights, asset_returns)
+    mode, bx, bt, kup = backtest.mode, backtest.exceptions, backtest.observations, backtest.kupiec
     basel = str(config.RISK_WINDOW)
     bt_basis = f"{mode}: 99% one-day VaR against realised returns"
     bt_note = ("" if bt > 0 else "no observations yet: the app logs one forecast per day, "
@@ -267,7 +238,6 @@ def build_rows(repo: MahadRepository, *, confidence: float = 0.95,
     rows.append(Row("backtest_observations", bt, "days", bt_basis, basel, day_as_of, bt_note))
     rows.append(Row("backtest_zone", eng_rm.basel_zone(bx) if bt > 0 else None, "zone",
                     "Basel traffic light: green 0-4, yellow 5-9, red 10+ exceptions", basel, day_as_of, bt_note))
-    kup = eng_rm.kupiec_pof(bx, bt, 1.0 - config.BACKTEST_CONFIDENCE) if bt > 0 else None
     rows.append(Row("kupiec_lr", kup.lr if kup else None, "statistic",
                     "proportion-of-failures likelihood ratio, chi-square(1)", basel, day_as_of, bt_note))
     rows.append(Row("kupiec_p", kup.p_value if kup else None, "p-value",
@@ -275,20 +245,12 @@ def build_rows(repo: MahadRepository, *, confidence: float = 0.95,
     rows.append(Row("kupiec_reject", kup.reject if kup else None, "flag",
                     "true when the Kupiec test rejects", basel, day_as_of, bt_note))
 
-    for name, start, end in config.STRESS_SCENARIOS:
-        window_returns: dict[str, tuple[float, str]] = {}
-        for sym in weights:
-            entry = _window_return(closes, name, sym, start, end)
-            if entry is not None:
-                window_returns[sym] = entry
-        res = eng_rm.stress_replay(name, start, end, value, weights, window_returns)
-        no_data = [leg.symbol for leg in res.legs if leg.window_return is None]
-        constant = [leg.symbol for leg in res.legs if leg.source == "constant"]
+    for stress in stress_rows(weights, value, closes):
         note = "; ".join(part for part in (
-            ("constant legs: " + ", ".join(constant)) if constant else "",
-            ("no data for " + ", ".join(no_data)) if no_data else "") if part)
-        rows.append(Row(f"stress_{name.replace(' ', '_')}", res.pl_usd, "USD",
-                        f"linear replay {start} to {end}; covered weight {res.covered_weight:.2f}",
+            ("constant legs: " + ", ".join(stress.constant_legs)) if stress.constant_legs else "",
+            ("no data for " + ", ".join(stress.legs_no_data)) if stress.legs_no_data else "") if part)
+        rows.append(Row(f"stress_{stress.scenario.replace(' ', '_')}", stress.pl_usd, "USD",
+                        f"linear replay {stress.start} to {stress.end}; covered weight {stress.covered_weight:.2f}",
                         as_of=as_of, note=note))
 
     rows.append(Row("pnl_to_var", eng_rm.return_on_risk(realised + unrealised,
