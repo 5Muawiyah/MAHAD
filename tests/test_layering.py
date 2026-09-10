@@ -9,6 +9,9 @@ PACKAGE = ROOT / "mahad"
 QT = ("PySide6", "pyqtgraph")
 # the read models the worker fills and the window renders: the only data modules the UI may import
 VIEW_MODELS = ("mahad.data.symbols", "mahad.data.portfolio_view", "mahad.data.context_view")
+# the pure helpers the window may take straight from the engine
+UI_ENGINE_MODULES = ("mahad.engine.indicators", "mahad.engine.portfolio", "mahad.engine.risk",
+                     "mahad.engine.signals", "mahad.engine.snapshot")
 
 
 def _within(target: str, prefix: str) -> bool:
@@ -51,6 +54,13 @@ def test_the_ui_imports_only_the_read_models_from_the_data_layer():
                 assert any(_within(target, vm) for vm in VIEW_MODELS), f"{path} imports {target}"
 
 
+def test_the_ui_imports_the_engine_only_for_its_pure_helpers():
+    for path, targets in _layer_imports("ui").items():
+        for target in targets:
+            if _within(target, "mahad.engine"):
+                assert any(_within(target, m) for m in UI_ENGINE_MODULES), f"{path} imports {target}"
+
+
 def test_the_engine_and_data_layers_never_import_upwards():
     for layer in ("engine", "data"):
         for path, targets in _layer_imports(layer).items():
@@ -65,9 +75,10 @@ def test_the_worker_never_imports_the_ui():
             assert not _within(target, "mahad.ui"), f"{path} imports {target}"
 
 
-def test_the_engine_and_the_report_import_no_qt():
-    modules = {**_layer_imports("engine"), **_layer_imports("report")}
-    assert "mahad/report.py" in modules and any(p.startswith("mahad/engine/") for p in modules)
+def test_the_engine_the_report_and_the_config_import_no_qt():
+    modules = {**_layer_imports("engine"), **_layer_imports("report"), **_layer_imports("config")}
+    assert {"mahad/report.py", "mahad/config.py"} <= set(modules)
+    assert any(p.startswith("mahad/engine/") for p in modules)
     for path, targets in modules.items():
         for target in targets:
             assert not any(_within(target, qt) for qt in QT), f"{path} imports {target}"

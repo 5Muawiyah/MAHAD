@@ -34,7 +34,9 @@ def test_registry_covers_core_commands():
     reg = src.split("def _command_registry", 1)[1].split("def _open_command_palette", 1)[0]
     for label in ("New simulated order", "New alert", "Add symbol to watchlist",
                   "Indicator overlays", "Settings", "Help", "Timeframe 1m",
-                  "Export trades CSV", "Show Portfolio tab",
+                  "Timeframe 1h", "Timeframe 1d", "Export trades CSV",
+                  "Export value-history CSV", "Export risk-metrics CSV",
+                  "Show Alerts tab", "Show Portfolio tab", "Show Trade log tab",
                   "Toggle Risk Analytics", "Toggle Market Context"):
         assert label in reg, label
 

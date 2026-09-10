@@ -112,6 +112,11 @@ def test_heatmap_cap_is_surfaced_and_rows_unmirrored():
     assert "theme._qcolor(theme.aa_ink_for(" in hm
 
 
+def test_analytics_section_states_its_window_and_as_of():
+    src = _src("mahad/ui/risk_panel.py")
+    assert 'f"window {view.n}/{view.window}d · as of {view.as_of}"' in src
+
+
 def test_row_formats_are_pinned():
     src = _src("mahad/ui/risk_panel.py")
     assert 'pct(view.var95_pct) + usd(view.var95_usd)' in src   # USD + %

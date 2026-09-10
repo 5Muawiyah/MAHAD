@@ -122,7 +122,8 @@ def test_no_credential_kinds_beyond_the_one_free_data_key():
 
 
 def test_worker_never_stores_the_key_value():
-    src = _src("mahad/worker/context.py")
+    src = "\n".join(_src(f"mahad/worker/{p.name}")
+                    for p in sorted((ROOT / "mahad" / "worker").glob("*.py")))
     assert "_ctx_has_key" in src                          # presence only, not the value
     # key is read locally in the refresh and passed straight through; no attribute holds it
     assert "self._key" not in src and "self._api_key" not in src
@@ -157,6 +158,12 @@ def test_the_full_note_stays_single_homed():
     assert hits == [], hits
     theme_src = (pkg / "ui" / "theme.py").read_text(encoding="utf-8")
     assert "HELP_OUT" not in theme_src and "Deliberately out" not in theme_src
+
+
+def test_no_em_or_en_dashes_anywhere_in_the_app_source():
+    for path in sorted((ROOT / "mahad").rglob("*.py")):
+        text = path.read_text(encoding="utf-8")
+        assert "\u2014" not in text and "\u2013" not in text, path.name
 
 
 def test_no_em_or_en_dashes_in_the_context_files():

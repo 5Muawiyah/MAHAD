@@ -1,9 +1,4 @@
-"""Spam-click and rapid-input robustness.
-
-Two layers: worker-side behavioural guards run for real under the Qt stub;
-the UI-widget guards can't be instantiated headless, so we assert their source
-instead and fail loudly if a future edit drops one.
-"""
+# spam-click and rapid-input guards: the worker paths run under the Qt stand-in, the widget guards read the source
 from __future__ import annotations
 
 import time
@@ -142,6 +137,32 @@ def test_intents_noop_after_stop(tmp_path):
 
 
 # a torn _alerts list must still fire against the right rule by identity, not index
+def _bars(closes, forming_close):
+    bars = [Candle("AAPL", "1d", 1_700_000_000 + i * 86400, c, c, c, c, 1.0, True)
+            for i, c in enumerate(closes)]
+    n = len(closes)
+    bars.append(Candle("AAPL", "1d", 1_700_000_000 + n * 86400, forming_close, forming_close,
+                       forming_close, forming_close, 1.0, False))
+    return tuple(bars)
+
+
+def test_crossover_ignores_the_forming_bar_in_the_worker(tmp_path):
+    # a wild forming bar would cross the SMA; only a closed bar may fire the alert
+    w = _worker(tmp_path)
+    w._alerts = [AlertRule(symbol="AAPL", condition_type="price_sma_cross",
+                           params={"sma_period": 2}, direction="up", id=1)]
+    w._candles = _bars([10.0, 10.0, 10.0], forming_close=20.0)
+    w._last_quote = Quote("AAPL", 20.0, time.time(), "test", False)
+    w._last_closed_ts = w._candles[1].ts
+    assert w._evaluate_alerts() == []
+    assert w._alerts[0].armed
+    w._candles = tuple(Candle("AAPL", "1d", c.ts, c.open, c.high, c.low, c.close, c.volume, True)
+                       for c in w._candles)
+    w._last_closed_ts = w._candles[2].ts
+    events = w._evaluate_alerts()
+    assert len(events) == 1 and not w._alerts[0].armed
+
+
 def test_evaluate_alerts_applies_by_identity(tmp_path):
     w = _worker(tmp_path)
     w._symbol = "AAPL"
