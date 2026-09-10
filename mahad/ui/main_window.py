@@ -95,7 +95,6 @@ class MainWindow(QMainWindow):
         self._arm_pre_count = 0
         self._unread = 0
         self._pending_delete: dict[int, tuple[bool, bool]] = {}
-        self._deleting_alert_ids: set[int] = set()         # de-dupe rapid deletes
         self._modal_busy = False                           # one modal at a time
         self._ticket: OrderTicket | None = None
         self._ticket_symbol: str | None = None
@@ -625,13 +624,11 @@ class MainWindow(QMainWindow):
         if not isinstance(view, AlertsView):
             return
         self._last_alerts = view
-        gone = {i for i in self._deleting_alert_ids if i not in {r.id for r in view.rows}}
-        for alert_id in gone:                                  # the delete landed, so count it now
-            fired, on_alerts = self._pending_delete.pop(alert_id, (False, True))
+        listed = {r.id for r in view.rows}
+        gone = [i for i in self._pending_delete if i not in listed]
+        for alert_id in gone:                                  # the row has left the view, so count it now
+            fired, on_alerts = self._pending_delete.pop(alert_id)
             self._unread = unread_after_delete(self._unread, fired, on_alerts)
-        for alert_id in self._deleting_alert_ids - gone:       # still listed: the delete did not take
-            self._pending_delete.pop(alert_id, None)
-        self._deleting_alert_ids.clear()                       # the view has spoken, so a retry is allowed
         if gone:
             self._refresh_badge()
         self._alerts_tab.set_state(view)
@@ -664,10 +661,8 @@ class MainWindow(QMainWindow):
 
     @Slot(int, bool)
     def _on_alert_delete(self, alert_id: int, fired: bool) -> None:
-        if alert_id in self._deleting_alert_ids:           # one delete in flight per row
-            return
-        self._deleting_alert_ids.add(alert_id)
-        self._pending_delete[alert_id] = (fired, self._tabs.currentIndex() == 0)
+        # repeat clicks are harmless: one record per row, and the worker ignores a missing id
+        self._pending_delete.setdefault(alert_id, (fired, self._tabs.currentIndex() == 0))
         self._alert_remove.emit(alert_id)                  # queued -> worker thread
 
     @Slot(int)

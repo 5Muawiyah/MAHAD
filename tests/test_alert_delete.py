@@ -77,11 +77,13 @@ def test_remove_alert_missing_id_is_safe(tmp_path):
 def test_a_failed_delete_can_be_retried():
     from pathlib import Path as _P
     src = (_P(__file__).resolve().parents[1] / "mahad" / "ui" / "main_window.py").read_text(encoding="utf-8")
-    block = src.split("def _on_alerts_ready", 1)[1].split("\n    @Slot", 1)[0]
-    assert "self._deleting_alert_ids.clear()" in block          # the guard is released either way
-    assert "self._unread = unread_after_delete(" in block       # the badge waits for the row to go
     delete = src.split("def _on_alert_delete", 1)[1].split("\n    @Slot", 1)[0]
-    assert "unread_after_delete(" not in delete                 # never decremented on the click
+    assert "self._pending_delete.setdefault(" in delete          # a repeat click is harmless
+    assert "unread_after_delete(" not in delete                  # never decremented on the click
+    ready = src.split("def _on_alerts_ready", 1)[1].split("\n    @Slot", 1)[0]
+    assert "gone = [i for i in self._pending_delete if i not in listed]" in ready
+    assert "self._unread = unread_after_delete(" in ready        # the badge waits for the row to go
+    assert "_deleting_alert_ids" not in src                      # no in-flight guard left to race
 
 
 def test_unread_after_delete_decrements_only_unseen_fired():
