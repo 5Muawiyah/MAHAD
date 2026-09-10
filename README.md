@@ -12,23 +12,23 @@
 
 <p align="center"><i>One window: a live price chart, a watchlist, the risk panel, and a simulated portfolio with live profit and loss.</i></p>
 
-**Start here:** the [plain-English overview](docs/overview.md) if you are not technical, or the [technical guide](docs/architecture.md) if you are.
+Readers who are not technical can start with the [plain-English overview](docs/overview.md); the [technical guide](docs/architecture.md) is for engineers.
 
 | Document | What it covers |
 |---|---|
 | [Overview](docs/overview.md) | what MAHAD is, a tour of the screens, what the numbers mean |
-| [Technical guide](docs/architecture.md) | how the code is split into layers, the background thread that does the work, the database, the eight data sources, the tests |
-| [Requirements](docs/requirements.md) | what the program must do and how well, the user journeys with their acceptance checks, and which test proves each point |
-| [Data dictionary](docs/data-dictionary.md) | the database's tables and columns, the provider fields, the derived figures, the report file |
+| [Technical guide](docs/architecture.md) | how the code is split into layers, the line of work that runs behind the window, the database, the eight data sources, the tests |
+| [Requirements](docs/requirements.md) | what the program must do and how well, the user journeys with the checks each must pass, and which test proves each point |
+| [Data dictionary](docs/data-dictionary.md) | the database's tables and columns, the fields each data source sends, the derived figures, the report file |
 | [Risk methodology](docs/risk-methodology.md) | every formula and convention |
 | [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a bank's risk team works by, one screen) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several kinds of asset (shares and crypto), the practical rules of thumb a bank's risk team works by, one screen) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
-The window shows one symbol's price chart in bars from one minute to one month. A symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD, and a bar is one slice of time. Two indicators go with the chart: a pair of moving averages (smoothed lines of recent prices) drawn over it, and the RSI (relative strength index, a momentum gauge) beneath it. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio, and its cash, positions (the shares and coins currently held) and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop. They show US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility, where volatility is the typical size of a day's move as a percentage. They also show the crypto Fear & Greed index, a daily sentiment score from 0 (extreme fear) to 100 (extreme greed), and the two UK rates, SONIA (the sterling overnight rate) and the Bank Rate. Alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
+The window shows one symbol's price chart in bars from one minute to one month. A symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD, and a bar is one slice of time. Three indicator lines go with the chart: a pair of moving averages (smoothed lines of recent prices) drawn over it, and the RSI (relative strength index, a momentum gauge) beneath it. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio, and its cash, positions (the shares and coins currently held) and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop. They show US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility, where volatility is the typical size of a day's move as a percentage. They also show the crypto Fear & Greed index, a daily sentiment score from 0 (extreme fear) to 100 (extreme greed), and the two UK rates, SONIA (the sterling overnight rate) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -50,7 +50,7 @@ Follow stocks and crypto side by side; the badge counts them (five here, three i
 
 <img src="docs/images/risk-analytics.png" alt="Risk analytics panel" width="330" align="right">
 
-On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) (VaR, the loss a bad day could reach, read from past days or from a bell curve), Expected Shortfall (the average loss on the days at or beyond it) and each position's share of the total risk (component VaR). Beta says how much the portfolio moves with the market, and the Sharpe and Sortino ratios give the return per unit of variation. A smoothed volatility (EWMA, an exponentially weighted moving average that leans on recent days), concentration (how much sits in the largest positions) and a correlation heatmap (how closely the positions move together) describe how the portfolio is spread. A backtest counts how often losses beat the VaR and shows the result as the Basel traffic light, the supervisors' green, yellow and red reading, with the Kupiec statistical check in the row's tooltip. Replays of dated shocks such as the 2020 COVID crash show what past crises would have cost. Every figure is labelled with the period it covers (its window) and the price history it is measured on (its basis), so the same position's different percentages are never ambiguous.
+On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) (VaR, the loss a bad day could reach, read from past days or from a bell curve), Expected Shortfall (the average loss on the days at or beyond it) and each position's share of the total risk (component VaR). Beta says how much the portfolio moves with the market, and the Sharpe and Sortino ratios give the return per unit of variation. A smoothed volatility (EWMA, an exponentially weighted moving average that leans on recent days), concentration (how much sits in the largest positions) and a correlation heatmap (how closely the positions move together) describe how the portfolio is spread. A backtest counts how often losses beat the VaR and shows the result as the Basel traffic light (the international bank supervisors' green, yellow and red reading), with the Kupiec test (a statistical test named after its author) in the note that appears when the mouse rests on the row. Replays of dated shocks such as the 2020 COVID crash show what past crises would have cost. Each block names the period it covers (its window), and each percentage says what it is a share of.
 
 <br clear="all">
 
@@ -104,7 +104,7 @@ Writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet
 
 ## Tech stack
 
-Python 3.11 to 3.13 · PySide6 / Qt · pyqtgraph · numpy · SQLite via SQLAlchemy. Live data from Finnhub and Tiingo (stocks), a keyless Kraken adapter (crypto), Frankfurter (the USD to GBP rate), the US Treasury, FRED, the Bank of England, and alternative.me (the Fear & Greed index).
+Python 3.11 to 3.13 · PySide6 / Qt · pyqtgraph (charting) · numpy (maths) · SQLite via SQLAlchemy (the database layer). Live data from Finnhub and Tiingo (stocks), a keyless Kraken adapter (crypto), Frankfurter (the USD to GBP rate), the US Treasury, FRED, the Bank of England, and alternative.me (the Fear & Greed index).
 
 ## Getting started
 
@@ -126,7 +126,7 @@ Live stock quotes and history, and the VIX tile, use free keys whose sign-up ask
 | Key | What it adds | Where to get it (free) |
 |---|---|---|
 | `FINNHUB_API_KEY` | live US stock quotes | finnhub.io/register |
-| `TIINGO_API_KEY` | stock history, adjusted for dividends and splits | tiingo.com |
+| `TIINGO_API_KEY` | stock history, adjusted for dividends and splits (a split divides each share into several) | tiingo.com |
 | `FRED_API_KEY` | the VIX tile (optional) | fred.stlouisfed.org |
 
 Copy `.env.example` to `.env` and paste your keys in. The `.env` file is never added to the public code and never leaves your machine, and none of the keys can trade or move money. MAHAD uses FRED's data service but is not endorsed or certified by the Federal Reserve Bank of St. Louis.

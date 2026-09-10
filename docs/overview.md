@@ -1,20 +1,20 @@
 # MAHAD in plain English
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, a bank risk team's rules of thumb, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, and nothing is ever sent to a broker.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossary.md), a bank risk team's rules of thumb, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved and nothing goes to a broker.
 
 ## Who it is for
 
-MAHAD is for anyone who wants to see how a risk team's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents. On a laptop, with real prices, it runs the standard calculations that risk teams in banks and funds use to answer one question all day: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula. The [verification note](verification.md) holds the hand-worked answers the tests check against.
+MAHAD is for anyone who wants to see how a risk team's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents. On a laptop, with real prices, it runs the standard calculations that risk teams in banks and funds use to answer one question: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula. The [verification note](verification.md) holds the hand-worked answers the tests check against.
 
 ## A guided tour
 
 ![The MAHAD dashboard](images/dashboard.png)
 
-The chart of the active symbol fills the left; a symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD. The price sits in the chart's corner, here Apple at 312.06 USD, up 0.59%. The 1m to 1mo buttons in the toolbar above, beside the symbol name, set how much time each bar (one slice of time) covers. The watchlist and risk panel sit on the right. The portfolio tab at the bottom shows cash, total value, and profit and loss, realised (on trades already closed) and unrealised (on positions still held).
+The chart of the active symbol fills the left; a symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD. The price sits in the chart's corner, here Apple at 312.06 USD, up 0.59%. The 1m to 1mo buttons in the toolbar above, beside the symbol name, set the time each bar (one slice of time) covers. The watchlist and risk panel sit on the right. The portfolio tab at the bottom shows cash, total value, and profit and loss, realised (on trades already closed) and unrealised (on positions still held).
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
-The chart draws the closing price with two moving averages (smoothed lines of recent prices) over it, a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), and below it the 14-bar relative strength index (RSI), a 0 to 100 gauge read as overbought above 70 and oversold below 30. Every line is drawn on completed bars only.
+The chart draws the closing price with two moving averages (smoothed lines of recent prices) over it, a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), and below it the 14-bar relative strength index (RSI), a 0 to 100 gauge, overbought above 70 and oversold below 30. Every line is drawn on completed bars only.
 
 ![Watchlist](images/watchlist.png)
 
@@ -26,7 +26,7 @@ The top of the panel shows exposure (how much of the portfolio's value is in pos
 
 ![The risk panel with the market context section open](images/market-context.png)
 
-The market context section gives the backdrop: the US Treasury 10-year yield (what the bond pays) and the gap between two-year and ten-year yields (35 basis points, or 0.35 percentage points, a normal slope), the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear), and the two UK rates, SONIA (the sterling overnight rate) and the Bank Rate.
+The market context section gives the backdrop: the US Treasury 10-year yield (what the bond pays) and the gap between two-year and ten-year yields (35 basis points, or 0.35 percentage points, a normal slope), the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear), and the two UK rates, SONIA (the sterling overnight rate) and the [Bank Rate](glossary.md).
 
 ![Simulated order ticket](images/order-ticket.png)
 
@@ -44,9 +44,9 @@ Ctrl+Shift+P opens a searchable list of every command and its shortcut.
 
 Value-at-Risk (VaR) is the loss that a bad day would reach or exceed, at a stated confidence. The verification note's worked example is a 100,000 USD portfolio with daily returns averaging 0.04% and a volatility of 1.2%. The 95% one-day parametric VaR comes out at 1.9338% of the portfolio, or 1,933.82 USD. Read it as "on nineteen days in twenty the loss stays under 1,934 USD; on about one day in twenty it is worse."
 
-Historical VaR reads the figure from what happened: with 100 days of returns at 95%, the program sorts the days from worst to best and takes the sixth worst, 2.50% in the worked example. Expected Shortfall asks how bad the bad days are on average: it averages the six worst days, 3.4667% in the same example, and is never smaller than the VaR it pairs with.
+Historical VaR reads the figure from what happened: with 100 days of returns at 95%, the program sorts the days worst to best and takes the sixth worst, 2.50% in the worked example. Expected Shortfall asks how bad the bad days are on average: it averages the six worst days, 3.4667% in the same example, and is never smaller than the VaR it pairs with.
 
-The backtest checks the VaR against what happened: at 99% over 250 trading days the loss should breach it two or three times. The Basel traffic light, the supervisors' reading, calls up to four breaches green, five to nine yellow and ten or more red; the Kupiec test asks the same question statistically and also flags a model that breaches too rarely.
+The backtest checks the VaR against what happened: at 99% over 250 trading days the loss should breach it two or three times. The [Basel traffic light](glossary.md), the supervisors' reading, calls up to four breaches green, five to nine yellow and ten or more red; the [Kupiec test](glossary.md) asks the same question statistically and also flags a model that breaches too rarely.
 
 Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 has a maximum drawdown of minus 10%, the fall from 110 to 99. Concentration uses the Herfindahl-Hirschman Index, the sum of the squared weights: 50%, 30% and 20% give 0.25 + 0.09 + 0.04, or 0.38, and one over that is about 2.6 equal positions. Beta is how much the portfolio moves with the market: 1.16 means a 1% market move brings about a 1.16% move. Sharpe divides the return above a risk-free rate (the Treasury bill yield) by the variation it took to earn it; Sortino divides the plain return by the downside variation only.
 
@@ -55,7 +55,7 @@ Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 10
 | What | From | How often | Access |
 |---|---|---|---|
 | Live stock quotes and sector names | Finnhub | every 5 seconds for the chart symbol, within 55 requests a minute | free key |
-| Stock daily history, adjusted for dividends and splits | Tiingo | nightly, plus one pull of recent minute and hour bars per symbol | free key |
+| Stock daily history, adjusted for dividends and [splits](glossary.md) | Tiingo | nightly, plus one pull of recent minute and hour bars per symbol | free key |
 | Crypto prices and daily bars | Kraken's public price feeds | every 5 seconds for the chart symbol, daily bars nightly | no key |
 | USD to GBP reference rate | Frankfurter (the European Central Bank's rate) | every 12 hours | no key |
 | Treasury yield curve | US Treasury | every 12 hours | no key |
@@ -71,7 +71,7 @@ MAHAD holds no brokerage account and cannot place a real order; Kraken's public 
 
 ## The report export
 
-`python -m mahad.report` writes the portfolio's risk figures to a CSV file (a file a spreadsheet opens) without the window and without writing to the database, even while the program is open. Every row states the metric, its value and unit, its period and basis (the price history it is measured on), the date, and a note when the database lacks what the figure needs.
+`python -m mahad.report` writes the portfolio's risk figures to a CSV file (a spreadsheet-readable file) without the window and without writing to the database, even while the program is open. Every row states the metric, its value and unit, its period and basis (the price history it is measured on), the date, and a note when the database lacks what the figure needs.
 
 ## How to run it
 
