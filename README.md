@@ -32,7 +32,7 @@ The chart draws one symbol's closing price in bars, each bar one slice of time f
 
 Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once.
 
-On the right, the risk panel carries the measures a bank's risk desk would read, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
+On the right, the risk panel carries the measures a bank's risk desk would read, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command, with its shortcut where it has one.
 
 ## A closer look
 
@@ -84,7 +84,7 @@ Set a price or indicator alert; it fires once, raises a notification, and is lis
 
 <img src="docs/images/command-palette.png" alt="Command palette" width="420" align="right">
 
-Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each shown with its shortcut.
+Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, with its shortcut shown where it has one.
 
 <br clear="all">
 

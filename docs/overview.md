@@ -4,7 +4,7 @@ MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossa
 
 ## Who it is for
 
-MAHAD is for anyone learning how market risk is measured: from a course, a first job or their own reading. It is a study tool, not a system a bank's risk desk would run on. On a laptop, with real prices, it works out how much a portfolio could lose if prices moved against it and how sure that figure is. The figures can be read on screen or taken from the exported file and checked by hand. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) holds the answers the tests check against.
+MAHAD is for anyone learning how market risk is measured: from a course, a first job or their own reading. It is a study tool, not a system a risk desk would run on. On a laptop, with real prices, it works out how much a portfolio could lose if prices moved against it and how sure that figure is. The figures can be read on screen or taken from the exported file and checked by hand. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) holds the answers the tests check against.
 
 ## A guided tour
 
@@ -14,7 +14,7 @@ The chart of the active symbol fills the left, the price in its corner, here App
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
-The chart draws the closing price with two moving averages over it: a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), which leans on recent bars. Below it the 14-bar relative strength index (RSI) runs 0 to 100, [overbought](glossary.md#overbought) above 70 and [oversold](glossary.md#oversold) below 30. Every line is drawn on completed bars only.
+The chart can draw two moving averages over the closing price: a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), which leans on recent bars. Below it the 14-bar relative strength index (RSI) runs 0 to 100, [overbought](glossary.md#overbought) above 70 and [oversold](glossary.md#oversold) below 30. Every line is drawn on completed bars only.
 
 ![Watchlist](images/watchlist.png)
 
@@ -38,7 +38,7 @@ An alert watches for a condition, such as the price crossing 320 USD or the 20-b
 
 ![Command palette](images/command-palette.png)
 
-Ctrl+Shift+P opens a searchable list of every command and its shortcut.
+Ctrl+Shift+P opens a searchable list of every command and any shortcut it has.
 
 ## What the numbers mean
 

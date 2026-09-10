@@ -88,7 +88,7 @@ One divided by the HHI: the number of equal-sized positions that would give the 
 
 ### EMA
 
-Exponential moving average: a price average that weights recent bars more, seeded from the simple average of the first period. The chart overlays a 12-bar EMA by default.
+Exponential moving average: a price average that weights recent bars more, seeded from the simple average of the first period. The chart can overlay one, 12 bars by default once it is switched on.
 
 ### EWMA
 
@@ -232,7 +232,7 @@ A buy or sell that changes only the virtual portfolio. It fills at the live mark
 
 ### SMA
 
-Simple moving average: the plain average of the last n closing prices. The chart overlays a 20-bar SMA by default.
+Simple moving average: the plain average of the last n closing prices. The chart can overlay one, 20 bars by default once it is switched on.
 
 ### Snapshot
 
