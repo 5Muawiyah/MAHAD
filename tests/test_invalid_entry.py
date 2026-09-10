@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from mahad.data.symbols import (EMPTY_MSG, USD_REJECT_MSG, classify,
+from mahad.data.symbols import (CHARSET_MSG, EMPTY_MSG, USD_REJECT_MSG, classify,
                                 is_usd_quoted, validate_add)
 from mahad.engine.portfolio import (BUY, SELL, PortfolioState, place_order,
                                     validate_qty)
@@ -17,6 +17,12 @@ def test_empty_and_whitespace_rejected():
     for text in (None, "", "   ", "\t"):
         out = validate_add(text, [])
         assert out.status == "rejected" and out.reason == EMPTY_MSG
+
+
+def test_malformed_symbol_rejected_with_the_charset_reason():
+    for text in ("A B", "AAPL;", "<b>", "BTC/USD/EUR"):
+        out = validate_add(text, [])
+        assert out.status == "rejected" and out.reason == CHARSET_MSG, text
 
 
 @pytest.mark.parametrize("sym", ["BTC/EUR", "ETH/GBP", "XRP/JPY", "SOL/CHF"])

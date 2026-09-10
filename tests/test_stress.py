@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 import tracemalloc
 from collections import deque
 from decimal import Decimal
@@ -40,6 +41,12 @@ def test_history_cap_enforced_on_hostile_input():
 def test_render_cap_bounds_snapshot():
     snap = build_render_snapshot(_candles(500), None, render_cap=config.RENDER_CAP)
     assert len(snap.points) <= config.RENDER_CAP
+
+
+def test_value_history_cap_is_the_configured_thousand():
+    assert config.VALUE_HISTORY_CAP == 1000
+    src = (Path(__file__).resolve().parents[1] / "mahad" / "worker" / "portfolio.py").read_text(encoding="utf-8")
+    assert "cap=config.VALUE_HISTORY_CAP" in src
 
 
 def test_value_history_cap_pruned_in_db(tmp_path):

@@ -112,6 +112,18 @@ def test_heatmap_cap_is_surfaced_and_rows_unmirrored():
     assert "theme._qcolor(theme.aa_ink_for(" in hm
 
 
+def test_analytics_tooltips_state_their_methods():
+    src = _src("mahad/ui/risk_panel.py")
+    for name, phrase in (("TIP_RA_VAR", "m = floor((1-c)T)+1"), ("TIP_RA_ES", "tail inclusive"),
+                         ("TIP_RA_PVAR", "-(mu - z_c sigma)"), ("TIP_RA_BETA", "Cov(r_p, r_b) / Var(r_b)"),
+                         ("TIP_RA_SHARPE", "sqrt(252)"), ("TIP_RA_SORTINO", "downside deviation"),
+                         ("TIP_RA_EWMA", "0.94"), ("TIP_RA_CONC", "HHI = sum w_i^2"),
+                         ("TIP_RA_DDUR", "worst peak"), ("TIP_RA_BACKTEST", "GREEN 0-4"),
+                         ("TIP_RA_CORR", "Pearson")):
+        block = src.split(name + " = ", 1)[1].split("\nTIP_", 1)[0]
+        assert phrase in block, name
+
+
 def test_analytics_section_states_its_window_and_as_of():
     src = _src("mahad/ui/risk_panel.py")
     assert 'f"window {view.n}/{view.window}d · as of {view.as_of}"' in src
