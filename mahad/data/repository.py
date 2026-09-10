@@ -546,6 +546,14 @@ class MahadRepository:
         return PersistedPortfolio(starting_cash=row.starting_cash, cash=row.cash,
                                   realised_pnl=row.realised_pnl)
 
+    def get_portfolio(self) -> Optional[PersistedPortfolio]:
+        # a read that creates nothing; the report uses it on a read-only connection
+        row = self._portfolio_row()
+        if row is None:
+            return None
+        return PersistedPortfolio(starting_cash=row.starting_cash, cash=row.cash,
+                                  realised_pnl=row.realised_pnl)
+
     def get_positions(self) -> list[PersistedPosition]:
         stmt = (select(Symbol.ticker, Position.quantity, Position.avg_cost)
                 .join(Symbol, Position.symbol_id == Symbol.id)
