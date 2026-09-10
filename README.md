@@ -28,7 +28,7 @@ MAHAD (Multi-Asset Heuristic Analytics Dashboard: several kinds of asset (shares
 
 ## Highlights
 
-The window shows one symbol's price chart in bars from one minute to one month. A symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD, and a bar is one slice of time. Three indicator lines go with the chart: a pair of moving averages (smoothed lines of recent prices) drawn over it, and the RSI (relative strength index, a momentum gauge) beneath it. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio, and its cash, positions (the shares and coins currently held) and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop. They show US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility, where volatility is the typical size of a day's move as a percentage. They also show the crypto Fear & Greed index, a daily sentiment score from 0 (extreme fear) to 100 (extreme greed), and the two UK rates, SONIA (the sterling overnight rate) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
+MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart shows one symbol (the short code for a share or a crypto pair, such as AAPL or BTC/USD) in bars, slices of time from one minute to one month, with three indicator lines: two moving averages (smoothed lines of recent prices) over the price and the RSI (relative strength index, a momentum gauge) beneath it. Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once. On the right, the risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md), while market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX index of expected market volatility (the typical size of a day's move, as a percentage), the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed), and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -92,7 +92,7 @@ The window is a PySide6 and Qt desktop application (Qt is the window toolkit and
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-The screen asks, a background thread does the work and reports back; a thread is a line of work that runs alongside the window's own. The window, the ui layer (user interface), renders and sends intents, requests such as add a symbol or place an order. One background worker thread fetches, computes and writes. The engine does the calculations in plain Python with no Qt, so the tests call it directly. The data layer wraps each of the eight providers (the market data sources) in an adapter, a small module that talks to one provider and turns a failed fetch into a message rather than a crash, and it owns the SQLite database, which lives in one file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
+The screen asks, a background thread does the work and reports back; a thread is a line of work that runs alongside the window's own. The window, the ui layer (user interface), renders and sends intents, requests such as add a symbol or place an order. One background worker thread fetches, computes and writes. The engine does the calculations in plain Python with no Qt, so the tests call it directly. The data layer wraps each of the eight providers (the market data sources) in an adapter, a small module that talks to one provider and turns a failed fetch into a message, and it owns the SQLite database, which lives in one file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
 
 ## Report export
 
@@ -121,7 +121,7 @@ MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK r
 
 ### API keys (optional, free)
 
-Live stock quotes and history, and the VIX tile, use free keys whose sign-up asks only for an email address. Without them MAHAD still runs, and the stock screens show a "needs a free key" message that points back here; everything keyless keeps working.
+Live stock quotes and history, and the VIX tile, use free keys. Without them MAHAD still runs, and the stock screens show a "needs a free key" message that points back here; everything keyless keeps working.
 
 | Key | What it adds | Where to get it (free) |
 |---|---|---|
@@ -142,4 +142,4 @@ The suite is headless (no network, no display): it covers the risk maths, the da
 
 ---
 
-<div align="center"><sub>Built by Muawiyah Jahanzaib as a solo project. MIT licensed. A simulated USD portfolio for analysis and learning, not investment advice.</sub></div>
+<div align="center"><sub>Built by Muawiyah Jahanzaib. MIT licensed. A simulated USD portfolio for analysis and learning, not investment advice.</sub></div>

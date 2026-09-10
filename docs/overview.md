@@ -1,6 +1,6 @@
 # MAHAD in plain English
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossary.md), a bank risk team's rules of thumb, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved and nothing goes to a broker.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossary.md), a bank risk team's rules of thumb, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, nothing goes to a broker, and the figures are not investment advice.
 
 ## Who it is for
 
@@ -14,7 +14,7 @@ The chart of the active symbol fills the left; a symbol is the short code for a 
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
-The chart draws the closing price with two moving averages (smoothed lines of recent prices) over it, a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), and below it the 14-bar relative strength index (RSI), a 0 to 100 gauge, overbought above 70 and oversold below 30. Every line is drawn on completed bars only.
+The chart draws the closing price with two moving averages (smoothed lines of recent prices) over it, a 20-bar simple one (SMA) and a 12-bar exponential one (EMA), and below it the 14-bar relative strength index (RSI), a 0 to 100 gauge, [overbought](glossary.md) above 70 and [oversold](glossary.md) below 30. Every line is drawn on completed bars only.
 
 ![Watchlist](images/watchlist.png)
 
@@ -26,7 +26,7 @@ The top of the panel shows exposure (how much of the portfolio's value is in pos
 
 ![The risk panel with the market context section open](images/market-context.png)
 
-The market context section gives the backdrop: the US Treasury 10-year yield (what the bond pays) and the gap between two-year and ten-year yields (35 basis points, or 0.35 percentage points, a normal slope), the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear), and the two UK rates, SONIA (the sterling overnight rate) and the [Bank Rate](glossary.md).
+The market context section gives the backdrop: the US Treasury 10-year yield (what the bond pays) and the gap between two-year and ten-year yields (35 basis points, or 0.35 percentage points, a normal slope), the VIX fear gauge, the crypto Fear & Greed index (9, extreme fear), and the two UK rates, [SONIA](glossary.md) (the sterling overnight rate) and the [Bank Rate](glossary.md).
 
 ![Simulated order ticket](images/order-ticket.png)
 
@@ -58,7 +58,7 @@ Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 10
 | Stock daily history, adjusted for dividends and [splits](glossary.md) | Tiingo | nightly, plus one pull of recent minute and hour bars per symbol | free key |
 | Crypto prices and daily bars | Kraken's public price feeds | every 5 seconds for the chart symbol, daily bars nightly | no key |
 | USD to GBP reference rate | Frankfurter (the European Central Bank's rate) | every 12 hours | no key |
-| Treasury yield curve | US Treasury | every 12 hours | no key |
+| Treasury yields | US Treasury | every 12 hours | no key |
 | VIX | FRED (the St. Louis Fed's data service) | every 12 hours | free key |
 | SONIA and Bank Rate | Bank of England | every 12 hours | no key |
 | Crypto Fear & Greed index | alternative.me | every 12 hours | no key |
@@ -67,7 +67,7 @@ The three keys are free sign-ups, kept in a local `.env` file that never leaves 
 
 ## What it deliberately is not
 
-MAHAD holds no brokerage account and cannot place a real order; Kraken's public price feeds cannot trade. The portfolio is a teaching simulation and the figures are not investment advice.
+MAHAD holds no brokerage account and cannot place a real order; Kraken's public price feeds cannot trade.
 
 ## The report export
 
