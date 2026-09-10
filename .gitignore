@@ -58,9 +58,5 @@ desktop.ini
 *.woff
 *.woff2
 
-# Docs: keep only the README screenshots under docs/images/
-/docs/*
-!/docs/images/
-
 # Local working notes (not part of the repo)
 /research/
