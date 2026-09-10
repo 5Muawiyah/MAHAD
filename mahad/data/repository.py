@@ -284,6 +284,11 @@ class PersistedPeak:
     peak_ts: Optional[float]
 
 
+class MissingSchema(Exception):
+    def __init__(self) -> None:
+        super().__init__("the database holds no schema-version row")
+
+
 class SchemaMismatch(Exception):
     def __init__(self, found: int, expected: int) -> None:
         super().__init__(f"schema version {found} != expected {expected}")
@@ -307,6 +312,7 @@ class MahadRepository:
         # create_tables=False is the read-only report's path: no DDL, whatever the file holds
         self._engine = create_engine(url, future=True)
         self._busy_ms = int(busy_timeout_ms)
+        self._read_only = "mode=ro" in url            # the report's connection: no pragma may write
         try:
             self._attach_pragmas()
             if create_tables:
@@ -327,12 +333,14 @@ class MahadRepository:
     # -- setup ---------------------------------------------------------------- #
     def _attach_pragmas(self) -> None:
         busy_ms = self._busy_ms
+        read_only = self._read_only
 
         @event.listens_for(self._engine, "connect")
         def _on_connect(dbapi_conn: sqlite3.Connection, _record: object) -> None:
             cur = dbapi_conn.cursor()
             try:
-                cur.execute("PRAGMA journal_mode=WAL")   # lets readers and the writer overlap
+                if not read_only:
+                    cur.execute("PRAGMA journal_mode=WAL")   # a write, refused on a read-only file
                 cur.execute(f"PRAGMA busy_timeout={busy_ms}")
                 cur.execute("PRAGMA foreign_keys=ON")    # off by default; needed for ON DELETE CASCADE
             finally:
@@ -340,6 +348,8 @@ class MahadRepository:
 
     def _ensure_schema(self) -> None:
         row = self._session.get(SchemaVersion, 1)
+        if row is None and self._read_only:                      # nothing to read and nothing may be written
+            raise MissingSchema()
         if row is None:
             self._session.add(SchemaVersion(id=1, version=SCHEMA_VERSION))
             self._session.commit()

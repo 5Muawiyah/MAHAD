@@ -137,6 +137,19 @@ def test_the_report_opens_a_path_holding_hash_and_percent(tmp_path):
         repo.close()
 
 
+def test_the_report_opens_a_database_that_is_not_in_wal_mode(tmp_path):
+    import sqlite3
+    path = tmp_path / "book.db"
+    seed(path)
+    sqlite3.connect(path).execute("PRAGMA journal_mode=delete").close()   # a plain-journal copy
+    repo = report.open_read_only(path)
+    try:
+        rows = report.build_rows(repo, confidence=0.95, window=config.RISK_WINDOW)
+    finally:
+        repo.close()
+    assert {r.metric for r in rows} >= {"portfolio_value", "var_hist"}
+
+
 def test_the_report_connection_cannot_write(tmp_path):
     path = tmp_path / "book.db"
     seed(path)
