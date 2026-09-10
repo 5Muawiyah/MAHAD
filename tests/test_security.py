@@ -1,6 +1,4 @@
-"""SQLi through the repository, JSON injection through the typed validators,
-hostile CSV content, and the symbol-charset gate. Headless, tmp DBs only.
-"""
+# SQL injection through the repository, JSON injection through the typed validators, hostile CSV content and the symbol-charset gate
 from __future__ import annotations
 
 import csv

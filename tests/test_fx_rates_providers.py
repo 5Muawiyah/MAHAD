@@ -1,7 +1,4 @@
-"""Frankfurter/BoE adapters, the gap check, GBP display, the risk-CSV
-round-trip, integrity assembly, and the methodology token cross-check.
-UI surfaces are checked by source-guard, so this stays Qt-free.
-"""
+# the Frankfurter and Bank of England adapters, the gap check, GBP display, the risk-CSV round-trip, integrity assembly and the methodology token cross-check
 from __future__ import annotations
 
 import csv
