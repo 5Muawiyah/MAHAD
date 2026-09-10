@@ -4,11 +4,12 @@ MAHAD is a PySide6 desktop application with one background thread, a pure-Python
 
 ## The one-way layering
 
-Imports run in one direction. The window imports the worker, the worker imports the engine and the data layer, the engine imports the data models, and nothing imports upwards. `config.py` sits underneath everything and knows nothing about Qt.
+Imports run in one direction. The window imports the worker, and takes a few pure helpers straight from the engine (the `RenderSnapshot` type, the indicator settings and bounds, the alert constants, the quantity validator, the money rounding, the trade-log CSV builder and the volatility caveat text); the worker imports the engine and the data layer; the engine imports the data models and the read models; nothing imports upwards. `config.py` sits underneath everything and knows nothing about Qt.
 
 ```mermaid
 flowchart LR
     UI["ui<br/>PySide6 and pyqtgraph"] --> W["worker<br/>one background thread"]
+    UI -. "pure helpers" .-> E
     W --> E["engine<br/>pure Python maths"]
     E --> D["data<br/>adapters and repository"]
     D --> P["providers"]
@@ -17,9 +18,9 @@ flowchart LR
     R -. "read-only" .-> DB
 ```
 
-Three read-model modules live under `mahad/data/` and are the only data modules the window imports: `symbols.py` (watchlist and alert rows), `portfolio_view.py` (portfolio, risk and analytics views) and `context_view.py` (context tiles, health and data-integrity views). They hold frozen dataclasses plus the small functions the window calls on them: the symbol validators (`validate_add`, `classify`), the CSV builders for the trade log, the value history and the risk snapshot, the analytics summary text and the health classifier. None of them touches a provider or the database. The window never computes a risk figure; it renders what the worker publishes and sends intents back.
+Three read-model modules live under `mahad/data/` and are the only data modules the window imports: `symbols.py` (watchlist and alert rows), `portfolio_view.py` (portfolio, risk and analytics views) and `context_view.py` (context tiles, health and data-integrity views). They hold frozen dataclasses plus the small functions the window calls on them: the symbol validators (`validate_add`, `classify`), the CSV builders for the value history and the risk snapshot, the analytics summary text and the health classifier; the trade-log CSV builder lives with the ledger in `engine/portfolio.py`. None of them touches a provider or the database. The window never computes a risk figure; it renders what the worker publishes and sends intents back.
 
-The engine is Qt-free and the report module (`mahad/report.py`) imports the engine and the data layer only. `tests/test_layering.py` walks every import under `mahad/` with the `ast` module and fails on any crossing: a UI module importing a data module other than the three read models, an engine or data module importing upwards, the worker importing the UI, or the engine or the report importing Qt.
+The engine is Qt-free and the report module (`mahad/report.py`) imports the engine and the data layer only. `tests/test_layering.py` walks every import under the four layers, the report module and `config.py` with the `ast` module and fails on any crossing: a UI module importing a data module other than the three read models or an engine module other than the five helper modules, an engine or data module importing upwards, the worker importing the UI, or the engine, the report or the config importing Qt.
 
 ## The path of a price
 
@@ -69,7 +70,7 @@ The database is an SQLite file at `~/.mahad/mahad.db` (`config.data_dir()`), ope
 
 One `Session` is created on the worker thread and owned by it. The worker is the single writer: the window never opens the file. A one-time migration renames rows from retired providers and quote currencies and records a marker in the settings table so it never runs twice. If the file cannot be opened the worker falls back to an in-memory database and emits `db_notice` once, so the session runs without saving and the window says so. A corrupt file is backed up with a `.corrupt-<timestamp>` suffix and recreated; a lock error is re-raised untouched rather than rotating a healthy file.
 
-The headless report is the documented exception to the single-writer rule, and it keeps the rule intact by never writing. `mahad/report.py` opens the same file through the repository with an SQLite URI of the form `sqlite:///file:<path>?mode=ro&uri=true` and asks the repository to skip its create-tables step, so the start-up path only reads the schema-version row and never issues a `CREATE TABLE`; in that mode SQLite refuses every write, a missing file is an error and is never created, and a table the file lacks surfaces as an error on the figure that needs it rather than being added. WAL mode is what makes this safe while the application is running: readers and the one writer do not block each other, and a read sees a consistent snapshot of the file. A second write-capable session was not the answer because the worker holds the book, the value history, the alerts and the settings in memory and adopts state only after its own commits, so a write from another process would never reach the running application.
+The headless report is the documented exception to the single-writer rule, and it keeps the rule intact by never writing. `mahad/report.py` opens the same file through the repository with an SQLite URI of the form `sqlite:///file:<path>?mode=ro&uri=true` and asks the repository to skip its create-tables step, so the start-up path only reads the schema-version row and never issues a `CREATE TABLE`; in that mode SQLite refuses every write, a missing file is an error and is never created, and if the file lacks a table the report stops with the SQLite error naming it rather than creating it. WAL mode is what makes this safe while the application is running: readers and the one writer do not block each other, and a read sees a consistent snapshot of the file. A second write-capable session was not the answer because the worker holds the book, the value history, the alerts and the settings in memory and adopts state only after its own commits, so a write from another process would never reach the running application.
 
 ## Providers
 
@@ -88,7 +89,7 @@ Every adapter builds requests with the standard library's `urllib`, sends a fixe
 
 ## The risk engine boundary
 
-`mahad/engine/` is pure Python with numpy: indicators, alert signals, the exact-Decimal ledger, the wall-clock risk metrics, the trading-day return series and analytics, the NYSE calendar, resampling and the snapshot builder. Nothing in it imports Qt, and the tests import it directly. Three modules carry the risk formulas: `risk.py` (exposure, volatility and maximum drawdown on the value history), `returns.py` (the aligned daily return series and the as-if portfolio series) and `risk_metrics.py` (VaR, Expected Shortfall, the Kupiec test and the Basel zones, beta, Sharpe, Sortino, EWMA, correlation, concentration, drawdown duration, stress replay, component VaR). The [verification note](verification.md) tables hand-worked vectors for eighteen of these functions, from the normal quantile to the stress replay, and `tests/test_risk.py`, `tests/test_returns.py` and `tests/test_risk_metrics.py` pin the code to them; the remaining functions, such as the value-history volatility, the return alignment and the rolling VaR, are pinned to vectors that live in those same test files. The conventions the vectors lock in (order statistics rather than interpolation, `ddof = 1`, no SciPy, the Euler identities) are stated in the [methodology note](risk-methodology.md).
+`mahad/engine/` is pure Python with numpy: indicators, alert signals, the exact-Decimal ledger, the wall-clock risk metrics, the trading-day return series and analytics, the assembly steps the panel and the report share (`engine/analytics.py`: the sector map, the stress-window lookup and rows, the backtest summary), the NYSE calendar, resampling and the snapshot builder. Nothing in it imports Qt, and the tests import it directly. Three modules carry the risk formulas: `risk.py` (exposure, volatility and maximum drawdown on the value history), `returns.py` (the aligned daily return series and the as-if portfolio series) and `risk_metrics.py` (VaR, Expected Shortfall, the Kupiec test and the Basel zones, beta, Sharpe, Sortino, EWMA, correlation, concentration, drawdown duration, stress replay, component VaR). The [verification note](verification.md) tables hand-worked vectors for seventeen of these functions, from the normal quantile to the stress replay, and `tests/test_risk.py`, `tests/test_returns.py` and `tests/test_risk_metrics.py` pin the code to them; the remaining functions, such as the value-history volatility, the return alignment and the rolling VaR, are pinned to vectors that live in those same test files. The conventions the vectors lock in (order statistics rather than interpolation, `ddof = 1`, no SciPy, the Euler identities) are stated in the [methodology note](risk-methodology.md).
 
 ## The test strategy
 
@@ -127,6 +128,7 @@ GitHub Actions runs the suite on Ubuntu and Windows across Python 3.11, 3.12 and
 | `mahad/engine/risk.py` | exposure, volatility and maximum drawdown on the value history |
 | `mahad/engine/returns.py` | trading-day alignment, the as-if portfolio return series, gap detection |
 | `mahad/engine/risk_metrics.py` | the trading-day analytics |
+| `mahad/engine/analytics.py` | the sector map, stress rows and backtest summary the panel and the report share |
 | `mahad/engine/market_session.py` | the NYSE calendar, session state and next-open labels |
 | `mahad/engine/resample.py` | daily candles into three-day, weekly and monthly bars |
 | `mahad/engine/context.py` | the 2s10s spread, curve reading and VIX bands |
