@@ -176,6 +176,7 @@ def test_no_worker_attribute_holds_the_key_value(monkeypatch, tmp_path):
     assert w._ctx_has_key is True                      # presence is remembered, the value is not
     w.stop()
 
+
 def test_readme_carries_the_context_copy():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "in-app About" not in readme                   # the removed About stays gone

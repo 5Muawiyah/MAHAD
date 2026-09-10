@@ -44,6 +44,7 @@ def test_canonical_params_sorts_two_keys_and_clamps_out_of_range_periods():
     ok, high, _ = validate_params(SMA_EMA_CROSS, {"sma_period": 9999, "ema_period": 1})
     assert ok and high == {"ema_period": 2, "sma_period": 400}     # clamped to the bounds
 
+
 def test_canonical_params_defeats_150_vs_150_point_0():
   # 150 and 150.0 must canonicalise identically or the duplicate-block check
   # is defeated by numeric formatting

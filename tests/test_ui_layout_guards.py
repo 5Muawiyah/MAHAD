@@ -350,6 +350,11 @@ def test_count_badge_is_blue_and_aa():
     assert _wcontrast("4C8DFF") < 4.5  # the negative, 3.20:1
 
 
+def test_both_badges_paint_their_count_as_text():
+    mw = _src("main_window.py")
+    assert "self._tab_count.setText(str(min(n, 99)))" in mw     # the alerts tab count
+    assert "self._badge.setText(str(self._unread))" in mw       # the unread badge
+
 def test_alert_rows_stay_one_height_with_inline_not_active():
     a = _src("alerts_tab.py")
     assert "class _ElideLabel" in a  # the condition elides
