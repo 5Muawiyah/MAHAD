@@ -318,6 +318,7 @@ def test_reset_clears_the_analytics_view(tmp_path):
     assert w._analytics.available is False and "no positions" in w._analytics.note
     w.stop()
 
+
 def test_reset_clears_the_backtest_series(tmp_path):
     w = _worker(tmp_path)
     repo = w._repo

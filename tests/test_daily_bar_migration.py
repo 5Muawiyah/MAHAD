@@ -154,6 +154,7 @@ def test_migration_carries_positions_and_the_usdc_variant(tmp_path):
 def test_migration_failure_rolls_back_and_retries_next_launch(tmp_path, monkeypatch):
     repo = _old_shape_repo(tmp_path)
     real_commit = repo._session.commit
+
     def boom():
         raise RuntimeError("disk hiccup")
     monkeypatch.setattr(repo._session, "commit", boom)

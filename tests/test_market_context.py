@@ -209,6 +209,7 @@ def test_classify_health_mapping():
 
 def test_fetch_vix_invalid_key_is_invalid_key():
     from mahad.data.source import SourceErrorKind
+
     def boom(url, timeout):
         raise urllib.error.HTTPError(url, 401, "unauthorized", {}, None)
     res = cs.fetch_vix("BADKEY", _get=boom)

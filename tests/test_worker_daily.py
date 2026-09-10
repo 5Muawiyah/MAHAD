@@ -264,6 +264,7 @@ def test_full_repull_failure_keeps_the_old_cache_and_retries(tmp_path):
     # not land on the old cache: that would mix two adjustment bases
     delta_with_split = _bars(1, t0=86400.0 * 9, split=4.0)
     stock = _Stock(by_call=[delta_with_split])        # the FULL call errors
+
     def daily(symbol, start_date=None):
         stock.calls.append((symbol, start_date))
         if start_date is not None:

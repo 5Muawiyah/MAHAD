@@ -143,6 +143,7 @@ def test_kraken_ohlc_parses_and_marks_the_forming_bar(monkeypatch):
 def test_kraken_fetch_assembles_quote_and_candles(monkeypatch):
     src = KrakenSource()
     calls = []
+
     def fake(url):
         calls.append(url)
         return (_load("kraken_ohlc.json") if "OHLC" in url
@@ -328,6 +329,7 @@ def test_kraken_fetch_falls_back_to_the_last_close_when_no_mark(monkeypatch):
     # partial outage: OHLC bars arrive but the Ticker is unusable, so the mark
     # is assembled from the last close
     src = KrakenSource()
+
     def fake(url):
         if "OHLC" in url:
             return _load("kraken_ohlc.json")

@@ -11,6 +11,7 @@ from mahad.ui import theme  # pure (Qt-free) contrast helpers
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def _src(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 

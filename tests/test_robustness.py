@@ -98,6 +98,7 @@ def test_is_valid_price_total():
 # --------------------------------------------------------------------------- #
 def test_kraken_adapter_returns_error_value(monkeypatch):
     src = KrakenSource()
+
     def _raise(url):
         raise OSError("network down")
     monkeypatch.setattr(src, "_get_json", _raise)
@@ -108,6 +109,7 @@ def test_kraken_adapter_returns_error_value(monkeypatch):
 
 def test_finnhub_adapter_returns_error_value(monkeypatch):
     src = FinnhubSource(key="k", budget=RateBudget(1000))
+
     def _raise(url):
         raise OSError("network down")
     monkeypatch.setattr(src, "_get_json", _raise)

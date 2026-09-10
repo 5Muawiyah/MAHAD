@@ -255,6 +255,7 @@ def fetch_vix(api_key: str, timeout: float = CONTEXT_TIMEOUT_S,
     except Exception as exc:
         return ContextResult(source, error=_error_for(exc, redact=api_key))
 
+
 # --------------------------------------------------------------------------- #
 # The GBP reference rate (Frankfurter, keyless)
 # --------------------------------------------------------------------------- #

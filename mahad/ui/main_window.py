@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout,
 
 from mahad import config
 from mahad.data.context_view import DataIntegrityView
-from mahad.data.symbols import AlertsView, WatchlistState
+from mahad.data.symbols import AlertsView, WatchlistState, unread_after_delete
 from mahad.engine.snapshot import RenderSnapshot
 from mahad.ui import theme
 from mahad.ui.alert_dialog import AlertDialog
@@ -655,7 +655,6 @@ class MainWindow(QMainWindow):
 
     @Slot(int, bool)
     def _on_alert_delete(self, alert_id: int, fired: bool) -> None:
-        from mahad.data.symbols import unread_after_delete
         if alert_id in self._deleting_alert_ids:           # no double-decrement
             return
         self._deleting_alert_ids.add(alert_id)

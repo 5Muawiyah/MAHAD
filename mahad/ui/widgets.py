@@ -98,7 +98,6 @@ class LegendChip(QFrame):
         self._label.setText(text)
 
 
-
 class SegmentedControl(QFrame):
 
     changed = Signal(str)

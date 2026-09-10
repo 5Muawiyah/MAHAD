@@ -9,17 +9,21 @@ import re
 
 UI = Path(__file__).resolve().parents[1] / "mahad" / "ui"
 
+
 def _src(name: str) -> str:
     return (UI / name).read_text(encoding="utf-8")
+
 
 def _slice(src: str, start: str, end: str = "\n    def ") -> str:
     assert start in src, f"anchor missing: {start}"
     return src.split(start, 1)[1].split(end, 1)[0]
 
+
 def _rgba_sum(token: str) -> int:
     m = re.match(r"\s*rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", token)
     assert m, f"not an rgba token: {token!r}"
     return int(m.group(1)) + int(m.group(2)) + int(m.group(3))
+
 
 def _wcontrast(hex6: str) -> float:
     # white-on-hex WCAG ratio, no Qt
@@ -30,6 +34,7 @@ def _wcontrast(hex6: str) -> float:
         return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
     lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
     return (1.0 + 0.05) / (lum + 0.05)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -243,6 +248,7 @@ def test_primary_buttons_are_white_on_a_deeper_accent_fill():
     prim = t.split('QPushButton[variant="primary"]', 1)[1].split("}}", 1)[0]
     assert "{ACCENT_FILL}" in prim and "#ffffff" in prim
   # white on ACCENT_FILL must clear AA 4.5:1
+
     def lum(c):
         def f(v):
             v /= 255.0
@@ -354,6 +360,7 @@ def test_both_badges_paint_their_count_as_text():
     mw = _src("main_window.py")
     assert "self._tab_count.setText(str(min(n, 99)))" in mw     # the alerts tab count
     assert "self._badge.setText(str(self._unread))" in mw       # the unread badge
+
 
 def test_alert_rows_stay_one_height_with_inline_not_active():
     a = _src("alerts_tab.py")

@@ -179,6 +179,7 @@ def test_batchless_source_keeps_the_budgeted_round_robin(tmp_path):
 
 def test_failed_batch_stales_prior_marks(tmp_path):
     src = _BatchCryptoSource()
+
     def bad_batch(symbols):
         return {s: FetchResult(s, "1d", error=SourceError(
             SourceErrorKind.NETWORK, "down")) for s in symbols}

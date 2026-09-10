@@ -30,9 +30,11 @@ def test_crypto_is_always_open24():
 def test_stock_open_midweek_midsession():
     assert session_state("stock", at(2026, 6, 3, 18, 0)) == "open"         # Wed 14:00 ET
 
+
 def test_stock_closed_weekend():
     assert session_state("stock", at(2026, 6, 6, 18, 0)) == "closed"       # Sat
     assert session_state("stock", at(2026, 6, 7, 18, 0)) == "closed"       # Sun
+
 
 def test_stock_closed_before_open_and_after_close():
     assert session_state("stock", at(2026, 6, 3, 13, 29)) == "closed"      # 09:29 ET
@@ -46,10 +48,12 @@ def test_stock_closed_on_a_full_holiday():
     assert dt.date(2026, 7, 3) in HOLIDAYS_FULL                            # observed July 4th
     assert session_state("stock", at(2026, 7, 3, 15, 0)) == "closed"       # Fri 11:00 ET
 
+
 def test_stock_early_close_half_day():
     assert EARLY_CLOSES[dt.date(2026, 11, 27)] == dt.time(13, 0)
     assert session_state("stock", at(2026, 11, 27, 17, 30)) == "open"      # 12:30 ET
     assert session_state("stock", at(2026, 11, 27, 18, 30)) == "closed"    # 13:30 ET
+
 
 def test_calendar_constant_is_well_formed():
     assert OPEN_T.hour == 9 and OPEN_T.minute == 30
@@ -63,6 +67,7 @@ def test_dst_winter_vs_summer_same_utc_hour():
     # 20:30 UTC splits the seasons: Jan 15:30 ET (EST) open, Jun 16:30 ET (EDT) closed
     assert session_state("stock", at(2026, 1, 14, 20, 30)) == "open"
     assert session_state("stock", at(2026, 6, 3, 20, 30)) == "closed"
+
 
 def test_accepts_posix_timestamp_and_naive_utc():
     wed = at(2026, 6, 3, 18, 0)
