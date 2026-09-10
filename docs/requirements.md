@@ -82,7 +82,7 @@ FR-26. The context tiles shall (a) show the Treasury curve with the 2s10s spread
 
 FR-27. The VIX tile shall show a keyless state without a key for FRED (the Federal Reserve Bank of St. Louis's data service) and shall never show a cached value once the key is gone. Proof: `test_vix_without_a_key_is_the_designed_keyless_state` and `test_cached_vix_is_not_shown_when_the_key_is_gone` in `test_worker_context.py`.
 
-FR-28. The GBP figures shall be a display-only conversion at the European Central Bank (ECB) reference rate and shall never enter the ledger. Proof: `test_fx_parses_the_reference_rate` and `test_portfolio_gbp_view_is_display_only` in `test_fx_rates_providers.py`.
+FR-28. The GBP figures shall be a display-only conversion at the European Central Bank (ECB) reference rate and shall never enter the ledger. Proof: `test_fx_parses_the_reference_rate` and `test_portfolio_gbp_view_is_display_only` and `test_a_gbp_rate_leaves_the_ledger_in_usd` in `test_fx_rates_providers.py`.
 
 ### Alerts
 
@@ -104,7 +104,7 @@ FR-34. The one-time migration shall rename stock rows whose provider is yfinance
 
 FR-35. The three keys shall be read from a `.env` file or the environment, never written to a log, never held on the worker after the fetch that reads them, and redacted from error text. Proof: `test_read_env_key_file_then_environment` and `test_read_env_key_never_logs_the_value` in `test_market_context.py`; `test_finnhub_errors_are_redacted_of_the_key` in `test_market_data_providers.py`; `test_worker_never_stores_the_key_value`, `test_no_worker_attribute_holds_the_key_value` and `test_env_example_is_committed_and_env_is_ignored` in `test_context_wiring_guards.py`.
 
-FR-36. The program shall hold no trading credential of any kind and shall call only Kraken's public endpoints. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
+FR-36. The program shall hold no trading credential of any kind and shall call only Kraken's public endpoints. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`, which scans every module under `mahad/` for credential tokens and private-endpoint paths.
 
 FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup (HTML-style tags) and path traversal (text shaped like a file path) are rejected by the add-time symbol check, and parameters are canonicalised (written in one fixed form) before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
 
@@ -141,6 +141,8 @@ NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows and Linux
 NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. Proof of the dash rule: `test_no_em_or_en_dashes_in_the_context_files` and `test_no_em_or_en_dashes_anywhere_in_the_app_source` in `test_context_wiring_guards.py`; `test_summary_strings_are_dash_clean_and_descriptive` in `test_signals.py`. The British spelling is checked by reading the tracked text; no test covers it.
 
 ## User stories
+
+The five journeys below walk the requirements above; each criterion belongs to the functional requirements named beside its story and carries no separate proof.
 
 ### Watch a symbol
 
@@ -227,7 +229,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-25 | test_analytics_ui.py, test_worker_analytics.py | 8 |
 | FR-26 | test_market_context.py, test_fx_rates_providers.py, test_worker_context.py | 9 |
 | FR-27 | test_worker_context.py | 2 |
-| FR-28 | test_fx_rates_providers.py | 2 |
+| FR-28 | test_fx_rates_providers.py | 3 |
 | FR-29 | test_signals.py, test_persistence.py | 5 |
 | FR-30 | test_signals.py, test_spam_inputs.py, test_worker_switch.py | 4 |
 | FR-31 | test_robustness.py, test_persistence.py | 4 |
