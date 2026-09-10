@@ -54,8 +54,14 @@ def open_read_only(path: Path) -> MahadRepository:
         raise ReportError(f"no database at {path}")
     try:
         return MahadRepository(read_only_url(path), create_tables=False)
-    except (MissingSchema, OperationalError):
+    except MissingSchema:
         raise ReportError(f"{path} is not a MAHAD database") from None
+    except OperationalError as exc:
+        # a missing table or an unreadable header is the wrong file; a lock or an I/O error is not
+        text = str(exc.orig) if exc.orig is not None else str(exc)
+        if "no such table" in text or "not a database" in text:
+            raise ReportError(f"{path} is not a MAHAD database") from None
+        raise ReportError(f"could not open {path} read-only: {text}") from None
     except Exception as exc:
         raise ReportError(f"could not open {path} read-only: {exc}") from None
 
@@ -348,7 +354,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         help="VaR confidence as a fraction (default %(default)s); the 99%% "
                              "backtest and the 97.5%% expected shortfall stay fixed")
     parser.add_argument("--window", type=int, default=config.RISK_WINDOW,
-                        help="trading days in the analytics window (default %(default)s)")
+                        help="trading days in the analytics window (default %(default)s); "
+                             "the Basel backtest stays at 250")
     args = parser.parse_args(argv)
     if not 0.0 < args.confidence < 1.0:
         parser.error("--confidence must lie strictly between 0 and 1")

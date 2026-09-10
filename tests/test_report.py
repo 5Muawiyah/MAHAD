@@ -167,6 +167,24 @@ def test_a_database_that_is_not_mahads_gives_a_plain_message(tmp_path):
     assert str(exc.value) == f"{empty} is not a MAHAD database"
 
 
+def test_an_unreadable_file_is_not_called_a_wrong_database(tmp_path):
+    from sqlalchemy.exc import OperationalError
+    path = tmp_path / "book.db"
+    seed(path)
+    real = report.MahadRepository
+
+    def boom(*args, **kwargs):
+        raise OperationalError("SELECT 1", {}, Exception("database is locked"))
+
+    report.MahadRepository = boom
+    try:
+        with pytest.raises(report.ReportError) as exc:
+            report.open_read_only(path)
+    finally:
+        report.MahadRepository = real
+    assert "database is locked" in str(exc.value) and "not a MAHAD database" not in str(exc.value)
+
+
 def test_the_report_connection_cannot_write(tmp_path):
     path = tmp_path / "book.db"
     seed(path)
