@@ -4,13 +4,13 @@ MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossa
 
 ## Who it is for
 
-MAHAD is a study tool rather than a desk system: it exists so the figures can be followed and checked. The analyst runs it, follows symbols, places simulated trades and reads the figures as they update. The reader takes the figures from the report file or these documents and checks them against hand-worked answers. On a laptop, with real prices, it runs the standard calculations that risk teams in banks and funds use to answer one question: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula. The [verification note](verification.md) holds the hand-worked answers the tests check against.
+MAHAD is for anyone learning how market risk is measured, from a course, a first job on a risk team or their own reading. It is a study tool, not a system a trading desk would run on. An analyst runs it and reads the figures as they update; a reader takes them from the report file or these documents and checks them against hand-worked answers. On a laptop, with real prices, it answers the question a risk desk asks all day: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) holds the answers the tests check against.
 
 ## A guided tour
 
 ![The MAHAD dashboard](images/dashboard.png)
 
-The chart of the active symbol fills the left, the price in its corner, here Apple at 312.06 USD, up 0.59%. A symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD. The 1m to 1mo buttons in the toolbar above set the time each bar (one slice of time) covers. The watchlist and risk panel sit on the right. The portfolio tab shows cash, total value, and profit and loss, realised (closed trades) and unrealised (open positions).
+The chart of the active symbol fills the left, the price in its corner, here Apple at 312.06 USD, up 0.59%. A symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD. The 1m to 1mo buttons above set the time each bar (one slice of time) covers. The watchlist and risk panel sit on the right. The portfolio tab shows cash, total value, and profit and loss, realised (closed trades) and unrealised (open positions).
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
@@ -18,11 +18,11 @@ The chart draws the closing price with two moving averages (smoothed lines of re
 
 ![Watchlist](images/watchlist.png)
 
-The watchlist holds the symbols being followed (five here, three in view), with their latest prices and a green dot when fresh. Clicking a row charts it. Crypto pairs such as BTC/USD need no account or key at all; a live chart appears within seconds.
+The watchlist holds the symbols being followed (five here, three in view), with their latest prices and a green dot when fresh. Clicking a row charts it. Crypto pairs such as BTC/USD need no account or key; the chart polls the active symbol every five seconds.
 
 ![Risk analytics panel](images/risk-analytics.png)
 
-The top of the panel shows exposure (how much of the portfolio's value, its net asset value or NAV, is in positions rather than cash), the volatility (the typical size of one period's move, a day by default) of the portfolio's own value, and its worst fall from a peak. The analytics below run on the last 250 trading days, the correlation grid on the last 90. The loss measures are [Value-at-Risk](glossary.md#value-at-risk-var) at two confidence levels (how sure the estimate is), [Expected Shortfall](glossary.md#expected-shortfall-es), the bell-curve (parametric) version of the VaR at both levels, and three replayed shocks: the 2020 COVID crash, the 2022 tightening (central banks raising rates sharply) and the FTX week (a large crypto exchange collapsing). A traffic-light [backtest](glossary.md#backtest) checks the VaR against what happened. The remaining rows describe reward and spread: [beta](glossary.md#beta) against the S&P 500 fund SPY, the [Sharpe](glossary.md#sharpe-ratio) and [Sortino](glossary.md#sortino-ratio) ratios, a recent-weighted (EWMA) volatility, [concentration](glossary.md#concentration), each position's share of the risk, and a grid of how closely the positions move together.
+The top of the panel shows exposure (how much of the portfolio's value, its net asset value or NAV, is in positions rather than cash), the volatility (the typical size of one period's move, a day by default) of the portfolio's own value, and its worst fall from a peak. The analytics below run on the last 250 trading days, the correlation grid on 90. The loss measures are [Value-at-Risk](glossary.md#value-at-risk-var) at two confidence levels (how sure the estimate is), [Expected Shortfall](glossary.md#expected-shortfall-es), the bell-curve (parametric) version of the VaR at both levels, and three replayed shocks: the 2020 COVID crash, the 2022 tightening (central banks raising rates sharply) and the FTX week (a large crypto exchange collapsing). A traffic-light [backtest](glossary.md#backtest) checks the VaR against what happened. The remaining rows describe reward and spread: [beta](glossary.md#beta) against the S&P 500 fund SPY, the [Sharpe](glossary.md#sharpe-ratio) and [Sortino](glossary.md#sortino-ratio) ratios, a recent-weighted ([EWMA](glossary.md#ewma)) volatility, [concentration](glossary.md#concentration), each position's share of the risk, and how closely the positions move together.
 
 ![The risk panel with the market context section open](images/market-context.png)
 
@@ -34,7 +34,7 @@ The order ticket places a simulated buy or sell at the live price (the mark), sa
 
 ![Alerts tab](images/alerts.png)
 
-An alert watches for a condition, such as the price crossing 320 USD or the 20-bar average crossing below the 12-bar one. It fires once and stays listed as fired until re-armed.
+An alert watches for a condition, such as the price crossing 320 USD or the 20-bar average crossing below the 12-bar one, fires once and stays listed as fired until re-armed.
 
 ![Command palette](images/command-palette.png)
 
@@ -44,11 +44,11 @@ Ctrl+Shift+P opens a searchable list of every command and its shortcut.
 
 Value-at-Risk (VaR) is the loss a bad day would reach or exceed, at a stated confidence. The verification note's worked example is a 100,000 USD portfolio with daily returns averaging 0.04% and a volatility of 1.2%. The 95% one-day parametric VaR is 1.9338% of the portfolio, or 1,933.82 USD. Read it as "on nineteen days in twenty the loss stays under 1,934 USD; on about one day in twenty it is worse."
 
-Historical VaR reads the figure from what happened: with 100 days of returns at 95%, it takes the sixth worst, 2.50%. Expected Shortfall asks how bad the bad days are on average: at 95% it averages the six worst days, 3.4667% here, and is never smaller than its VaR. The panel reports it at 97.5%, the level the Basel rules use, so its figure differs.
+Historical VaR reads the figure from what happened: with 100 days of returns at 95%, it takes the sixth worst, 2.50%. Expected Shortfall asks how bad the bad days are on average: at 95% it averages the six worst days, 3.4667% here, and is never smaller than its VaR. The panel reports it at 97.5%, the level the [Basel](glossary.md#basel-traffic-light) bank rules use, so its figure differs.
 
-The backtest checks the VaR against what happened: at 99% over 250 trading days, two or three breaches are expected. The [Basel traffic light](glossary.md#basel-traffic-light) calls up to four breaches green, five to nine yellow and ten or more red. The [Kupiec test](glossary.md#kupiec-test) asks the same question statistically and flags a model that breaches too rarely.
+The backtest checks the VaR against what happened: at 99% over 250 trading days, two or three breaches are expected. The [Basel traffic light](glossary.md#basel-traffic-light) calls up to four breaches green, five to nine yellow and ten or more red; it reads backcast while the count is still filled in from past data. The [Kupiec test](glossary.md#kupiec-test) asks the same question statistically and flags a model that breaches too rarely.
 
-Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 falls 10% from 110 to 99. Concentration uses the Herfindahl-Hirschman Index, the sum of the squared weights: 50%, 30% and 20% give 0.25 + 0.09 + 0.04, or 0.38, and one over that is about 2.6 equal positions. Beta is how much the portfolio moves with the market: 1.16 means a 1% market move brings about a 1.16% move. Sharpe divides the return above a risk-free rate by the variation it took to earn it. Sortino counts the downside variation only.
+Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 falls 10% from 110 to 99. Concentration uses the Herfindahl-Hirschman Index, the sum of the squared weights: 50%, 30% and 20% give 0.38, and one over that is about 2.6 equal positions. Beta is how much the portfolio moves with the market: 1.16 means a 1% market move brings about 1.16%. Sharpe divides the return above a risk-free rate by the variation it took to earn it. Sortino counts the downside variation only.
 
 ## Where the data comes from
 
@@ -67,7 +67,7 @@ The three keys are free sign-ups, kept in a local `.env` file that never leaves 
 
 ## What it deliberately is not
 
-MAHAD holds no brokerage account and cannot place a real order; Kraken's public feeds cannot trade.
+MAHAD holds no brokerage account and cannot place a real order.
 
 ## The report export
 

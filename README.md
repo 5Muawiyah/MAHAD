@@ -24,11 +24,11 @@ Readers who are not technical can start with the [plain-English overview](docs/o
 | [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD is a desktop risk tool that runs on live market data. The name, Multi-Asset Heuristic Analytics Dashboard, means several kinds of asset (shares and crypto), the measures a bank's risk team reaches for by habit, one screen. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD is a desktop risk tool that runs on live market data, built for analysis and learning rather than for trading. The name, Multi-Asset Heuristic Analytics Dashboard, means several kinds of asset (shares and crypto), the measures a bank's risk team reaches for by habit, one screen. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
-MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart draws one symbol's closing price, in bars of one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it.
+MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart draws one symbol's closing price in bars, each bar one slice of time from one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it.
 
 Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once.
 
@@ -46,7 +46,7 @@ The price chart carries a simple and an exponential moving average (SMA and EMA,
 
 <img src="docs/images/watchlist.png" alt="Watchlist" width="300" align="right">
 
-Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no key at all and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
+Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no key and updates around the clock; the chart polls the active symbol every five seconds.
 
 <br clear="all">
 
@@ -54,7 +54,7 @@ Follow stocks and crypto side by side; the badge counts them (five here, three i
 
 <img src="docs/images/risk-analytics.png" alt="Risk analytics panel" width="330" align="right">
 
-The panel answers two questions about the simulated portfolio: how much a bad day could cost, and whether that estimate has held up. The first is [Value-at-Risk](docs/glossary.md#value-at-risk-var) (VaR, the loss a bad day could reach) with [Expected Shortfall](docs/glossary.md#expected-shortfall-es) beyond it, each position's share of the total risk, and replays of dated shocks such as the 2020 COVID crash. The second is a backtest that counts how often losses breach the VaR, shown as the [Basel traffic light](docs/glossary.md#basel-traffic-light) with the [Kupiec test](docs/glossary.md#kupiec-test) beside it. The rest of the panel describes reward and spread: [beta](docs/glossary.md#beta) against the market, the [Sharpe](docs/glossary.md#sharpe-ratio) and [Sortino](docs/glossary.md#sortino-ratio) ratios, a smoothed volatility ([EWMA](docs/glossary.md#ewma)), [concentration](docs/glossary.md#concentration) and a correlation grid. Every formula is written out in the [methodology note](docs/risk-methodology.md). Each block names the period it covers (its window), and each percentage says what it is a share of.
+The panel answers the question a risk desk asks all day about the simulated portfolio: how much could we lose if prices move against us, and how sure are we. The first is [Value-at-Risk](docs/glossary.md#value-at-risk-var) (VaR, the loss a bad day could reach) with [Expected Shortfall](docs/glossary.md#expected-shortfall-es) beyond it, each position's share of the total risk, and replays of dated shocks such as the 2020 COVID crash. The second is a backtest that counts how often losses breach the VaR, shown as the [Basel traffic light](docs/glossary.md#basel-traffic-light), with the [Kupiec test](docs/glossary.md#kupiec-test) in the note that appears when the mouse rests on it. The rest of the panel describes reward and spread: [beta](docs/glossary.md#beta) against the market, the [Sharpe](docs/glossary.md#sharpe-ratio) and [Sortino](docs/glossary.md#sortino-ratio) ratios, a smoothed volatility ([EWMA](docs/glossary.md#ewma)), [concentration](docs/glossary.md#concentration) and a grid of how closely the positions move together. Every formula is written out in the [methodology note](docs/risk-methodology.md). Each block names the period it covers (its window), and each percentage says what it is a share of.
 
 <br clear="all">
 
@@ -88,7 +88,7 @@ Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each
 
 <br clear="all">
 
-## What this demonstrates
+## What it shows about the build
 
 The window is a PySide6 and Qt desktop application (Qt is the window toolkit and PySide6 its Python form) whose dark colour scheme meets the AA level of the Web Content Accessibility Guidelines (WCAG) for the contrast between text and its background. A missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md), and the test suite runs with no window open on every change sent to GitHub, as the badge above shows.
 
