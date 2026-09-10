@@ -7,6 +7,7 @@ instead and fail loudly if a future edit drops one.
 from __future__ import annotations
 
 import time
+from decimal import Decimal
 from pathlib import Path
 
 from tests._qt_stub import install as _install_qt_stub
@@ -16,7 +17,8 @@ _install_qt_stub()
 from mahad.data.models import Candle, Quote
 from mahad.engine.indicators import IndicatorSettings
 from mahad.engine.signals import AlertRule
-from mahad.worker import PollWorker, _interrupted
+from mahad.worker import PollWorker
+from mahad.worker.poll import _interrupted
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -56,6 +58,48 @@ def test_single_buy_books_one_trade(tmp_path):
     w = _worker(tmp_path)
     _fresh_buy(w)
     assert len(w._trades) == 1 and w.order_result.emissions[-1][0]["ok"] is True
+
+
+def test_fill_price_is_the_frozen_mark(tmp_path):
+    w = _worker(tmp_path)
+    _fresh_buy(w, qty="2", mark=123.45)
+    result = w.order_result.emissions[-1][0]
+    assert result["ok"] is True and result["fill_mark"] == "123.45"
+    assert w._trades[-1].fill_price == Decimal("123.45")
+
+
+def test_stale_mark_order_is_refused(tmp_path):
+    w = _worker(tmp_path)
+    w.place_order({"side": "buy", "qty": "1", "symbol": "AAPL",
+                   "mark": 100.0, "ts": time.time() - 3600})
+    result = w.order_result.emissions[-1][0]
+    assert result["ok"] is False and "stale" in result["reason"]
+    assert len(w._trades) == 0 and w._portfolio.cash == Decimal("100000")
+
+
+def test_fill_persist_failure_is_not_adopted(tmp_path, monkeypatch):
+    w = _worker(tmp_path)
+
+    def _fail(**_kwargs):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(w._repo, "record_fill", _fail)
+    _fresh_buy(w)
+    result = w.order_result.emissions[-1][0]
+    assert result["ok"] is False and "could not save" in result["reason"]
+    assert len(w._trades) == 0 and not w._portfolio.positions
+    assert w._portfolio.cash == Decimal("100000")
+
+
+def test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested(tmp_path):
+    w = _worker(tmp_path)
+    _fresh_buy(w)
+    w.reset_portfolio({"also_clear_log": True, "export_succeeded": False})
+    assert len(w._trades) == 1 and not w._portfolio.positions
+    w.reset_portfolio({"also_clear_log": False, "export_succeeded": True})
+    assert len(w._trades) == 1
+    w.reset_portfolio({"also_clear_log": True, "export_succeeded": True})
+    assert len(w._trades) == 0
 
 
 def test_clear_trade_log_count_guard(tmp_path):
