@@ -137,3 +137,13 @@ def test_symbol_charset_gate_allows_real_tickers():
 def test_normalize_symbol_never_executes_anything():
     s = normalize_symbol("  btc/usdt‮  ")
     assert isinstance(s, str)
+
+
+def test_the_suite_cannot_reach_the_network():
+    import socket
+    try:
+        socket.create_connection(("127.0.0.1", 9), timeout=0.1)
+    except RuntimeError as exc:
+        assert "network" in str(exc)
+    else:
+        raise AssertionError("a socket connect must be refused inside the suite")
