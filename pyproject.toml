@@ -75,6 +75,7 @@ ignore = [
 "mahad/engine/signals.py" = ["SIM102"]   # the nested condition is intentional
 "mahad/engine/returns.py" = ["UP017"]    # pinned to the verification vectors; timezone.utc stays as written
 "mahad/data/source.py" = ["UP042"]       # a StrEnum would change str() on the error kinds
+"mahad/engine/risk_metrics.py" = ["E302"]  # pinned to the verification vectors; the file is not reformatted
 
 # --- mypy -------------------------------------------------------------------
 
