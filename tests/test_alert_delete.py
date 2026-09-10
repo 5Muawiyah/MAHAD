@@ -54,6 +54,18 @@ def test_remove_fired_alert_keeps_others_one_shot(tmp_path):
     w.stop()
 
 
+def test_a_failed_delete_keeps_the_alert_on_screen(tmp_path):
+    w = _worker(tmp_path)
+    a1 = _arm(w, 100.0)
+
+    def boom(_id):
+        raise RuntimeError("db down")
+    w._repo.remove_alert = boom
+    w.remove_alert(a1)
+    assert [s.id for s in w._alerts] == [a1]      # the row is still armed on disk, so it stays listed
+    w.stop()
+
+
 def test_remove_alert_missing_id_is_safe(tmp_path):
     w = _worker(tmp_path)
     a1 = _arm(w, 10.0)
