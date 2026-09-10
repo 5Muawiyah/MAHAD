@@ -159,6 +159,24 @@ def test_risk_snapshot_csv_includes_the_locked_basis_when_given():
 # --------------------------------------------------------------------------- #
 # Source invariants: the GBP toggle, the tile, the popover, the chip
 # --------------------------------------------------------------------------- #
+def test_a_gbp_rate_leaves_the_ledger_in_usd(tmp_path):
+    from dataclasses import replace
+    from decimal import Decimal
+    from mahad.engine.portfolio import PortfolioState
+    from mahad.worker import PollWorker
+    w = PollWorker(symbol="AAPL", timeframe="1d", db_url=f"sqlite:///{tmp_path / 'fx.db'}")
+    w._open_repo()
+    w._load_portfolio()
+    w._portfolio = PortfolioState(cash=Decimal("1000.00"), realised_pnl=Decimal("25.00"), positions=())
+    plain = w._build_portfolio_view()
+    w._ctx_fx = replace(w._ctx_fx, available=True, rate=0.79, as_of="2026-06-10")
+    with_rate = w._build_portfolio_view()
+    assert with_rate.gbp_rate == 0.79                       # the rate reaches the view
+    for field in ("cash", "realised_pnl", "unrealised_pnl", "total_value", "total_pnl", "starting_cash"):
+        assert getattr(with_rate, field) == getattr(plain, field), field   # and nothing else moves
+    w.stop()
+
+
 def test_portfolio_gbp_view_is_display_only():
     src = _src("mahad/ui/portfolio_panel.py")
     assert "ledger remains USD" in src

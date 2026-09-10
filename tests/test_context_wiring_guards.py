@@ -140,10 +140,11 @@ def test_env_example_is_committed_and_env_is_ignored():
 
 
 def test_no_credential_kinds_beyond_the_one_free_data_key():
-    src = _src("mahad/data/context_sources.py")
-    assert "FRED_KEY_ENV" in src
-    for forbidden in ("apiKey", "api_secret", "broker", "password"):
-        assert forbidden not in src, forbidden
+    assert "FRED_KEY_ENV" in _src("mahad/data/context_sources.py")
+    for path in sorted((ROOT / "mahad").rglob("*.py")):        # the whole package, not one adapter
+        src = path.read_text(encoding="utf-8")
+        for forbidden in ("apiKey", "api_secret", "broker", "password", "/0/private", "API-Sign"):
+            assert forbidden not in src, f"{path.name}: {forbidden}"
     # structural no-broker guardrail: Kraken stays keyless, only /0/public market
     # data, no private path, no auth header, no signing code anywhere
     kraken_src = _src("mahad/data/kraken_source.py")
