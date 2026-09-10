@@ -26,6 +26,22 @@ def test_shortcuts_are_installed_with_tooltip_hints():
     assert "Shortcuts: Ctrl+N order" in src_help          # also discoverable in Help
 
 
+def test_each_shortcut_is_paired_with_the_handler_its_button_uses():
+    src = _src("mahad/ui/main_window.py")
+    for pair in ('("Ctrl+N", self._new_order)',
+                 '("Ctrl+Shift+A", self._new_alert)',
+                 '("Ctrl+K", self._focus_add_symbol)',
+                 '("Ctrl+I", self._toggle_popover)',
+                 '("Ctrl+E", self._trade_log_panel.request_export)',
+                 '("Ctrl+Shift+E", self._risk_panel.export_value_history)',
+                 '("Ctrl+,", self._show_settings)',
+                 '("F1", self._show_help)'):
+        assert pair in src, pair
+    for wiring in ("_btn_new_alert.clicked.connect(self._new_alert)",
+                   "_btn_settings.clicked.connect(self._show_settings)",
+                   "_btn_help.clicked.connect(self._show_help)"):
+        assert wiring in src, wiring                      # the button and the key share one slot
+
 def test_timeframe_shortcut_drives_the_same_intent_path():
     src = _src("mahad/ui/main_window.py")
     block = src.split("def _timeframe_shortcut", 1)[1].split("\n    def ", 1)[0]
