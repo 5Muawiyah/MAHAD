@@ -321,7 +321,9 @@ def test_worker_place_order_hostile_payloads_never_raise(tmp_path, payload):
 def test_worker_arm_alert_hostile_payloads_never_raise(tmp_path, payload):
     w = _worker(tmp_path)
     w.arm_alert(payload)                           # must not raise
-    assert all(not e for e in []) or True
+    assert not w._alerts                           # nothing armed from a hostile payload
+    if isinstance(payload, dict):                  # a dict is a real intent, so it gets a reason
+        assert w.alert_rejected.emissions
     w.stop()
 
 

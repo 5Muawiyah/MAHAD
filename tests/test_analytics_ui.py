@@ -134,9 +134,8 @@ def test_row_formats_are_pinned():
     src = _src("mahad/ui/risk_panel.py")
     assert 'pct(view.var95_pct) + usd(view.var95_usd)' in src   # USD + %
     assert 'f"{view.rf_annual_pct:.2f}% · {view.rf_as_of}"' in src
-    assert '"Kupiec POF p = ' in src or 'Kupiec POF p =' in src
-    assert 'QLabel(f"{row.scenario}\\n{row.start} to {row.end}")' in src \
-        or "{row.start} to {row.end}" in src          # dates visible on rows
+    assert 'Kupiec POF p =' in src
+    assert "{row.start} to {row.end}" in src          # dates visible on rows
 
 
 def test_the_warming_copy_is_pinned():
