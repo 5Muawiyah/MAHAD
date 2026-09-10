@@ -1,10 +1,10 @@
 # MAHAD in plain English
 
-MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, the practical rules of thumb a risk desk works by, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, and nothing is ever sent to a broker.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard: several asset classes, a risk desk's rules of thumb, one screen) is a desktop program that watches live market prices and shows how much a portfolio of shares and cryptocurrency could lose. The portfolio is a simulation: it starts with 100,000 virtual US dollars, no real money is involved, and nothing is ever sent to a broker.
 
 ## Who it is for
 
-MAHAD is for anyone who wants to see how a risk desk's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents, where every figure has a stated method and a test. It runs, on a laptop and on real prices, the standard calculations risk teams in banks and funds use to answer one question all day, how much could we lose if prices move against us and how sure are we, so the figures can be checked line by line. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) the hand-worked answers the tests check against.
+MAHAD is for anyone who wants to see how a risk desk's figures are produced and check them: an analyst can run it on live prices, and a reader can follow the documents, where every figure has a stated method and a test. On a laptop and real prices it runs the standard calculations risk teams in banks and funds use to answer one question all day, how much could we lose if prices move against us and how sure are we, so the figures can be checked line by line. The [methodology note](risk-methodology.md) states every formula and the [verification note](verification.md) the hand-worked answers the tests check against.
 
 ## A guided tour
 
@@ -14,7 +14,7 @@ The chart of the active symbol fills the left, price in the corner (here Apple a
 
 ![Price chart with SMA, EMA and RSI](images/chart.png)
 
-The chart draws the closing price with a 20-day simple and a 12-day exponential moving average over it, and below it the 14-day relative strength index, a 0 to 100 gauge read as overbought above 70 and oversold below 30. The 1m to 1mo buttons at the top left of the main window set how much time each bar covers, and every line is drawn on completed bars only.
+The chart draws the closing price with a 20-day simple and a 12-day exponential moving average over it, and below it the 14-day relative strength index, a 0 to 100 gauge read as overbought above 70 and oversold below 30. The 1m to 1mo buttons at the top left set how much time each bar covers, and every line is drawn on completed bars only.
 
 ![Watchlist](images/watchlist.png)
 
@@ -30,7 +30,7 @@ The market context section gives the backdrop: the US Treasury 10-year yield and
 
 ![Simulated order ticket](images/order-ticket.png)
 
-The order ticket places a simulated buy or sell at the live price (the ticket calls it the mark) and says on its face that no real order is placed. The trade lands in the virtual portfolio and the figures update at once.
+The order ticket places a simulated buy or sell at the live price (the ticket calls it the mark) and says on its face that no real order is placed; the trade lands in the virtual portfolio and the figures update at once.
 
 ![Alerts tab](images/alerts.png)
 
@@ -44,11 +44,11 @@ Ctrl+Shift+P opens a searchable list of every command and its shortcut.
 
 Value-at-Risk (VaR) is the loss that a bad day would reach or exceed, at a stated confidence. Take the worked example from the verification note: a 100,000 USD portfolio with daily returns averaging 0.04% and a volatility of 1.2%. The 95% one-day parametric VaR comes out at 1.9338% of the portfolio, or 1,933.82 USD. Read it as "on nineteen days in twenty the loss stays under 1,934 USD; on about one day in twenty it is worse."
 
-Historical VaR reads the figure from what happened instead: with 100 days of returns at 95%, the program sorts the days from worst to best and takes the sixth worst, which lost 2.50% in the worked example, so that's the VaR. Expected Shortfall answers a harder question, how bad the bad days are on average: it averages the six worst days, 3.4667% in the same example, and is always at least as large as the VaR it pairs with.
+Historical VaR reads the figure from what happened instead: with 100 days of returns at 95%, the program sorts the days from worst to best and takes the sixth worst, 2.50% in the worked example. Expected Shortfall answers a harder question, how bad the bad days are on average: it averages the six worst days, 3.4667% in the same example, and is always at least as large as the VaR it pairs with.
 
 The backtest checks the VaR against what happened: at 99% over 250 trading days the loss should breach it two or three times. The Basel traffic light, which banking supervisors use, calls up to four breaches green, five to nine yellow and ten or more red; the Kupiec test asks the same question statistically and also flags a model that breaches too rarely.
 
-Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 has a maximum drawdown of minus 10%, the fall from 110 to 99. Concentration uses the Herfindahl-Hirschman Index: weights of 50%, 30% and 20% give 0.38, equivalent to about 2.6 equal positions. Beta says how much the portfolio moves with the market: 1.16 means a 1% market move tends to bring a 1.16% move. Sharpe divides the return above a risk-free rate (what a three-month US Treasury bill pays, read from the same Treasury data as the yield tile and shown in the analytics section) by the variation it took to earn it; Sortino divides the plain return by the downside variation only.
+Drawdown is the fall from a peak: a value that goes 100, 110, 99, 104.5, 112, 108 has a maximum drawdown of minus 10%, the fall from 110 to 99. Concentration uses the Herfindahl-Hirschman Index: weights of 50%, 30% and 20% give 0.38, equivalent to about 2.6 equal positions. Beta says how much the portfolio moves with the market: 1.16 means a 1% market move tends to bring a 1.16% move. Sharpe divides the return above a risk-free rate (what a three-month US Treasury bill pays, read from the same Treasury data as the yield tile) by the variation it took to earn it; Sortino divides the plain return by the downside variation only.
 
 ## Where the data comes from
 

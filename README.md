@@ -17,7 +17,7 @@
 | Document | What it covers |
 |---|---|
 | [Overview](docs/overview.md) | what MAHAD is, a tour of the screens, what the numbers mean |
-| [Technical guide](docs/architecture.md) | the layering, the worker thread, persistence, the providers, the tests |
+| [Technical guide](docs/architecture.md) | the layering, the worker thread, the database, the providers, the tests |
 | [Requirements](docs/requirements.md) | what the program must do and how well, the user journeys with their acceptance checks, and which test proves each point |
 | [Data dictionary](docs/data-dictionary.md) | the database's tables and columns, the provider fields, the derived figures, the report file |
 | [Risk methodology](docs/risk-methodology.md) | every formula and convention |
