@@ -24,15 +24,15 @@ Readers who are not technical can start with the [plain-English overview](docs/o
 | [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD is a desktop risk tool that runs on live market data, built for analysis and learning rather than for trading. The name, Multi-Asset Heuristic Analytics Dashboard, means several kinds of asset (shares and crypto), the measures a bank's risk team reaches for by habit, one screen. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD is a desktop risk tool that runs on live market data. Muawiyah Jahanzaib built it to show how the standard market-risk figures are produced and how each one can be checked, so it is made for analysis and learning rather than for trading. The name, Multi-Asset Heuristic Analytics Dashboard, means several kinds of asset (shares and crypto), the measures a bank's risk team reaches for by habit, one screen. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
-MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart draws one symbol's closing price in bars, each bar one slice of time from one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it.
+The chart draws one symbol's closing price in bars, each bar one slice of time from one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it.
 
 Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once.
 
-On the right, the risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
+On the right, the risk panel carries the measures a desk would read, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -46,7 +46,7 @@ The price chart carries a simple and an exponential moving average (SMA and EMA,
 
 <img src="docs/images/watchlist.png" alt="Watchlist" width="300" align="right">
 
-Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no key and updates around the clock; the chart polls the active symbol every five seconds.
+Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no key and trades around the clock; the chart asks for a fresh price every five seconds.
 
 <br clear="all">
 
@@ -96,7 +96,7 @@ The window is a PySide6 and Qt desktop application (Qt is the window toolkit and
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-The screen asks, a background thread does the work and reports back; a thread is a line of work that runs alongside the window's own. The window, the ui layer (user interface), renders and sends intents, requests such as add a symbol or place an order. One background worker thread fetches, computes and writes. The engine does the calculations in plain Python with no Qt, so the tests call it directly. The data layer wraps each of the eight providers (the market data sources) in an adapter, a small module that talks to one provider and turns a failed fetch into a message, and it owns the SQLite database, which lives in one file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
+The screen asks, a background thread does the work and reports back; a thread is a line of work that runs alongside the window's own. The window is the ui layer, short for user interface. It draws the screen and sends intents, which are requests such as add a symbol or place an order. One background worker thread fetches, computes and writes. The engine does the calculations in plain Python with no Qt, so the tests call it directly. The data layer wraps each of the eight providers (the market data sources) in an adapter, a small module that talks to one provider and turns a failed fetch into a message, and it owns the SQLite database, which lives in one file. Each layer calls only the one below it, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and a map of the code's files.
 
 ## Report export
 
