@@ -284,4 +284,3 @@ def build_risk_snapshot_csv(analytics: Optional[RiskAnalyticsView],
         row("max_drawdown", locked.dd_pct, "percent",
             "min(value/running max - 1) since inception")
     return "\r\n".join(lines) + "\r\n"
-

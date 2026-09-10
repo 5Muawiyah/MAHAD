@@ -9,6 +9,9 @@ on:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read      # the suite only reads the checkout
+    timeout-minutes: 15   # a wedged job fails fast instead of running to the platform ceiling
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +26,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
       # the blank-line rules are preview-only in ruff, so they need their own pass
-      - run: ruff check --preview --select E301,E302,E303,E305,E306 .
+      - run: ruff check --preview --select E301,E302,E303,E305,E306,W391 .
       - run: mypy mahad
       - run: python -m pytest -q
       # The suite is Qt-free, so Ubuntu needs no GL libraries; the window boot runs on Windows only.

@@ -23,4 +23,3 @@ class RateBudget:
             return False
         self._stamps.append(now)
         return True
-
