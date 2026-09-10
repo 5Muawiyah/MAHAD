@@ -165,6 +165,17 @@ def test_worker_never_stores_the_key_value():
     assert "self._key" not in src and "self._api_key" not in src
 
 
+def test_no_worker_attribute_holds_the_key_value(monkeypatch, tmp_path):
+    from mahad.worker import PollWorker
+    monkeypatch.setenv("FRED_API_KEY", "SUPERSECRETVALUE")
+    w = PollWorker(symbol="AAPL", timeframe="1d", db_url=f"sqlite:///{tmp_path / 'k.db'}")
+    w._open_repo()
+    w._refresh_context("vix", now=1000.0)              # the one path that reads the key
+    held = [name for name, value in vars(w).items() if "SUPERSECRETVALUE" in repr(value)]
+    assert not held, held
+    assert w._ctx_has_key is True                      # presence is remembered, the value is not
+    w.stop()
+
 def test_readme_carries_the_context_copy():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "in-app About" not in readme                   # the removed About stays gone

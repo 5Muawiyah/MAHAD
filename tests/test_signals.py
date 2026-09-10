@@ -38,6 +38,12 @@ def test_validate_params_canonical_and_ranges():
     assert validate_params("nonsense", {})[0] is False
 
 
+def test_canonical_params_sorts_two_keys_and_clamps_out_of_range_periods():
+    ok, params, _ = validate_params(SMA_EMA_CROSS, {"sma_period": 20, "ema_period": 12})
+    assert ok and canonical_params(params) == '{"ema_period":12,"sma_period":20}'
+    ok, high, _ = validate_params(SMA_EMA_CROSS, {"sma_period": 9999, "ema_period": 1})
+    assert ok and high == {"ema_period": 2, "sma_period": 400}     # clamped to the bounds
+
 def test_canonical_params_defeats_150_vs_150_point_0():
   # 150 and 150.0 must canonicalise identically or the duplicate-block check
   # is defeated by numeric formatting
