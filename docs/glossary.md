@@ -10,6 +10,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **As-if portfolio return.** The daily return the book would have earned on a past day with today's weights held across it. The analytics run on this series so that a trade today does not rewrite yesterday's risk.
 
+**Asset class.** A kind of investment; here the two are shares and crypto.
+
 **Backcast.** Running the trailing-window VaR day by day across the cached history with today's weights, to fill the backtest before 250 live forecasts have accrued. The panel labels it so it is never mistaken for the live series.
 
 **Backtest.** A check of the VaR model against what happened: each day's forecast is compared with the next day's realised return, and a loss beyond the forecast counts as an exception.
@@ -22,7 +24,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Basis point.** One hundredth of a percentage point: 35 basis points is 0.35 percentage points.
 
-**Beta.** How much the portfolio moves for a given move in a benchmark, here the SPY fund: the covariance of the two return series divided by the benchmark's variance.
+**Beta.** How much the portfolio moves for a given move in a benchmark, here the SPY fund, which tracks the S&P 500: the covariance of the two return series divided by the benchmark's variance.
 
 **Book.** The portfolio as a desk calls it: the cash and the positions the ledger holds.
 
@@ -113,6 +115,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **SONIA.** The Sterling Overnight Index Average, the UK's overnight interest-rate benchmark.
 
 **Sortino ratio.** The mean return, measured against a zero target rather than a risk-free rate, divided by the downside deviation only, so upside swings are not counted as risk; annualised over 252 trading days.
+
+**Split.** A company dividing each of its shares into several, which lowers the price per share; adjusted history removes the jump so it does not look like a price move.
 
 **SQLAlchemy.** The Python library the repository uses to read and write the SQLite database.
 

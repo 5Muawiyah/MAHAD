@@ -18,7 +18,7 @@ Test names are functions in `tests/`; the file follows each run of names.
 
 ### Market data
 
-FR-01. The program shall fetch live US stock quotes from Finnhub with a free key and shall show a clear needs-a-key state on the chart and in its watchlist row when no key is configured. Proof: `test_finnhub_without_key_is_needs_key` and `test_stock_source_keyless_finnhub_is_needs_key` in `test_market_data_providers.py`; `test_keyless_finnhub_chart_state_carries_the_friendly_copy` and `test_keyless_finnhub_watchlist_row_flags_needs_key` in `test_worker_scheduling.py`.
+FR-01. The program shall fetch live US stock quotes from Finnhub with a free key and shall show a clear needs-a-key state on the chart and in its watchlist row when no key is configured. Proof: `test_finnhub_mark_is_quote_c_with_exchange_ts`, `test_finnhub_without_key_is_needs_key` and `test_stock_source_keyless_finnhub_is_needs_key` in `test_market_data_providers.py`; `test_keyless_finnhub_chart_state_carries_the_friendly_copy` and `test_keyless_finnhub_watchlist_row_flags_needs_key` in `test_worker_scheduling.py`.
 
 FR-02. The program shall fetch crypto marks and candles from Kraken's public endpoints without a key, batching the marks of every held pair into one call. Proof: `test_kraken_fetch_assembles_quote_and_candles`, `test_kraken_ohlc_parses_and_marks_the_forming_bar` and `test_kraken_batch_covers_every_requested_pair` in `test_market_data_providers.py`; `test_held_crypto_marks_ride_one_batch_call` in `test_worker_scheduling.py`.
 
@@ -58,7 +58,7 @@ FR-16. The ledger shall use exact decimals, round money half-up to the cent, kee
 
 FR-17. The portfolio view shall show cash, positions, and realised, unrealised and total P&L marked to the latest quotes, flagging the view stale when any mark is stale or missing. Proof: `test_unrealised_value_total_signs` in `test_portfolio.py`; `test_realised_plus_unrealised_is_total` in `test_fuzz.py`; `test_missing_mark_flags_all_three_valuation_views_stale` and `test_fresh_mark_keeps_all_three_views_non_stale` in `test_worker_context.py`.
 
-FR-18. A reset shall clear positions, cash and realised P&L back to the starting cash, keep the trade log unless an export succeeded and clearing was requested, and re-seed the value history, the peak and the backtest series; a reset requested while one is in flight shall be dropped. Proof: `test_reset_clears_positions_cash_realised_retains_trades`, `test_reset_clears_value_history_and_reseeds_peak` in `test_persistence.py`; `test_reset_clears_the_backtest_series` in `test_worker_analytics.py`; `test_reset_in_flight_drops_reentrant` and `test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested` in `test_spam_inputs.py`.
+FR-18. A reset shall clear positions, cash and realised P&L back to the starting cash, keep the trade log unless an export succeeded and clearing was requested, clear the value history and the backtest series and re-seed the peak; a reset requested while one is in flight shall be dropped; and the trade-log panel's Clear control shall empty the log only after a successful export and only while the log still holds the exported count. Proof: `test_reset_clears_positions_cash_realised_retains_trades`, `test_reset_clears_value_history_and_reseeds_peak` in `test_persistence.py`; `test_reset_clears_the_backtest_series` in `test_worker_analytics.py`; `test_reset_in_flight_drops_reentrant`, `test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested` and `test_clear_trade_log_count_guard` in `test_spam_inputs.py`.
 
 ### Risk analytics
 
@@ -68,11 +68,11 @@ FR-20. Exposure, volatility (sample standard deviation over the last 30 returns,
 
 FR-21. The trading-day analytics shall compute historical and parametric VaR, Expected Shortfall, the Kupiec test and the Basel zone, beta, Sharpe, Sortino, EWMA volatility, correlation, concentration, stress replay and component VaR, each matching its worked vector. Proof: `test_check_b_historical_var`, `test_check_b_expected_shortfall`, `test_check_c_parametric_from_moments`, `test_check_e_kupiec`, `test_check_e_basel_zones`, `test_check_g_beta`, `test_check_h_sharpe`, `test_check_h_sortino`, `test_check_f_ewma_steps`, `test_check_k_correlation`, `test_check_j_concentration`, `test_check_l_stress_replay` and `test_component_var_answer_key` in `test_risk_metrics.py`.
 
-FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and covered weight, and shall show each figure only once its minimum number of aligned observations is met, saying warming (short of its minimum observations) until then. Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`.
+FR-22. The as-if portfolio return series shall use adjusted closes aligned to the US trading calendar with today's weights, shall report excluded assets and coverage weight, and shall show each figure only once its minimum number of aligned observations is met, saying warming (short of its minimum observations) until then. Proof: `test_asset_returns_consume_the_adjusted_close_column` and `test_view_gates_on_n_not_coverage` in `test_worker_analytics.py`; `test_weekend_bars_fold_into_monday`, `test_portfolio_returns_reports_excluded_assets` and `test_check_n_through_the_full_series_path` in `test_returns.py`.
 
 FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it against the next trading day's realised return, and run in backcast mode until 250 live forecasts have accrued. Proof: `test_backtest_persistence_round_trip`, `test_accrual_resolves_with_the_prior_days_weights`, `test_accrual_is_idempotent_per_day`, `test_backtest_mode_labels` and `test_ex_ante_label_takes_over_at_the_window` in `test_worker_analytics.py`; `test_backcast_hand_vector` in `test_risk_metrics.py`.
 
-FR-24. Daily history shall be cached per symbol for every held position, the active stock and the SPY benchmark (the exchange-traded fund that tracks the S&P 500): fetched as a delta from the latest cached date, re-pulled in full when a corporate action (a dividend or split that changes the adjusted history) is seen, refreshed at most one symbol per tick of the worker's five-second heartbeat timer. Proof: `test_coverage_set_is_positions_active_stock_and_benchmark`, `test_stock_delta_fetch_starts_at_the_latest_cached_date`, `test_corporate_action_in_the_delta_triggers_a_full_repull` and `test_at_most_one_coverage_fetch_per_tick` in `test_worker_daily.py`; `test_daily_bars_upsert_is_idempotent_and_updates` in `test_daily_bar_migration.py`.
+FR-24. Daily history shall be cached per symbol for every held position, the active stock and the SPY benchmark (the exchange-traded fund that tracks the S&P 500): fetched from the latest cached date forward, re-pulled in full when a corporate action (a dividend or split that changes the adjusted history) is seen, refreshed at most one symbol per tick of the worker's five-second heartbeat timer. Proof: `test_coverage_set_is_positions_active_stock_and_benchmark`, `test_stock_delta_fetch_starts_at_the_latest_cached_date`, `test_corporate_action_in_the_delta_triggers_a_full_repull` and `test_at_most_one_coverage_fetch_per_tick` in `test_worker_daily.py`; `test_daily_bars_upsert_is_idempotent_and_updates` in `test_daily_bar_migration.py`.
 
 FR-25. The analytics section shall state its window and as-of date on one line, each block of figures shall carry a tooltip stating its method, the section shall name the missing key when stock history is keyless, and the VaR row shall show the USD and the percent figure together, the risk-free line its rate and date, the Kupiec line its p-value label and each stress row its window dates. Proof: `test_analytics_section_states_its_window_and_as_of`, `test_analytics_tooltips_state_their_methods`, `test_row_formats_are_pinned`, `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards` in `test_analytics_ui.py`; `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
 
@@ -122,7 +122,7 @@ FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift
 
 NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear & Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows continuous-integration (CI) jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
 
-NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause rests on each provider test passing in its own stand-in for the network call, and no test fixture blocks the network; the report module's own Qt-free rule is FR-39.
+NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause is enforced by `tests/_no_network.py`, loaded for every run, which refuses any socket connection, and `test_the_suite_cannot_reach_the_network` in `test_security.py` proves the refusal; the report module's own Qt-free rule is FR-39.
 
 NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and state shall never be conveyed by colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
 
@@ -200,7 +200,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 
 | Requirement | Test file(s) | Test count |
 |---|---|---|
-| FR-01 | test_market_data_providers.py, test_worker_scheduling.py | 4 |
+| FR-01 | test_market_data_providers.py, test_worker_scheduling.py | 5 |
 | FR-02 | test_market_data_providers.py, test_worker_scheduling.py | 4 |
 | FR-03 | test_market_data_providers.py, test_market_context.py, test_fx_rates_providers.py | 6 |
 | FR-04 | test_normalisation.py, test_fuzz.py | 4 |
@@ -217,7 +217,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-15 | test_portfolio.py, test_fuzz.py | 6 |
 | FR-16 | test_portfolio.py, test_fuzz.py, test_stress.py | 6 |
 | FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 4 |
-| FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 5 |
+| FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 6 |
 | FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
 | FR-21 | test_risk_metrics.py | 13 |
@@ -241,7 +241,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-39 | test_report.py | 6 |
 | FR-40 | test_command_palette.py, test_context_wiring_guards.py | 5 |
 | NFR-01 | test_market_data_providers.py, test_fx_rates_providers.py, test_market_context.py, test_worker_context.py, the Windows CI jobs | 7 |
-| NFR-02 | the Ubuntu CI jobs | 0 |
+| NFR-02 | the Ubuntu CI jobs, test_security.py | 1 |
 | NFR-03 | test_analytics_ui.py, test_ui_layout_guards.py | 5 |
 | NFR-04 | test_perf.py | 9 |
 | NFR-05 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |

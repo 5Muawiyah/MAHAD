@@ -92,7 +92,7 @@ Unique on (portfolio_id, symbol_id).
 
 ### trades
 
-Rows are never updated or removed singly; the table is emptied only by a reset that asked to clear the log after a successful export. Each row carries its own symbol string so the CSV export needs no join.
+Rows are never updated or removed singly. The table is emptied in two ways, both only after a successful export: the trade-log panel's Clear control, which the worker honours only while the log still holds the exported count, and a reset that asked to clear the log. Each row carries its own symbol string so the CSV export needs no join.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
@@ -222,7 +222,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window: trading days for the analytics rows, the configured window of 30 value-history returns (`config.VOLATILITY_WINDOW`) for the volatility rows, whatever the history holds |
+| window | the observation window: the analytics window in trading days (250 unless `--window` says otherwise) for the analytics rows, the configured 30 value-history returns (`config.VOLATILITY_WINDOW`) for the two volatility rows even when the history holds fewer; empty for the mark, exposure, P&L, concentration, stress, drawdown and value_samples rows |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
 
