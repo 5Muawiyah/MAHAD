@@ -144,7 +144,7 @@ NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. 
 
 The five journeys below walk the requirements above; each criterion belongs to the functional requirements named beside its story and carries no separate proof.
 
-### Watch a symbol
+### Watch a symbol (FR-10 to FR-13)
 
 As the analyst I want to follow a symbol so that I can see its price and indicators update live.
 
@@ -154,7 +154,7 @@ Given a typed symbol is empty, malformed, non-USD or already listed, when I pres
 
 Given a symbol is listed, when I click its row, then the chart switches to it, a cached series renders at once if one exists, and the fresh fetch replaces it within one poll.
 
-### Place a simulated order
+### Place a simulated order (FR-14 to FR-17)
 
 As the analyst I want to buy or sell a symbol in the virtual book so that I can see the risk figures react.
 
@@ -164,7 +164,7 @@ Given the quote is stale or absent, when I confirm, then the order is refused wi
 
 Given a buy would take cash below zero or a sell exceeds the position, when I confirm, then the order is refused and the book is unchanged.
 
-### Read the risk panel
+### Read the risk panel (FR-21 to FR-25)
 
 As the analyst I want each figure to state what it is so that I never confuse two percentages for the same holding.
 
@@ -174,7 +174,7 @@ Given a held stock has no history because the Tiingo key is missing, when the se
 
 Given the value history holds fewer than two returns and every mark is fresh, when the panel renders, then the volatility value shows a dash with the note "needs >= 2 returns" and the panel header reads "warming up".
 
-### Set an alert
+### Set an alert (FR-29 to FR-31)
 
 As the analyst I want a one-shot alert so that I am told once when a condition is met.
 
@@ -184,7 +184,7 @@ Given an identical alert already exists or twenty alerts exist, armed or fired, 
 
 Given the quote goes stale, when the worker evaluates alerts, then none fire and the panel shows alerts as paused.
 
-### Export a report
+### Export a report (FR-39)
 
 As the reader I want the book's figures in a file so that I can use them without opening the window.
 

@@ -60,7 +60,7 @@ One bar of price history: the open, high, low and close over a period, with the 
 
 ### CI
 
-Continuous integration: the GitHub Actions workflow in `.github/workflows/tests.yml` that runs the checks and the suite on every push, on Ubuntu and Windows across Python 3.11, 3.12 and 3.13.
+Continuous integration: the GitHub Actions workflow in `.github/workflows/tests.yml` that runs the checks and the suite on pushes to main and on pull requests, on Ubuntu and Windows across Python 3.11, 3.12 and 3.13.
 
 ### Component VaR
 

@@ -92,7 +92,7 @@ Unique on (portfolio_id, symbol_id).
 
 ### trades
 
-Rows are never updated or removed singly. The table is emptied in two ways, both only after a successful export: the trade-log panel's Clear control, which the worker honours only while the log still holds the exported count, and a reset that asked to clear the log. Each row carries its own symbol string so the CSV export needs no lookup in the symbols table.
+The application never rewrites or deletes an individual fill; only the symbol link is set to null when its symbol goes. The table is emptied in two ways, both only after a successful export: the trade-log panel's Clear control, which the worker honours only while the log still holds the exported count, and a reset that asked to clear the log. Each row carries its own symbol string so the CSV export needs no lookup in the symbols table.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
