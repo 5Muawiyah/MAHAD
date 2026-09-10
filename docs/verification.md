@@ -14,7 +14,7 @@ The pinned tests are `tests/test_risk.py` (the value-history metrics) and
 |-------|----------|-------|----------|
 | A | `z_quantile` | c = 0.95 / 0.975 / 0.99 | 1.6449 / 1.95996 / 2.3263 |
 | B | `historical_var`, `expected_shortfall` | T = 100, c = 95% | m = 6, VaR = 2.50%, ES = 3.4667% |
-| C | `parametric_var_from_moments` | mu = 0.04%, sigma = 1.2% | VaR95 = 1.9339%, VaR99 = 2.7516% (1,933.82 USD on 100,000) |
+| C | `parametric_var_from_moments` | mu = 0.04%, sigma = 1.2% | VaR95 = 1.9338%, VaR99 = 2.7516% (1,933.82 USD on 100,000) |
 | D | `normal_es_multiplier` | c = 97.5% | 2.3378 (vs z_0.99 = 2.3263; the FRTB switch) |
 | E | `kupiec_pof` | T = 250, p = 0.01 | x = 0 -> LR 5.0252 reject; x = 4 -> 0.7691 accept; x = 7 -> 5.4970; x = 10 -> 12.9555 |
 | E | `basel_zone` | 99% / 250d | P(X<=4) = 0.8922, P(X<=9) = 0.99975; GREEN 0-4, YELLOW 5-9, RED 10+ |
