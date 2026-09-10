@@ -13,25 +13,21 @@ from typing import Optional
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 
 from mahad import config
+from mahad.data.context_view import (DataIntegrityView, FxRateView, SentimentTile, UkRatesTile,
+                                     VixTile, YieldCurveTile)
 from mahad.data.models import Candle, Quote
-from mahad.data.portfolio_view import (RiskAnalyticsView)
-from mahad.data.context_view import (DataIntegrityView, FxRateView, SentimentTile,
-                                     UkRatesTile, VixTile, YieldCurveTile)
-from mahad.data.repository import (INDICATORS_KEY,
-                                   RISK_TIMEFRAME_KEY, MahadRepository, PersistedSymbol, PersistedTrade,
-                                   open_repository)
-from mahad.data.source import (MarketDataSource, SourceError,
-                               SourceErrorKind, is_crypto_symbol,
+from mahad.data.portfolio_view import RiskAnalyticsView
+from mahad.data.repository import (INDICATORS_KEY, RISK_TIMEFRAME_KEY, MahadRepository,
+                                   PersistedSymbol, PersistedTrade, open_repository)
+from mahad.data.source import (MarketDataSource, SourceError, SourceErrorKind, is_crypto_symbol,
                                source_for_symbol)
-from mahad.data.symbols import (WatchlistRow,
-                                WatchlistState, provider_for, validate_add)
+from mahad.data.symbols import WatchlistRow, WatchlistState, provider_for, validate_add
 from mahad.engine.indicators import IndicatorSettings
-from mahad.engine.portfolio import (PortfolioState)
-from mahad.engine.signals import (AlertRule)
-from mahad.engine.snapshot import build_render_snapshot
 from mahad.engine.market_session import session_line
-from mahad.engine.risk import (ValueSample)
-
+from mahad.engine.portfolio import PortfolioState
+from mahad.engine.risk import ValueSample
+from mahad.engine.signals import AlertRule
+from mahad.engine.snapshot import build_render_snapshot
 from mahad.worker.alerts import AlertsMixin
 from mahad.worker.analytics import AnalyticsMixin
 from mahad.worker.context import ContextMixin
@@ -39,7 +35,6 @@ from mahad.worker.daily import DailyHistoryMixin
 from mahad.worker.portfolio import PortfolioMixin
 
 log = logging.getLogger("mahad.worker")
-
 
 
 def _interrupted() -> bool:

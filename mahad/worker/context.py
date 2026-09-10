@@ -5,26 +5,19 @@ import logging
 from dataclasses import replace
 from typing import Mapping, Optional
 
-
 from mahad import config
-from mahad.data.context_sources import (fetch_boe_rates, fetch_fear_greed,
-                                        fetch_gbp_rate,
-                                        fetch_treasury_yields, fetch_vix,
-                                        read_env_key)
-from mahad.data.context_view import (DataIntegrityView, FxRateView, GapRow,
-                                     HealthView, IntegrityRow,
-                                     MarketContextView, SentimentTile,
-                                     UkRatesTile, VixTile, YieldCurveTile,
-                                     classify_health)
-from mahad.data.repository import (CONTEXT_KEY)
-from mahad.data.source import (SourceErrorKind)
-from mahad.engine.context import curve_reading, spread_bp, vix_band
+from mahad.data.context_sources import (fetch_boe_rates, fetch_fear_greed, fetch_gbp_rate,
+                                        fetch_treasury_yields, fetch_vix, read_env_key)
+from mahad.data.context_view import (DataIntegrityView, FxRateView, GapRow, HealthView,
+                                     IntegrityRow, MarketContextView, SentimentTile, UkRatesTile,
+                                     VixTile, YieldCurveTile, classify_health)
+from mahad.data.repository import CONTEXT_KEY
+from mahad.data.source import SourceErrorKind
 from mahad.engine import returns as eng_returns
-
+from mahad.engine.context import curve_reading, spread_bp, vix_band
 from mahad.worker.state import WorkerState
 
 log = logging.getLogger("mahad.worker")
-
 
 
 class ContextMixin(WorkerState):

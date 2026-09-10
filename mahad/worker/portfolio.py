@@ -10,21 +10,16 @@ from typing import Optional
 from PySide6.QtCore import Slot
 
 from mahad import config
-from mahad.data.portfolio_view import (ExposureRow, PortfolioView, PositionRow,
-                                       RiskView, TradeRow)
-from mahad.data.repository import (PersistedTrade)
-from mahad.engine.portfolio import (PortfolioState, Position as EngPosition,
-                                    TradeFill, place_order as _place_order,
-                                    unrealised, portfolio_value)
+from mahad.data.portfolio_view import ExposureRow, PortfolioView, PositionRow, RiskView, TradeRow
+from mahad.data.repository import PersistedTrade
+from mahad.engine.portfolio import (PortfolioState, Position as EngPosition, TradeFill,
+                                    place_order as _place_order, unrealised, portfolio_value)
 from mahad.engine.risk import (ValueSample, exposure as _exposure,
-                               simple_returns as _simple_returns,
-                               volatility as _volatility,
+                               simple_returns as _simple_returns, volatility as _volatility,
                                max_drawdown as _max_drawdown)
-
 from mahad.worker.state import WorkerState
 
 log = logging.getLogger("mahad.worker")
-
 
 
 class PortfolioMixin(WorkerState):

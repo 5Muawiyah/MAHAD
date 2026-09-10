@@ -5,20 +5,16 @@ import datetime as _dt
 import logging
 from typing import Optional
 
-
 from mahad import config
-from mahad.data.portfolio_view import (ContributionRow, RiskAnalyticsView,
-                                       StressRow)
-from mahad.data.repository import (SECTORS_KEY)
-from mahad.data.source import (is_crypto_symbol)
-from mahad.engine.portfolio import (unrealised)
+from mahad.data.portfolio_view import ContributionRow, RiskAnalyticsView, StressRow
+from mahad.data.repository import SECTORS_KEY
+from mahad.data.source import is_crypto_symbol
 from mahad.engine import returns as eng_returns
 from mahad.engine import risk_metrics as eng_rm
-
+from mahad.engine.portfolio import unrealised
 from mahad.worker.state import WorkerState
 
 log = logging.getLogger("mahad.worker")
-
 
 
 class AnalyticsMixin(WorkerState):

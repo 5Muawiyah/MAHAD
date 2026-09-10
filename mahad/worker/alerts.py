@@ -9,15 +9,12 @@ from typing import Optional, cast
 from PySide6.QtCore import Slot
 
 from mahad import config
-from mahad.data.repository import (ALERT_CAP, PersistedAlert)
-from mahad.data.symbols import (AlertRowView, AlertsView)
-from mahad.engine.signals import (AlertEvent, AlertRule, evaluate_alert,
-                                  summary, validate_params)
-
+from mahad.data.repository import ALERT_CAP, PersistedAlert
+from mahad.data.symbols import AlertRowView, AlertsView
+from mahad.engine.signals import AlertEvent, AlertRule, evaluate_alert, summary, validate_params
 from mahad.worker.state import WorkerState
 
 log = logging.getLogger("mahad.worker")
-
 
 
 class AlertsMixin(WorkerState):

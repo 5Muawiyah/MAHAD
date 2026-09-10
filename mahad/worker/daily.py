@@ -6,17 +6,14 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-
 from mahad import config
 from mahad.data.models import Candle
-from mahad.data.source import (is_crypto_symbol)
-from mahad.engine.returns import needs_full_repull
+from mahad.data.source import is_crypto_symbol
 from mahad.engine.resample import RESAMPLE_TIMEFRAMES, resample_daily_candles
-
+from mahad.engine.returns import needs_full_repull
 from mahad.worker.state import WorkerState
 
 log = logging.getLogger("mahad.worker")
-
 
 
 @dataclass(frozen=True)
