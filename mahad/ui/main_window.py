@@ -715,10 +715,10 @@ class MainWindow(QMainWindow):
             self._sync_header_pending()  # restore the headline
             return
         if tf is not None:
-            self._worker.set_timeframe(tf)                 # queued cross-thread
+            self._worker.set_timeframe(tf)                 # a direct call, so it runs on this thread
             self._on_timeframe_changed(tf)
         if sym is not None:
-            self._worker.select_symbol(sym)                # queued cross-thread
+            self._worker.select_symbol(sym)                # a direct call, so it runs on this thread
 
     def _render_session(self, snap: RenderSnapshot | None = None) -> None:
         if not self._symbol:
