@@ -1,8 +1,5 @@
-# MAHAD - runtime dependencies. Supported Python: 3.11 - 3.13 (3.13 recommended).
-# Python 3.14 is not validated for MAHAD yet; the launcher selects a supported
-# interpreter. numpy is pinned to 2.4.6, which ships clean Windows wheels
-# for the supported Python range (the earlier 2.2.6 had no wheel for the newest
-# Python and failed to initialise on Windows - the launcher crash this fixes).
+# MAHAD - runtime dependencies. Supported Python: 3.11 to 3.13.
+# numpy is pinned to 2.4.6, which ships wheels for the whole supported range.
 # The data plane is plain stdlib HTTP
 # (Finnhub / Tiingo / native Kraken / Frankfurter / Treasury / FRED / BoE).
 # Install:  pip install -r requirements.txt    Run:  python -m mahad
