@@ -286,7 +286,6 @@ class AnalyticsMixin(WorkerState):
             f_date = _dt.datetime.fromtimestamp(
                 row.forecast_ts, _dt.UTC).date()
             # the forecast's own next trading day with usable returns
-            resolved = False
             for nxt in union_dates:
                 if nxt <= f_date:
                     continue
@@ -301,10 +300,7 @@ class AnalyticsMixin(WorkerState):
                         resolved_ts=self._wallclock())
                 except Exception:
                     log.exception("backtest resolve failed")
-                resolved = True
-                break
-            if not resolved:
-                continue                            # stays open until data lands
+                break                               # an unresolved row stays open until data lands
         # then today's forecast on the current book's as-if series
         weights, _value = self._current_weights_and_value()
         if not weights:
