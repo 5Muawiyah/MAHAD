@@ -255,7 +255,7 @@ def test_committed_sample_csv_reproduces():
     assert first.startswith("# starting_cash,")
     starting = Decimal(first.split(",", 1)[1])
     rows = list(csv.DictReader(io.StringIO(rest)))
-    assert rows, "the artifact must contain at least one fill"
+    assert rows, "the artefact must contain at least one fill"
     cash = starting
     realised_total = Decimal("0")
     for r in rows:

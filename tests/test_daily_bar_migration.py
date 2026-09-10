@@ -147,7 +147,7 @@ def test_migration_carries_positions_and_the_usdc_variant(tmp_path):
     assert positions["BTC/USD"].quantity == Decimal("1")     # FK carried it
     assert {p.symbol for p in repo.list_watchlist()} == {"BTC/USD", "ETH/USD"}
     trades = repo.list_trades()
-    assert trades[0].symbol == "BTC/USDT"      # history keeps its ticker (artifact)
+    assert trades[0].symbol == "BTC/USDT"      # history keeps its ticker (artefact)
     repo.close()
 
 
