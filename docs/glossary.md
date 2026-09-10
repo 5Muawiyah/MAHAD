@@ -68,6 +68,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Intent.** A request from the window to the worker, such as add a symbol, place an order or arm an alert. Intents are queued to the worker thread and answered with events or a fresh snapshot.
 
+**JSON.** The text format the settings values and the alert parameters are written in.
+
 **Kupiec test.** A statistical test of whether the number of backtest exceptions matches the confidence level, reported as a likelihood ratio with its p-value. Too many and too few both fail it.
 
 **Likelihood ratio.** The Kupiec test's statistic: it compares how likely the observed number of exceptions is at the model's confidence level with how likely it is at the rate actually seen, and a large value fails the model.
@@ -113,6 +115,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 **Simulated order.** A buy or sell that changes only the virtual portfolio. It fills at the live mark and is recorded in the trade log; no order goes anywhere.
 
 **SMA.** Simple moving average: the plain average of the last n closing prices. The chart overlays a 20-bar SMA by default.
+
+**SQLite.** The database engine MAHAD stores its data in: one file on the machine, with no server to run.
 
 **Snapshot.** The complete picture the worker sends to the window after each poll: chart points, indicator lines, the portfolio, the risk figures, the context tiles and the health state. Each one is complete, so the newest always wins.
 

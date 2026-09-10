@@ -92,7 +92,7 @@ Unique on (portfolio_id, symbol_id).
 
 ### trades
 
-Rows are never updated or removed singly. The table is emptied in two ways, both only after a successful export: the trade-log panel's Clear control, which the worker honours only while the log still holds the exported count, and a reset that asked to clear the log. Each row carries its own symbol string so the CSV export needs no join.
+Rows are never updated or removed singly. The table is emptied in two ways, both only after a successful export: the trade-log panel's Clear control, which the worker honours only while the log still holds the exported count, and a reset that asked to clear the log. Each row carries its own symbol string so the CSV export needs no lookup in the symbols table.
 
 | Column | Type | Meaning | Example |
 |---|---|---|---|
@@ -179,7 +179,7 @@ A file whose version differs from the code's is backed up and recreated on open.
 | Kraken OHLC (open, high, low, close bars) | `[time, open, high, low, close, vwap (volume-weighted average price), volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
 | Tiingo daily | `date, open, high, low, close, adjClose, volume, divCash, splitFactor` | a `daily_bars` row; the analytics read `adj_close` |
 | Tiingo IEX (its intraday feed) | `date, open, high, low, close, volume` | closed one-minute or one-hour `Candle` rows merged into the sampled series |
-| Treasury CSV | `Date, 3 Mo, 2 Yr, 10 Yr, 30 Yr` | the yield-curve tile; the newest row with both the two-year and ten-year legs |
+| Treasury CSV | `Date, 3 Mo, 2 Yr, 10 Yr, 30 Yr` | the yield-curve tile; the newest row carrying both the two-year and the ten-year yield |
 | FRED | `observations[].date, value` | the VIX tile; a dot means a missing value and is skipped |
 | alternative.me | `data[0].value, value_classification, timestamp` | the sentiment tile, rejected outside 0 to 100 |
 | Frankfurter | `rates.GBP` or `rates.GBP.ECB`, `date` | the FX view, rejected outside 0.01 to 100 |
@@ -200,7 +200,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | Expected Shortfall 97.5% | Historical VaR and Expected Shortfall | trading-day | 250 days | fraction and USD |
 | Parametric VaR 95% and 99% | Parametric (variance-covariance) VaR | trading-day | 250 days | fraction |
 | Backtest exceptions and zone | Kupiec proportion-of-failures and the Basel traffic light | trading-day | 250 days at 99% | count and zone |
-| Kupiec statistic | the same section | trading-day | 250 days | likelihood ratio and p-value |
+| Kupiec statistic | Kupiec proportion-of-failures and the Basel traffic light | trading-day | 250 days | likelihood ratio and p-value |
 | EWMA volatility | EWMA volatility | trading-day | the window, seeded with its variance | percent per day |
 | Beta | Beta | trading-day | the common dates in the window | ratio |
 | Sharpe and Sortino | Sharpe and Sortino | trading-day | 250 days, annualised with 252 | ratio |
@@ -210,7 +210,7 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | Component VaR and shares | Component VaR (Euler decomposition, the split whose parts add to the whole) | trading-day | 250 days at 95% | fraction, USD and share |
 | Return on VaR | Return on VaR and rolling VaR | mixed: ledger P&L over the 95% VaR in USD | now | ratio |
 | Rolling VaR | Return on VaR and rolling VaR | trading-day | 60-day windows, 40 points | fraction |
-| Stress replay | Stress replay | scenario windows on cached closes, else the cited constants | the scenario | USD |
+| Stress replay | Stress replay | scenario windows on cached closes, else the per-asset constants in `config.STRESS_CONSTANTS` | the scenario | USD |
 
 ## The report CSV
 
@@ -222,8 +222,10 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | value | the number, six decimal places for floats; empty when the database cannot support the figure |
 | unit | USD, fraction, percent, ratio, rho, index, count, days, periods, zone, flag, p-value or statistic |
 | basis | the formula and the series it ran on, in words |
-| window | the observation window: the analytics window in trading days (250 unless `--window` says otherwise) for the analytics rows, 90 (`config.CORRELATION_WINDOW`) for the three correlation rows, 250 (`config.RISK_WINDOW`) for the six backtest rows whatever `--window` was, and the configured 30 value-history returns (`config.VOLATILITY_WINDOW`) for the two volatility rows even when the history holds fewer; empty for the portfolio_value, cash, positions_value, mark, exposure, P&L, concentration, stress, drawdown and value_samples rows |
+| window | the observation window in trading days or returns, empty on rows that have none; the rules are below the table |
 | as_of | the date of the newest data the figure used |
 | note | why a value is empty, or what a figure was built from, for example which stress legs came from constants |
+
+The window column holds four different figures. The analytics rows carry the analytics window, 250 trading days unless `--window` says otherwise. The three correlation rows carry 90 (`config.CORRELATION_WINDOW`) and the six backtest rows carry 250 (`config.RISK_WINDOW`), whatever `--window` was. The two volatility rows carry the configured 30 value-history returns (`config.VOLATILITY_WINDOW`) even when the history holds fewer. The column is empty on the portfolio_value, cash, positions_value, mark, exposure, P&L, concentration, stress, drawdown and value_samples rows.
 
 The report values positions at the last cached daily close rather than a live quote; the portfolio value, positions value, mark and unrealised P&L rows say so in their basis column, and the figures built on them (exposure, concentration, the stress replays, the P&L ratios) inherit that mark.

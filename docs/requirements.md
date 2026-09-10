@@ -32,7 +32,7 @@ FR-06. Stock marks between polls shall be assembled into one-minute, one-hour an
 
 ### Charting
 
-FR-07. The chart shall offer the timeframes 1m, 1h, 1d, 3d, 1w and 1mo, with 3d and 1mo resampled from daily bars and 1w native on Kraken. Proof: `test_config_chart_timeframes_and_risk_set_unchanged`, `test_kraken_native_weekly_only_3d_1mo_resampled` and `test_worker_chart_candles_routing` in `test_chart_timeframes.py`; `test_monthly_ohlc_aggregation_and_trailing_forming` and `test_weekly_buckets_by_iso_week` in `test_resample.py`.
+FR-07. The chart shall offer the timeframes 1m, 1h, 1d, 3d, 1w and 1mo, with 3d, 1w and 1mo resampled from the daily series for stocks, and on Kraken 1w native and 3d and 1mo resampled. Proof: `test_config_chart_timeframes_and_risk_set_unchanged`, `test_kraken_native_weekly_only_3d_1mo_resampled` and `test_worker_chart_candles_routing` in `test_chart_timeframes.py`; `test_monthly_ohlc_aggregation_and_trailing_forming` and `test_weekly_buckets_by_iso_week` in `test_resample.py`.
 
 FR-08. The chart shall overlay a simple moving average (SMA), an exponential moving average (EMA) and Wilder's relative strength index (RSI), computed on closed bars only, with periods clamped to 2 through 400 and the settings persisted. Proof: `test_sma_basic_and_warmup`, `test_ema_seed_equals_sma_of_first_n`, `test_wilder_rsi_hand_computed_period_3`, `test_snapshot_indicators_exclude_the_forming_bar` and `test_clamp_period_bounds` in `test_indicators.py`; `test_indicator_settings_roundtrip_and_defensive` in `test_persistence.py`.
 
@@ -74,7 +74,7 @@ FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it a
 
 FR-24. Daily history shall be cached per symbol for every held position, the active stock and the SPY benchmark (the exchange-traded fund that tracks the S&P 500): fetched from the latest cached date forward, re-pulled in full when a corporate action (a dividend or split that changes the adjusted history) is seen, refreshed at most one symbol per tick of the worker's five-second heartbeat timer. Proof: `test_coverage_set_is_positions_active_stock_and_benchmark`, `test_stock_delta_fetch_starts_at_the_latest_cached_date`, `test_corporate_action_in_the_delta_triggers_a_full_repull` and `test_at_most_one_coverage_fetch_per_tick` in `test_worker_daily.py`; `test_daily_bars_upsert_is_idempotent_and_updates` in `test_daily_bar_migration.py`.
 
-FR-25. The analytics section shall state its window and as-of date on one line, each block of figures shall carry a tooltip stating its method, the section shall name the missing key when stock history is keyless, and the VaR row shall show the USD and the percent figure together, the risk-free line its rate and date, the Kupiec line its p-value label and each stress row its window dates. Proof: `test_analytics_section_states_its_window_and_as_of`, `test_analytics_tooltips_state_their_methods`, `test_row_formats_are_pinned`, `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards` in `test_analytics_ui.py`; `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
+FR-25. The analytics section shall state its window and as-of date (the date of the last trading day it covers) on one line, each block of figures shall carry a tooltip stating its method, the section shall name the missing key when stock history is keyless, and the VaR row shall show the USD and the percent figure together, the risk-free line its rate and date, the Kupiec line its p-value label and each stress row its window dates. Proof: `test_analytics_section_states_its_window_and_as_of`, `test_analytics_tooltips_state_their_methods`, `test_row_formats_are_pinned`, `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards` in `test_analytics_ui.py`; `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
 
 ### Market context
 
@@ -86,7 +86,7 @@ FR-28. The GBP figures shall be a display-only conversion at the European Centra
 
 ### Alerts
 
-FR-29. An alert shall be one of four conditions (price threshold, RSI threshold, price crossing an SMA, SMA crossing an EMA) with validated parameters (an RSI level above 100 or a price level that is not above zero is rejected, a period outside its bounds is clamped, and the parameters are stored in one canonical form, one fixed JSON text with sorted keys), shall fire once and disarm, and shall be re-armable. Proof: `test_validate_params_canonical_and_ranges`, `test_evaluate_alert_one_shot_then_rearm` and `test_price_sma_crossover_up_fires_down_does_not` in `test_signals.py`; `test_set_alert_state_fire_then_rearm_roundtrip` in `test_persistence.py`.
+FR-29. An alert shall be one of four conditions (price threshold, RSI threshold, price crossing an SMA, SMA crossing an EMA) with validated parameters (an RSI level above 100 or a price level that is not above zero is rejected, a period outside its bounds is clamped, and the parameters are stored in one canonical form, one fixed JSON text with sorted keys), shall fire once and disarm, and shall be re-armable. Proof: `test_validate_params_canonical_and_ranges`, `test_canonical_params_sorts_two_keys_and_clamps_out_of_range_periods`, `test_evaluate_alert_one_shot_then_rearm` and `test_price_sma_crossover_up_fires_down_does_not` in `test_signals.py`; `test_set_alert_state_fire_then_rearm_roundtrip` in `test_persistence.py`.
 
 FR-30. Crossovers shall use closed bars only, shall not fire across an intraday data gap, and shall not replay after a symbol or timeframe switch. Proof: `test_crossover_uses_closed_closes_only_forming_bar_excluded` and `test_crossover_no_signal_across_a_data_gap_intraday` in `test_signals.py`; `test_crossover_ignores_the_forming_bar_in_the_worker` in `test_spam_inputs.py`; `test_switch_resets_crossover_baseline_no_replay_from_cache` in `test_worker_switch.py`.
 
@@ -102,11 +102,11 @@ FR-34. The one-time migration shall rename stock rows whose provider is yfinance
 
 ### Keys and security
 
-FR-35. The three keys shall be read from a `.env` file or the environment, never written to a log, never stored on the worker, and redacted from error text. Proof: `test_read_env_key_file_then_environment` and `test_read_env_key_never_logs_the_value` in `test_market_context.py`; `test_finnhub_errors_are_redacted_of_the_key` in `test_market_data_providers.py`; `test_worker_never_stores_the_key_value` and `test_env_example_is_committed_and_env_is_ignored` in `test_context_wiring_guards.py`.
+FR-35. The three keys shall be read from a `.env` file or the environment, never written to a log, never held on the worker after the fetch that reads them, and redacted from error text. Proof: `test_read_env_key_file_then_environment` and `test_read_env_key_never_logs_the_value` in `test_market_context.py`; `test_finnhub_errors_are_redacted_of_the_key` in `test_market_data_providers.py`; `test_worker_never_stores_the_key_value`, `test_no_worker_attribute_holds_the_key_value` and `test_env_example_is_committed_and_env_is_ignored` in `test_context_wiring_guards.py`.
 
 FR-36. The program shall hold no trading credential of any kind and shall call only Kraken's public endpoints. Proof: `test_no_credential_kinds_beyond_the_one_free_data_key` in `test_context_wiring_guards.py`.
 
-FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup (HTML-style tags) and path traversal (text shaped like a file path) are rejected at the symbol gate, and parameters are canonicalised (written in one fixed form) before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
+FR-37. Symbols, alert parameters and settings values shall be stored as inert data: injection strings (text crafted to run as database commands) land as literals, markup (HTML-style tags) and path traversal (text shaped like a file path) are rejected by the add-time symbol check, and parameters are canonicalised (written in one fixed form) before they are compared. Proof: `test_sqli_symbols_stored_as_literals`, `test_params_canonicalisation_defeats_smuggling`, `test_symbol_charset_gate_blocks_markup_and_traversal` and `test_csv_hostile_symbols_are_data_only` in `test_security.py`.
 
 ### Exports and the report
 
@@ -122,9 +122,9 @@ FR-40. The command palette (a searchable list of commands opened with Ctrl+Shift
 
 NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK rates and the Fear & Greed index shall work with no key, and the program shall boot without one. Proof: `test_kraken_fetch_assembles_quote_and_candles` and `test_stock_source_keyless_tiingo_still_samples_1d` in `test_market_data_providers.py`; `test_fx_parses_the_reference_rate` and `test_boe_parses_latest_per_series` in `test_fx_rates_providers.py`; `test_treasury_picks_the_latest_row_regardless_of_order` and `test_fng_parses_the_live_captured_payload` in `test_market_context.py`; `test_vix_without_a_key_is_the_designed_keyless_state` in `test_worker_context.py`; the keyless boot is proved by the Windows continuous-integration (CI) jobs, which run `python -m mahad --smoke` (the flag starts the window offscreen, stops it after three seconds and exits 1 on any exception).
 
-NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause is enforced by `tests/_no_network.py`, loaded for every run, which refuses any socket connection, and `test_the_suite_cannot_reach_the_network` in `test_security.py` proves the refusal; the report module's own Qt-free rule is FR-39.
+NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause is enforced by `tests/_no_network.py`, loaded for every run, which refuses any network connection, and `test_the_suite_cannot_reach_the_network` in `test_security.py` proves the refusal; the report module's own Qt-free rule is FR-39.
 
-NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and state shall never be conveyed by colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
+NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and the backtest zone chip, the watchlist count badge and the unread badge shall carry their state in text, never in colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
 
 NFR-04. Compute-side latency, measured as the median of repeated timed runs wherever the suite runs: SMA, EMA and RSI over 500 bars under 50 ms each; a snapshot with three indicators under 250 ms; twenty alerts evaluated under 250 ms; the value-history risk over 1,000 samples under 50 ms; a portfolio view with 1,000 trades under 250 ms; one fill commit and one value-history append at cap under 500 ms each. Proof: `test_sma_500`, `test_ema_500`, `test_rsi_500`, `test_snapshot_build_500_three_indicators`, `test_signals_twenty_alerts`, `test_risk_compute_1000_samples`, `test_portfolio_view_1000_trades`, `test_record_fill_sqlite` and `test_append_value_history_at_cap` in `test_perf.py`.
 
@@ -132,13 +132,13 @@ NFR-05. Without a network the program shall keep the last good prices marked sta
 
 NFR-06. Memory shall stay bounded: 500 bars per series, 300 rendered points, 1,000 value samples, 20 alerts, 20 watchlist symbols, and 1,000 repeated snapshot cycles shall grow the program's memory by less than 8 MiB (8 x 1,048,576 bytes). Proof: `test_history_cap_enforced_on_hostile_input`, `test_render_cap_bounds_snapshot`, `test_value_history_cap_pruned_in_db`, `test_value_history_cap_is_the_configured_thousand`, `test_alert_cap_enforced`, `test_watchlist_cap_via_worker` and `test_thousand_snapshot_cycles_no_growth` in `test_stress.py`.
 
-NFR-07. Hostile or malformed input shall never raise out of an adapter, a validator or a worker method. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
+NFR-07. Hostile or malformed input shall never raise out of the normaliser, the alert validators or the worker's arm and place-order slots. Proof: `test_normalize_ohlcv_drops_malformed_rows_never_raises` and `test_worker_arm_alert_hostile_payloads_never_raise` in `test_robustness.py`; `test_validate_params_total` in `test_fuzz.py`.
 
-NFR-08. One background thread shall do all fetching, computing and writing; the window shall not block on the network, shall gate a symbol switch while one is in flight, and shall stop the thread cooperatively on close. Proof: `test_the_ui_imports_only_the_read_models_from_the_data_layer`, `test_the_ui_imports_the_engine_only_for_its_pure_helpers`, `test_the_engine_and_data_layers_never_import_upwards`, `test_the_worker_never_imports_the_ui` and `test_the_engine_the_report_and_the_config_import_no_qt` in `test_layering.py`; `test_symbol_switch_is_gated_while_in_flight` in `test_ui_layout_guards.py`; `test_closeevent_requests_interruption` in `test_spam_inputs.py`; `test_symbol_and_timeframe_intents_ride_queued_signals` and `test_the_worker_quits_its_thread_from_the_stop_slot` in `test_context_wiring_guards.py`.
+NFR-08. One background thread shall do all fetching, computing and writing; the window shall not block on the network, shall block a second symbol switch while one is in flight, and shall stop the thread on close by asking it to finish its loop. Proof: `test_the_ui_imports_only_the_read_models_from_the_data_layer`, `test_the_ui_imports_the_engine_only_for_its_pure_helpers`, `test_the_engine_and_data_layers_never_import_upwards`, `test_the_worker_never_imports_the_ui` and `test_the_engine_the_report_and_the_config_import_no_qt` in `test_layering.py`; `test_symbol_switch_is_gated_while_in_flight` in `test_ui_layout_guards.py`; `test_closeevent_requests_interruption` in `test_spam_inputs.py`; `test_symbol_and_timeframe_intents_ride_queued_signals` and `test_the_worker_quits_its_thread_from_the_stop_slot` in `test_context_wiring_guards.py`.
 
-NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows, macOS and Linux. Proof: the GitHub Actions matrix covers the three versions on Ubuntu and Windows; macOS is a manual check.
+NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows, macOS and Linux. Proof: the GitHub Actions matrix covers the three versions on Ubuntu and Windows; macOS is unchecked.
 
-NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. Proof of the dash rule: `test_no_em_or_en_dashes_in_the_context_files` and `test_no_em_or_en_dashes_anywhere_in_the_app_source` in `test_context_wiring_guards.py`; `test_summary_strings_are_dash_clean_and_descriptive` in `test_signals.py`. The spelling is a manual check.
+NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. Proof of the dash rule: `test_no_em_or_en_dashes_in_the_context_files` and `test_no_em_or_en_dashes_anywhere_in_the_app_source` in `test_context_wiring_guards.py`; `test_summary_strings_are_dash_clean_and_descriptive` in `test_signals.py`. The British spelling is read by hand, most recently across the whole tracked tree.
 
 ## User stories
 
@@ -228,13 +228,13 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-26 | test_market_context.py, test_fx_rates_providers.py, test_worker_context.py | 9 |
 | FR-27 | test_worker_context.py | 2 |
 | FR-28 | test_fx_rates_providers.py | 2 |
-| FR-29 | test_signals.py, test_persistence.py | 4 |
+| FR-29 | test_signals.py, test_persistence.py | 5 |
 | FR-30 | test_signals.py, test_spam_inputs.py, test_worker_switch.py | 4 |
 | FR-31 | test_robustness.py, test_persistence.py | 4 |
 | FR-32 | test_persistence.py, test_daily_bar_migration.py | 7 |
 | FR-33 | test_robustness.py, test_context_wiring_guards.py | 5 |
 | FR-34 | test_daily_bar_migration.py | 5 |
-| FR-35 | test_market_context.py, test_market_data_providers.py, test_context_wiring_guards.py | 5 |
+| FR-35 | test_market_context.py, test_market_data_providers.py, test_context_wiring_guards.py | 6 |
 | FR-36 | test_context_wiring_guards.py | 1 |
 | FR-37 | test_security.py | 4 |
 | FR-38 | test_portfolio.py, test_market_context.py, test_fx_rates_providers.py | 3 |
@@ -248,5 +248,5 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | NFR-06 | test_stress.py | 7 |
 | NFR-07 | test_robustness.py, test_fuzz.py | 3 |
 | NFR-08 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, test_context_wiring_guards.py | 9 |
-| NFR-09 | the CI matrix, manual check | 0 |
+| NFR-09 | the CI matrix; macOS unchecked | 0 |
 | NFR-10 | test_context_wiring_guards.py, test_signals.py | 3 |
