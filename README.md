@@ -28,7 +28,7 @@ MAHAD is a desktop risk tool that runs on live market data. It charts stocks and
 
 ## Highlights
 
-The window shows one symbol's price chart with two moving averages and the RSI momentum gauge drawn over it, at bar sizes from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update on every price refresh. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields, the VIX volatility index, the crypto Fear & Greed index and the two UK rates. One-shot alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
+The window shows one symbol's price chart with two moving averages (smoothed lines of recent prices) and the RSI momentum gauge drawn over it, in bars (slices of time) from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update on every price refresh. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX volatility index, the crypto Fear & Greed index and the two UK rates. One-shot alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -42,7 +42,7 @@ The price chart carries a simple and an exponential moving average (SMA and EMA)
 
 <img src="docs/images/watchlist.png" alt="Watchlist" width="300" align="right">
 
-Follow stocks and crypto side by side. Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no API key and updates around the clock, so a live chart appears within seconds of opening.
+Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no sign-up key (see API keys below) and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
 
 <br clear="all">
 
@@ -50,7 +50,7 @@ Follow stocks and crypto side by side. Each row shows the latest price, and clic
 
 <img src="docs/images/risk-analytics.png" alt="Risk analytics panel" width="330" align="right">
 
-On the simulated portfolio the panel computes historical and parametric Value-at-Risk, Expected Shortfall, each holding's share of the total risk (component VaR), beta against the market, the Sharpe and Sortino ratios, a smoothed (EWMA) volatility, concentration, a correlation heatmap, a backtest that counts how often losses beat the VaR (the Basel traffic light and the Kupiec test), and replays of dated shocks such as the 2020 COVID crash. Every figure is labelled with the period it covers (its window) and the series it is measured on (its basis), so the same holding's different percentages are never ambiguous.
+On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) (the loss a bad day could reach, read from past days or from a bell curve), Expected Shortfall (the average loss beyond it), each holding's share of the total risk (component VaR), beta against the market (how much the book moves with it), the Sharpe and Sortino ratios (return per unit of variation), a smoothed (EWMA) volatility, concentration, a correlation heatmap (how closely the holdings move together), a backtest that counts how often losses beat the VaR (the Basel traffic light and the Kupiec test), and replays of dated shocks such as the 2020 COVID crash. Every figure is labelled with the period it covers (its window) and the series it is measured on (its basis), so the same holding's different percentages are never ambiguous.
 
 <br clear="all">
 
@@ -92,7 +92,7 @@ For a technical reader: the window is a PySide6 and Qt desktop application with 
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-The window renders and sends intents; one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that returns failures as values and owns the SQLite file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots back through Qt signals. The [technical guide](docs/architecture.md) has the diagrams and the module map.
+In plain terms, the screen asks, a background thread does the work and reports back. For a technical reader: the window renders and sends intents; one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that returns failures as values and owns the SQLite file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots back through Qt signals. The [technical guide](docs/architecture.md) has the diagrams and the module map.
 
 ## Report export
 
@@ -117,7 +117,7 @@ cd MAHAD
 
 On Windows double-click `MAHAD.bat`, which sets up its own environment on the first run and then launches; on macOS or Linux run `bash run.sh`.
 
-MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK rates and the Fear & Greed gauge all work with no key, and a live BTC/USD chart appears within seconds.
+MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK rates and the Fear & Greed gauge all work with no key, and a live BTC/USD chart appears within seconds of selecting it in the watchlist.
 
 ### API keys (optional, free)
 
@@ -138,8 +138,8 @@ pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The suite is headless (no network, no display): it covers the risk maths, the data adapters on captured fixtures, and the UI source-invariants.
+The suite is headless (no network, no display): it covers the risk maths, the data adapters (checked against saved sample responses from each provider), and the window's source text (the strings, colours and wiring the design depends on).
 
 ---
 
-<div align="center"><sub>MIT licensed. A simulated USD portfolio for analysis and learning, not investment advice.</sub></div>
+<div align="center"><sub>Built by Muawiyah Jahanzaib as a solo project. MIT licensed. A simulated USD portfolio for analysis and learning, not investment advice.</sub></div>
