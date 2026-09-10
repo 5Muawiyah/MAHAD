@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import sys
+import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from types import TracebackType
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
@@ -58,7 +62,18 @@ def _apply_app_icon(app: QApplication) -> None:
         pass
 
 
+def _exit_on_exception(exc_type: type[BaseException], exc: BaseException,
+                       tb: TracebackType | None) -> None:
+    # the smoke boot turns any unhandled exception, slots included, into exit code 1
+    traceback.print_exception(exc_type, exc, tb)
+    os._exit(1)
+
+
 def main() -> int:
+    smoke = "--smoke" in sys.argv[1:]
+    if smoke:
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        sys.excepthook = _exit_on_exception
     _setup_logging()
     app = QApplication(sys.argv)
     app.setApplicationName("MAHAD")
@@ -67,6 +82,8 @@ def main() -> int:
     _apply_app_icon(app)
     window = MainWindow()
     window.show()
+    if smoke:
+        QTimer.singleShot(3000, window.close)   # closes through closeEvent, so the worker stops
     return app.exec()
 
 
