@@ -21,14 +21,14 @@
 | [Requirements](docs/requirements.md) | the functional and non-functional requirements, user stories, traceability to tests |
 | [Data dictionary](docs/data-dictionary.md) | the SQLite schema, provider fields, derived figures, the report CSV |
 | [Risk methodology](docs/risk-methodology.md) | every formula and convention |
-| [Verification](docs/verification.md) | the hand-worked vectors the tests pin the formulas to |
+| [Verification](docs/verification.md) | the hand-worked answers the tests check the formulas against |
 | [Glossary](docs/glossary.md) | the terms, in plain English |
 
-MAHAD is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
+MAHAD (Multi-Asset Heuristic Analytics Dashboard) is a desktop risk tool that runs on live market data. It charts stocks and crypto, runs a simulated USD portfolio with live profit and loss, and computes the market-risk figures described below. The portfolio is a simulation, so MAHAD holds no broker or trading credentials and never places a real order.
 
 ## Highlights
 
-The window shows one symbol's price chart with two moving averages (smoothed lines of recent prices) and the RSI momentum gauge drawn over it, in bars (slices of time) from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update on every price refresh. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX volatility index, the crypto Fear & Greed index and the two UK rates. One-shot alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
+The window shows one symbol's price chart (a symbol is the short code for a share or a crypto pair, such as AAPL or BTC/USD) with two moving averages (smoothed lines of recent prices) and the RSI (relative strength index, a momentum gauge) drawn over it, in bars (slices of time) from one minute to one month. A watchlist follows several stocks and crypto pairs at once. Simulated buy and sell orders move a virtual USD portfolio whose cash, positions and profit and loss update at once. The risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay), the VIX index of expected market volatility (volatility is the typical size of a day's move, as a percentage), the crypto Fear & Greed index and the two UK rates. One-shot alerts fire once when a price or indicator condition is met, and a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -42,7 +42,7 @@ The price chart carries a simple and an exponential moving average (SMA and EMA)
 
 <img src="docs/images/watchlist.png" alt="Watchlist" width="300" align="right">
 
-Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no sign-up key (see API keys below) and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
+Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no API key (a free sign-up code; see API keys below) and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
 
 <br clear="all">
 
@@ -50,7 +50,7 @@ Follow stocks and crypto side by side; the badge counts them (five here, three i
 
 <img src="docs/images/risk-analytics.png" alt="Risk analytics panel" width="330" align="right">
 
-On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) (the loss a bad day could reach, read from past days or from a bell curve), Expected Shortfall (the average loss beyond it), each holding's share of the total risk (component VaR), beta against the market (how much the book moves with it), the Sharpe and Sortino ratios (return per unit of variation), a smoothed (EWMA) volatility, concentration, a correlation heatmap (how closely the holdings move together), a backtest that counts how often losses beat the VaR (the Basel traffic light and the Kupiec test), and replays of dated shocks such as the 2020 COVID crash. Every figure is labelled with the period it covers (its window) and the series it is measured on (its basis), so the same holding's different percentages are never ambiguous.
+On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) (the loss a bad day could reach, read from past days or from a bell curve), Expected Shortfall (the average loss beyond it), each holding's share of the total risk (component VaR), beta against the market (how much the portfolio moves with it), the Sharpe and Sortino ratios (return per unit of variation), a smoothed volatility (EWMA, an exponentially weighted moving average that leans on recent days), concentration (how much sits in the largest holdings), a correlation heatmap (how closely the holdings move together), a backtest that counts how often losses beat the VaR (shown as the Basel traffic light, the supervisors' green, yellow and red reading, with the Kupiec statistical check in the row's tooltip), and replays of dated shocks such as the 2020 COVID crash. Every figure is labelled with the period it covers (its window) and the price history it is measured on (its basis), so the same holding's different percentages are never ambiguous.
 
 <br clear="all">
 
@@ -58,7 +58,7 @@ On the simulated portfolio the panel computes [Value-at-Risk](docs/glossary.md) 
 
 <img src="docs/images/market-context.png" alt="The risk panel with the market context section open" width="330" align="right">
 
-The macro backdrop in one place, at the foot of the risk panel: the 10-year Treasury yield and the 2s10s spread (the gap between two- and ten-year yields), the VIX volatility index, the crypto Fear & Greed index, and the UK rates (SONIA, the sterling overnight rate, and the Bank Rate). All of these but the VIX run without a key; the VIX tile needs the free FRED key.
+The market backdrop in one place, at the foot of the risk panel: the 10-year Treasury yield and the 2s10s spread (the gap between two- and ten-year yields), the VIX volatility index, the crypto Fear & Greed index, and the UK rates (SONIA, the sterling overnight rate, and the Bank Rate). All of these but the VIX run without a key; the VIX tile needs the free FRED key.
 
 <br clear="all">
 
@@ -86,13 +86,13 @@ Press Ctrl+Shift+P for a searchable, keyboard-driven list of every command, each
 
 ## What this demonstrates
 
-For a technical reader: the window is a PySide6 and Qt desktop application with a dark design system that meets WCAG AA contrast. Each of the eight data sources sits behind an adapter that returns failures as values, so a missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md). The code is layered one way (ui to worker to engine to data), the engine is pure Python with no Qt, and the suite runs without a display on every push, as the badge above shows.
+The window is a PySide6 and Qt desktop application (Qt is the window toolkit) with a dark design system that meets the WCAG AA contrast standard. Each of the eight data sources sits behind an adapter (a small module that talks to one provider) that reports failures as values rather than raising errors, so a missing or rejected key shows a message naming the source rather than a crash. Every risk formula is stated in [docs/risk-methodology.md](docs/risk-methodology.md) and checked against the hand-worked answers in [docs/verification.md](docs/verification.md). The code is layered one way (ui to worker to engine to data), the engine is pure Python with no Qt, and the suite runs without a display on every push, as the badge above shows.
 
 ## How it is built
 
 <p align="center"><img src="docs/images/architecture.svg" alt="The four layers, the providers and the database" width="100%"></p>
 
-In plain terms, the screen asks, a background thread does the work and reports back. For a technical reader: the window renders and sends intents; one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that returns failures as values and owns the SQLite file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots back through Qt signals. The [technical guide](docs/architecture.md) has the diagrams and the module map.
+In plain terms, the screen asks, a background thread does the work and reports back. The window renders and sends intents (requests such as add a symbol or place an order); one background worker thread fetches, computes and writes; the engine is pure Python that the tests call directly; the data layer wraps each provider in an adapter that reports failures as values and owns the SQLite database file. Imports run one way, from the window down to the data layer, and the worker hands complete snapshots (the whole picture the window shows) back through Qt signals, the toolkit's messages between threads. The [technical guide](docs/architecture.md) has the diagrams and the module map.
 
 ## Report export
 
@@ -100,7 +100,7 @@ In plain terms, the screen asks, a background thread does the work and reports b
 python -m mahad.report
 ```
 
-Writes the portfolio's risk figures to a CSV from the app's own database, read-only, so it runs whether or not the window is open. `--db`, `--out`, `--confidence` and `--window` are the flags; the [data dictionary](docs/data-dictionary.md) lists the columns.
+Writes the portfolio's risk figures to a CSV file (plain text that a spreadsheet opens) from the app's own database, read-only, so it runs whether or not the window is open. `--db`, `--out`, `--confidence` and `--window` are the flags; the [data dictionary](docs/data-dictionary.md) lists the columns.
 
 ## Tech stack
 
@@ -121,7 +121,7 @@ MAHAD launches fully keyless: crypto, the USD to GBP rate, Treasury yields, UK r
 
 ### API keys (optional, free)
 
-Live stock quotes and history, and the VIX tile, use free, email-only keys. Without them MAHAD still runs, and the stock screens show a clear "needs a free key" message that points back here; everything keyless keeps working.
+Live stock quotes and history, and the VIX tile, use free, email-only keys. Without them MAHAD still runs, and the stock screens show a "needs a free key" message that points back here; everything keyless keeps working.
 
 | Key | What it adds | Where to get it (free) |
 |---|---|---|
@@ -129,7 +129,7 @@ Live stock quotes and history, and the VIX tile, use free, email-only keys. With
 | `TIINGO_API_KEY` | stock history, adjusted for dividends and splits | tiingo.com |
 | `FRED_API_KEY` | the VIX tile (optional) | fred.stlouisfed.org |
 
-Copy `.env.example` to `.env` and paste your keys in. The `.env` file is git-ignored and never leaves your machine, and none of the keys can trade or move money. MAHAD uses the FRED API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.
+Copy `.env.example` to `.env` and paste your keys in. The `.env` file stays out of the repository and never leaves your machine, and none of the keys can trade or move money. MAHAD uses the FRED API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.
 
 ## Run the tests
 
