@@ -37,7 +37,7 @@ The pinned tests are `tests/test_risk.py` (the value-history metrics),
   figure.
 - **Tail inclusive of VaR.** Expected Shortfall averages observations 1..m, so
   `ES >= VaR` at the same confidence by construction (check B).
-- **ddof = 1 throughout.** Sample standard deviation and covariance use the unbiased
+- **ddof = 1 for standard deviation and covariance.** Sample standard deviation and covariance use the unbiased
   divisor; the degrees-of-freedom term cancels in beta when applied consistently.
 - **No SciPy.** The normal quantile is found by bisection on the CDF (check A), and the
   chi-square(1) critical value falls out as the 0.975 quantile squared, 3.8415 (check E).

@@ -269,3 +269,22 @@ def test_committed_sample_csv_reproduces():
         assert Decimal(r["qty_after"]) - Decimal(r["qty_before"]) == \
             (q if r["side"] == "buy" else -q)
     assert cash >= 0
+
+
+@given(st.lists(st.lists(st.floats(-0.2, 0.2, allow_nan=False, allow_infinity=False),
+                         min_size=4, max_size=12), min_size=2, max_size=4))
+def test_covariance_matrix_matches_a_direct_pairwise_computation(rows):
+    from mahad.engine import risk_metrics as _rm
+    n = min(len(r) for r in rows)
+    if n < 2:
+        return
+    series = [r[:n] for r in rows]
+    cov = _rm.covariance_matrix(series)
+    if cov is None:
+        return
+    means = [sum(s) / n for s in series]
+    for i, si in enumerate(series):
+        for j, sj in enumerate(series):
+            direct = sum((a - means[i]) * (b - means[j])
+                         for a, b in zip(si, sj, strict=True)) / (n - 1)
+            assert abs(cov[i][j] - direct) < 1e-9
