@@ -1,3 +1,4 @@
+# the daily-bar cache and the one-time legacy-schema migration, through the repository
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,3 +1,4 @@
+# the command palette: module shape, wiring into the main window, registry coverage, help copy
 from __future__ import annotations
 
 from pathlib import Path

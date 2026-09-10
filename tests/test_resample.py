@@ -1,3 +1,4 @@
+# daily candles resampled into 3d, 1w and 1mo buckets
 from __future__ import annotations
 
 import datetime as dt

@@ -1,3 +1,4 @@
+# removing a watchlist symbol through the worker: held-block, active fallback, empty state
 from __future__ import annotations
 
 import time

@@ -1,3 +1,4 @@
+# rejection paths for bad symbols, quantities, orders and alert parameters
 from __future__ import annotations
 
 from decimal import Decimal

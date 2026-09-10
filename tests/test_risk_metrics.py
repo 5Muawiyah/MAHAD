@@ -1,3 +1,4 @@
+# the trading-day analytics pinned to the worked vectors in docs/verification.md
 from __future__ import annotations
 
 import math

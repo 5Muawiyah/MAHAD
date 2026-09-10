@@ -1,3 +1,4 @@
+# switching the active symbol: cached renders, staleness, alert baselines
 from __future__ import annotations
 
 import time

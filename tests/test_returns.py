@@ -1,3 +1,4 @@
+# the trading-day return series: alignment, weighting, exclusions and the worked vectors
 from __future__ import annotations
 
 import datetime as dt
