@@ -35,7 +35,7 @@ def timeframe_seconds(timeframe: str) -> float:
 
 
 @dataclass(frozen=True, slots=True)
-class AlertSpec:
+class AlertRule:
     symbol: str
     condition_type: str
     params: dict[str, object]
@@ -111,15 +111,15 @@ def bars_needed_for(condition_type: str, params: dict[str, object],
     return 0
 
 
-def crossover_d(spec: AlertSpec, closed_closes: Closes) -> npt.NDArray[np.float64]:
+def crossover_d(rule: AlertRule, closed_closes: Closes) -> npt.NDArray[np.float64]:
     # fast minus slow, aligned to the closed series with a NaN warm-up
     closes = np.asarray(closed_closes, dtype=float)
-    if spec.condition_type == PRICE_SMA_CROSS:
-        return closes - sma(closes, cast(int, spec.params["sma_period"]))
-    if spec.condition_type == SMA_EMA_CROSS:
-        return (sma(closes, cast(int, spec.params["sma_period"]))
-                - ema(closes, cast(int, spec.params["ema_period"])))
-    raise ValueError(f"not a crossover condition: {spec.condition_type!r}")
+    if rule.condition_type == PRICE_SMA_CROSS:
+        return closes - sma(closes, cast(int, rule.params["sma_period"]))
+    if rule.condition_type == SMA_EMA_CROSS:
+        return (sma(closes, cast(int, rule.params["sma_period"]))
+                - ema(closes, cast(int, rule.params["ema_period"])))
+    raise ValueError(f"not a crossover condition: {rule.condition_type!r}")
 
 
 def cross_fired(d_prev: Optional[SupportsFloat],
@@ -148,18 +148,18 @@ def bars_adjacent(ts_prev: float, ts_curr: float, timeframe: str) -> bool:
     return dt <= INTRADAY_GAP_FACTOR * timeframe_seconds(timeframe)
 
 
-def threshold_value(spec: AlertSpec, closed_closes: Closes,
+def threshold_value(rule: AlertRule, closed_closes: Closes,
                     mark: Optional[float]) -> Optional[float]:
     # RSI reads off closed bars; price uses the live mark
-    if spec.condition_type == PRICE_THRESHOLD:
+    if rule.condition_type == PRICE_THRESHOLD:
         return float(mark) if mark is not None else None
-    if spec.condition_type == RSI_THRESHOLD:
-        vals = wilder_rsi(closed_closes, cast(int, spec.params["rsi_period"]))
+    if rule.condition_type == RSI_THRESHOLD:
+        vals = wilder_rsi(closed_closes, cast(int, rule.params["rsi_period"]))
         for v in reversed(np.asarray(vals, dtype=float)):
             if not math.isnan(v):
                 return float(v)
         return None
-    raise ValueError(f"not a threshold condition: {spec.condition_type!r}")
+    raise ValueError(f"not a threshold condition: {rule.condition_type!r}")
 
 
 def threshold_fired(value: Optional[float], level: SupportsFloat,
@@ -178,88 +178,88 @@ def _fmt(x: float) -> str:
     return f"{float(x):g}"
 
 
-def summary(spec: AlertSpec) -> str:
+def summary(rule: AlertRule) -> str:
     # plain wording, never phrased as advice
-    p, d = spec.params, spec.direction
-    if spec.condition_type == PRICE_THRESHOLD:
+    p, d = rule.params, rule.direction
+    if rule.condition_type == PRICE_THRESHOLD:
         return f"price {'>=' if d == UP else '<='} {_fmt(cast(float, p['level']))}"
-    if spec.condition_type == RSI_THRESHOLD:
+    if rule.condition_type == RSI_THRESHOLD:
         return (f"RSI({cast(int, p['rsi_period'])}) "
                 f"{'>=' if d == UP else '<='} {_fmt(cast(float, p['level']))}")
     arrow = "crosses above" if d == UP else "crosses below"
-    if spec.condition_type == PRICE_SMA_CROSS:
+    if rule.condition_type == PRICE_SMA_CROSS:
         return f"price {arrow} SMA({cast(int, p['sma_period'])})"
-    if spec.condition_type == SMA_EMA_CROSS:
+    if rule.condition_type == SMA_EMA_CROSS:
         return (f"SMA({cast(int, p['sma_period'])}) {arrow} "
                 f"EMA({cast(int, p['ema_period'])})")
-    return spec.condition_type
+    return rule.condition_type
 
 
-def _event(spec: AlertSpec, value: float, now: float) -> AlertEvent:
-    return AlertEvent(symbol=spec.symbol, condition_type=spec.condition_type,
-                      direction=spec.direction, params=dict(spec.params),
+def _event(rule: AlertRule, value: float, now: float) -> AlertEvent:
+    return AlertEvent(symbol=rule.symbol, condition_type=rule.condition_type,
+                      direction=rule.direction, params=dict(rule.params),
                       value=float(value), fired_at=float(now),
-                      message=f"{spec.symbol} · {summary(spec)} - fired",
-                      alert_id=spec.id)
+                      message=f"{rule.symbol} · {summary(rule)} - fired",
+                      alert_id=rule.id)
 
 
-def evaluate_threshold(spec: AlertSpec, closed_closes: Closes,
+def evaluate_threshold(rule: AlertRule, closed_closes: Closes,
                        mark: Optional[float], now: float) -> Optional[AlertEvent]:
-    value = threshold_value(spec, closed_closes, mark)
+    value = threshold_value(rule, closed_closes, mark)
     if value is None:
         return None
-    if threshold_fired(value, cast(float, spec.params["level"]), spec.direction):
-        return _event(spec, value, now)
+    if threshold_fired(value, cast(float, rule.params["level"]), rule.direction):
+        return _event(rule, value, now)
     return None
 
 
-def cross_at(spec: AlertSpec, d: Closes, ts: Sequence[float], j: int,
+def cross_at(rule: AlertRule, d: Closes, ts: Sequence[float], j: int,
              timeframe: str, now: float) -> Optional[AlertEvent]:
     if j < 1 or j >= len(d):
         return None
     if not bars_adjacent(ts[j - 1], ts[j], timeframe):
         return None
-    if cross_fired(d[j - 1], d[j], spec.direction):
-        return _event(spec, float(d[j]), now)
+    if cross_fired(d[j - 1], d[j], rule.direction):
+        return _event(rule, float(d[j]), now)
     return None
 
 
-def scan_crossover(spec: AlertSpec, d: Closes, ts: Sequence[float],
+def scan_crossover(rule: AlertRule, d: Closes, ts: Sequence[float],
                    new_indices: Sequence[int], timeframe: str,
                    now: float) -> Optional[AlertEvent]:
     # one-shot: first cross among the newly-closed bars wins
     for j in sorted(new_indices):
-        ev = cross_at(spec, d, ts, j, timeframe, now)
+        ev = cross_at(rule, d, ts, j, timeframe, now)
         if ev is not None:
             return ev
     return None
 
 
-def evaluate_crossover(spec: AlertSpec, closed_closes: Closes,
+def evaluate_crossover(rule: AlertRule, closed_closes: Closes,
                        closed_ts: Sequence[float], timeframe: str,
                        now: float = 0.0) -> Optional[AlertEvent]:
     # convenience path: just the last closed pair, handy for tests
     n = len(closed_closes)
     if n < 2:
         return None
-    d = crossover_d(spec, closed_closes)
-    return cross_at(spec, d, list(closed_ts), n - 1, timeframe, now)
+    d = crossover_d(rule, closed_closes)
+    return cross_at(rule, d, list(closed_ts), n - 1, timeframe, now)
 
 
-def evaluate_alert(spec: AlertSpec, *, closed_closes: Closes,
+def evaluate_alert(rule: AlertRule, *, closed_closes: Closes,
                    closed_ts: Sequence[float], mark: Optional[float], timeframe: str,
                    new_indices: Sequence[int], now: float,
-                   ) -> tuple[Optional[AlertEvent], AlertSpec]:
-    # fires at most once, then hands back a disarmed spec
-    if not spec.armed:
-        return None, spec
+                   ) -> tuple[Optional[AlertEvent], AlertRule]:
+    # fires at most once, then hands back a disarmed rule
+    if not rule.armed:
+        return None, rule
     ev: Optional[AlertEvent] = None
-    if spec.condition_type in THRESHOLD_TYPES:
-        ev = evaluate_threshold(spec, closed_closes, mark, now)
-    elif spec.condition_type in CROSSOVER_TYPES:
+    if rule.condition_type in THRESHOLD_TYPES:
+        ev = evaluate_threshold(rule, closed_closes, mark, now)
+    elif rule.condition_type in CROSSOVER_TYPES:
         if len(closed_closes) >= 2 and new_indices:
-            d = crossover_d(spec, closed_closes)
-            ev = scan_crossover(spec, d, list(closed_ts), new_indices, timeframe, now)
+            d = crossover_d(rule, closed_closes)
+            ev = scan_crossover(rule, d, list(closed_ts), new_indices, timeframe, now)
     if ev is not None:
-        return ev, replace(spec, armed=False, fired_at=now)
-    return None, spec
+        return ev, replace(rule, armed=False, fired_at=now)
+    return None, rule

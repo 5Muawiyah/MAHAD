@@ -10,7 +10,7 @@ import pytest
 
 from mahad.data.models import Candle
 from mahad.engine.signals import (DOWN, PRICE_SMA_CROSS, PRICE_THRESHOLD,
-                                   RSI_THRESHOLD, SMA_EMA_CROSS, UP, AlertSpec,
+                                   RSI_THRESHOLD, SMA_EMA_CROSS, UP, AlertRule,
                                    bars_adjacent, bars_needed_for,
                                    canonical_params, cross_at, cross_fired,
                                    crossover_d, evaluate_alert,
@@ -22,7 +22,7 @@ DAY = 86400.0
 
 
 def _spec(condition_type, params, direction=UP, **kw):
-    return AlertSpec(symbol="AAPL", condition_type=condition_type, params=params,
+    return AlertRule(symbol="AAPL", condition_type=condition_type, params=params,
                      direction=direction, **kw)
 
 
@@ -99,22 +99,22 @@ def test_crossover_warmup_boundary_then_real_cross():
   # closes [8,12,9,13], SMA(2): sma=[nan,10,10.5,11]; d = close - sma = [nan, 2, -1.5, 2]
     closes = [8.0, 12.0, 9.0, 13.0]
     ts = [0.0, 60.0, 120.0, 180.0]
-    spec = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
-    d = crossover_d(spec, closes)
+    rule = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
+    d = crossover_d(rule, closes)
     assert math.isnan(d[0]) and d[1] == pytest.approx(2.0)
-    assert cross_at(spec, d, ts, 1, "1m", 0.0) is None  # first defined d (NaN predecessor) -> no fire
-    assert cross_at(spec, d, ts, 3, "1m", 0.0) is not None  # genuine cross (1.5 -> 2) fires
+    assert cross_at(rule, d, ts, 1, "1m", 0.0) is None  # first defined d (NaN predecessor) -> no fire
+    assert cross_at(rule, d, ts, 3, "1m", 0.0) is not None  # genuine cross (1.5 -> 2) fires
 
 
 def test_crossover_no_signal_across_a_data_gap_intraday():
   # Same up-cross at idx3, but ts has a 2-interval hole between idx2 and idx3.
     closes = [8.0, 12.0, 9.0, 13.0]
     ts_gap = [0.0, 60.0, 120.0, 240.0]  # 240 - 120 = 120s = 2 * interval (hole)
-    spec = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
-    d = crossover_d(spec, closes)
-    assert cross_at(spec, d, ts_gap, 3, "1m", 0.0) is None  # no signal across the gap
+    rule = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
+    d = crossover_d(rule, closes)
+    assert cross_at(rule, d, ts_gap, 3, "1m", 0.0) is None  # no signal across the gap
     ts_daily = [0.0, DAY, 2 * DAY, 5 * DAY]  # Fri -> Mon (3-day step) is adjacent
-    assert cross_at(spec, d, ts_daily, 3, "1d", 0.0) is not None  # daily fires
+    assert cross_at(rule, d, ts_daily, 3, "1d", 0.0) is not None  # daily fires
 
 
 def test_sma_ema_crossover_direction_is_decisive_against_a_swap():
@@ -144,8 +144,8 @@ def test_crossover_uses_closed_closes_only_forming_bar_excluded():
     closed_closes = [c.close for c in candles if c.is_closed]
     closed_ts = [c.ts for c in candles if c.is_closed]
     assert closed_closes == closed  # forming bar excluded
-    spec = _spec(PRICE_SMA_CROSS, {"sma_period": 3}, UP)
-    assert evaluate_crossover(spec, closed_closes, closed_ts, "1m") is not None
+    rule = _spec(PRICE_SMA_CROSS, {"sma_period": 3}, UP)
+    assert evaluate_crossover(rule, closed_closes, closed_ts, "1m") is not None
 
 
 def test_price_threshold_level_triggered_and_demo_recipe():
@@ -180,10 +180,10 @@ def test_rsi_threshold_warmup_returns_no_value():
   # RSI(3) needs period+1 = 4 closes; with 3 it is all-NaN, so threshold_value
   # is None and stays None every poll (closed-bar RSI only, never the forming bar)
     closes = [10.0, 11.0, 12.0]
-    spec = _spec(RSI_THRESHOLD, {"rsi_period": 3, "level": 50}, UP)
-    assert threshold_value(spec, closes, mark=50.0) is None
-    assert evaluate_threshold(spec, closes, 50.0, now=1.0) is None
-    assert evaluate_threshold(spec, closes, 50.0, now=2.0) is None  # stable across polls
+    rule = _spec(RSI_THRESHOLD, {"rsi_period": 3, "level": 50}, UP)
+    assert threshold_value(rule, closes, mark=50.0) is None
+    assert evaluate_threshold(rule, closes, 50.0, now=1.0) is None
+    assert evaluate_threshold(rule, closes, 50.0, now=2.0) is None  # stable across polls
 
 
 def test_threshold_fired_primitive():
@@ -195,14 +195,14 @@ def test_threshold_fired_primitive():
 
 
 def test_evaluate_alert_one_shot_then_rearm():
-    spec = _spec(PRICE_THRESHOLD, {"level": 100.0}, UP, id=1, armed=True)
-    ev, fired = evaluate_alert(spec, closed_closes=[], closed_ts=[], mark=150.0,
+    rule = _spec(PRICE_THRESHOLD, {"level": 100.0}, UP, id=1, armed=True)
+    ev, fired = evaluate_alert(rule, closed_closes=[], closed_ts=[], mark=150.0,
                                timeframe="1m", new_indices=[], now=10.0)
     assert ev is not None and fired.armed is False and fired.fired_at == 10.0  # fires once, disarms
     ev2, again = evaluate_alert(fired, closed_closes=[], closed_ts=[], mark=150.0,
                                 timeframe="1m", new_indices=[], now=11.0)
     assert ev2 is None and again is fired  # disarmed -> no re-fire
-    rearmed = AlertSpec("AAPL", PRICE_THRESHOLD, {"level": 100.0}, UP, id=1, armed=True)
+    rearmed = AlertRule("AAPL", PRICE_THRESHOLD, {"level": 100.0}, UP, id=1, armed=True)
     ev3, _ = evaluate_alert(rearmed, closed_closes=[], closed_ts=[], mark=150.0,
                             timeframe="1m", new_indices=[], now=12.0)
     assert ev3 is not None  # re-arm fires again
@@ -215,9 +215,9 @@ def test_scan_crossover_fires_exactly_once_on_first_crossing_over_a_gap():
   # up-crosses at idx3 (1.5 -> 2) AND idx5 (2.5 -> 3); scan returns idx3 (the first).
     closes = [8.0, 12.0, 9.0, 13.0, 8.0, 14.0]
     ts = [i * 60.0 for i in range(len(closes))]
-    spec = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
-    d = crossover_d(spec, closes)
-    ev = scan_crossover(spec, d, ts, [3, 4, 5], "1m", now=1.0)
+    rule = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
+    d = crossover_d(rule, closes)
+    ev = scan_crossover(rule, d, ts, [3, 4, 5], "1m", now=1.0)
     assert ev is not None and ev.value == pytest.approx(2.0)  # the idx3 crossing, not idx5
 
 
@@ -226,8 +226,8 @@ def test_no_false_fire_when_no_new_bars_for_crossover():
   # close, does not fire off the last closed pair even though it is an up-cross
     closes = [10.0, 10.0, 10.0, 9.0, 14.0]
     ts = [i * 60.0 for i in range(len(closes))]
-    spec = _spec(PRICE_SMA_CROSS, {"sma_period": 3}, UP, armed=True)
-    ev, same = evaluate_alert(spec, closed_closes=closes, closed_ts=ts, mark=14.0,
+    rule = _spec(PRICE_SMA_CROSS, {"sma_period": 3}, UP, armed=True)
+    ev, same = evaluate_alert(rule, closed_closes=closes, closed_ts=ts, mark=14.0,
                               timeframe="1m", new_indices=[], now=1.0)
     assert ev is None and same.armed is True
 

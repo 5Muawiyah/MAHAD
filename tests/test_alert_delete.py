@@ -7,7 +7,7 @@ from tests._qt_stub import install as _install_qt_stub
 _install_qt_stub()
 
 from mahad.data.symbols import unread_after_delete
-from mahad.engine.signals import AlertSpec
+from mahad.engine.signals import AlertRule
 from mahad.worker import PollWorker
 
 
@@ -21,7 +21,7 @@ def _worker(tmp_path) -> PollWorker:
 
 def _arm(w, level: float):
     alert, _ = w._repo.add_alert("AAPL", "price_threshold", {"level": level}, "up")
-    w._alerts.append(AlertSpec(id=alert.id, symbol="AAPL",
+    w._alerts.append(AlertRule(id=alert.id, symbol="AAPL",
                                condition_type="price_threshold",
                                params={"level": level}, direction="up"))
     return alert.id

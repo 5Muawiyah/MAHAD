@@ -37,7 +37,7 @@ from mahad.data.symbols import (AlertRowView, AlertsView, WatchlistRow,
 from mahad.engine.indicators import IndicatorSettings
 from mahad.engine.portfolio import (PortfolioState, Position as EngPosition,
                                     unrealised, portfolio_value)
-from mahad.engine.signals import (AlertSpec, evaluate_alert, summary,
+from mahad.engine.signals import (AlertRule, evaluate_alert, summary,
                                   validate_params)
 from mahad.engine.context import curve_reading, spread_bp, vix_band
 from mahad.engine import returns as eng_returns
@@ -104,7 +104,7 @@ class PollWorker(QObject):
         self._persisted: list = []                  # cached PersistedSymbol list
         self._settings = IndicatorSettings()
         # -- alert state (worker-thread only) -- #
-        self._alerts: list[AlertSpec] = []
+        self._alerts: list[AlertRule] = []
         self._last_closed_ts: Optional[float] = None   # crossover no-replay baseline
         self._alerts_paused: bool = False
         # -- simulated-trade state (worker-thread only, single writer) -- #
@@ -325,28 +325,28 @@ class PollWorker(QObject):
 
         now = time.time()
         events: list = []
-        for spec in list(self._alerts):                  # snapshot: tolerate a concurrent change
-            if spec.symbol != active or not spec.armed:
+        for rule in list(self._alerts):                  # snapshot: tolerate a concurrent change
+            if rule.symbol != active or not rule.armed:
                 continue
             try:
-                ev, new_spec = evaluate_alert(
-                    spec, closed_closes=closed_closes, closed_ts=closed_ts, mark=mark,
+                ev, new_rule = evaluate_alert(
+                    rule, closed_closes=closed_closes, closed_ts=closed_ts, mark=mark,
                     timeframe=self._timeframe, new_indices=new_indices, now=now)
             except Exception:                                     # never crash on eval
-                log.exception("alert eval failed (%s)", spec.condition_type)
+                log.exception("alert eval failed (%s)", rule.condition_type)
                 continue
             if ev is None:
                 continue
             try:                                                  # persist before mutate
-                if self._repo is not None and spec.id is not None:
-                    self._repo.set_alert_state(spec.id, armed=False,
-                                               fired_at=new_spec.fired_at)
+                if self._repo is not None and rule.id is not None:
+                    self._repo.set_alert_state(rule.id, armed=False,
+                                               fired_at=new_rule.fired_at)
             except Exception:
                 log.exception("persist alert fire failed; keeping armed")
                 continue                                          # no desync, drop the event
             for _j, _cur in enumerate(self._alerts):      # apply by identity (idx may be stale)
-                if _cur is spec:
-                    self._alerts[_j] = new_spec
+                if _cur is rule:
+                    self._alerts[_j] = new_rule
                     break
             events.append(ev)
 
@@ -357,11 +357,11 @@ class PollWorker(QObject):
     def _emit_alerts(self) -> None:
         active = self._symbol
         rows = tuple(
-            AlertRowView(id=spec.id if spec.id is not None else -1, symbol=spec.symbol,
-                         condition_type=spec.condition_type, direction=spec.direction,
-                         summary=summary(spec), armed=spec.armed, fired_at=spec.fired_at,
-                         not_active=(spec.symbol != active))
-            for spec in self._alerts)
+            AlertRowView(id=rule.id if rule.id is not None else -1, symbol=rule.symbol,
+                         condition_type=rule.condition_type, direction=rule.direction,
+                         summary=summary(rule), armed=rule.armed, fired_at=rule.fired_at,
+                         not_active=(rule.symbol != active))
+            for rule in self._alerts)
         self.alerts_ready.emit(AlertsView(rows=rows, paused=self._alerts_paused,
                                           active_symbol=active, count=len(rows),
                                           cap=ALERT_CAP))
@@ -397,7 +397,7 @@ class PollWorker(QObject):
         if alert is None:
             self.alert_rejected.emit(reason)
             return
-        self._alerts.append(self._spec_from_row(alert))
+        self._alerts.append(self._rule_from_row(alert))
         self._emit_alerts()
 
     @Slot(int)
@@ -617,14 +617,14 @@ class PollWorker(QObject):
     def _load_alerts(self) -> None:
         try:
             rows = self._repo.list_alerts() if self._repo is not None else []
-            self._alerts = [self._spec_from_row(r) for r in rows]
+            self._alerts = [self._rule_from_row(r) for r in rows]
         except Exception:
             log.exception("alert load failed; continuing with no alerts")
             self._alerts = []
 
     @staticmethod
-    def _spec_from_row(row) -> AlertSpec:
-        return AlertSpec(id=row.id, symbol=row.symbol, condition_type=row.condition_type,
+    def _rule_from_row(row) -> AlertRule:
+        return AlertRule(id=row.id, symbol=row.symbol, condition_type=row.condition_type,
                          params=dict(row.params), direction=row.direction,
                          armed=row.armed, fired_at=row.fired_at)
 

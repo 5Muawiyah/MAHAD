@@ -11,7 +11,7 @@ from mahad.config import EMA_PERIOD, RSI_PERIOD, SMA_PERIOD
 from mahad.engine.indicators import MAX_PERIOD, MIN_PERIOD
 from mahad.engine.signals import (CROSSOVER_TYPES, DOWN, PRICE_SMA_CROSS,
                                   PRICE_THRESHOLD, RSI_THRESHOLD, SMA_EMA_CROSS,
-                                  UP, AlertSpec, bars_needed_for, summary,
+                                  UP, AlertRule, bars_needed_for, summary,
                                   validate_params)
 from mahad.ui import theme
 
@@ -283,10 +283,10 @@ class AlertDialog(QDialog):
             self._error.show()
             self._arm.setEnabled(False)
             return
-        # warn if an identical spec has already fired this session
-        spec = AlertSpec(symbol=self._symbol, condition_type=ct, params=params,
+        # warn if an identical rule has already fired this session
+        rule = AlertRule(symbol=self._symbol, condition_type=ct, params=params,
                          direction=self._dir.currentData())
-        if (self._symbol, summary(spec)) in self._fired:
+        if (self._symbol, summary(rule)) in self._fired:
             self._error.hide()
             self._note.setText("this condition already fired - re-arm it from the Alerts tab")
             self._note.show()

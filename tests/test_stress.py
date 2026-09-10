@@ -20,7 +20,7 @@ from mahad.engine.portfolio import (BUY, SELL, PortfolioState, build_trade_csv,
                                     place_order, reconstruct_cash,
                                     reconstruct_realised, record_from_fill)
 from mahad.engine.risk import ValueSample, max_drawdown, simple_returns, volatility
-from mahad.engine.signals import AlertSpec, evaluate_alert
+from mahad.engine.signals import AlertRule, evaluate_alert
 from mahad.engine.snapshot import build_render_snapshot
 from mahad.worker import PollWorker
 
@@ -149,14 +149,14 @@ def test_thousand_snapshot_cycles_no_growth():
     settings = IndicatorSettings(sma_enabled=True, sma_period=20,
                                  ema_enabled=True, ema_period=12,
                                  rsi_enabled=True, rsi_period=14)
-    spec = AlertSpec(id=1, symbol="AAPL", condition_type="price_threshold",
+    rule = AlertRule(id=1, symbol="AAPL", condition_type="price_threshold",
                      params={"level": 1e9}, direction="up")
     closes = [c.close for c in candles]
     ts = [c.ts for c in candles]
 
     def cycle():
         build_render_snapshot(candles, quote, settings=settings)
-        evaluate_alert(spec, closed_closes=closes, closed_ts=ts, mark=105.0,
+        evaluate_alert(rule, closed_closes=closes, closed_ts=ts, mark=105.0,
                        timeframe="1d", new_indices=[len(closes) - 1], now=time.time())
 
     for _ in range(50):
@@ -175,15 +175,15 @@ def test_twenty_armed_alerts_evaluate_quickly():
     candles = _candles(config.HISTORY_CAP)
     closes = [c.close for c in candles]
     ts = [c.ts for c in candles]
-    specs = [AlertSpec(id=i, symbol="AAPL",
+    rules = [AlertRule(id=i, symbol="AAPL",
                        condition_type="sma_ema_cross" if i % 2 else "price_sma_cross",
                        params={"sma_period": 20, "ema_period": 12} if i % 2
                        else {"sma_period": 20},
                        direction="up" if i % 3 else "down")
              for i in range(20)]
     t0 = time.perf_counter()
-    for spec in specs:
-        evaluate_alert(spec, closed_closes=closes, closed_ts=ts, mark=105.0,
+    for rule in rules:
+        evaluate_alert(rule, closed_closes=closes, closed_ts=ts, mark=105.0,
                        timeframe="1d", new_indices=[len(closes) - 1], now=0.0)
     dt = time.perf_counter() - t0
     assert dt < 2.0, f"20 alerts on 500 bars took {dt*1000:.0f} ms"

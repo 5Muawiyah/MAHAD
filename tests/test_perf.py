@@ -23,7 +23,7 @@ from mahad.data.models import Candle, Quote
 from mahad.data.repository import MahadRepository, PersistedTrade
 from mahad.engine.indicators import IndicatorSettings, ema, sma, wilder_rsi
 from mahad.engine.risk import ValueSample, max_drawdown, simple_returns, volatility
-from mahad.engine.signals import AlertSpec, evaluate_alert
+from mahad.engine.signals import AlertRule, evaluate_alert
 from mahad.engine.snapshot import build_render_snapshot
 from mahad.worker import PollWorker
 
@@ -63,14 +63,14 @@ def test_snapshot_build_500_three_indicators(benchmark):
 
 
 def test_signals_twenty_alerts(benchmark):
-    specs = [AlertSpec(id=i, symbol="AAPL",
+    rules = [AlertRule(id=i, symbol="AAPL",
                        condition_type="sma_ema_cross" if i % 2 else "rsi_threshold",
                        params=({"sma_period": 20, "ema_period": 12} if i % 2
                                else {"level": 50.0, "rsi_period": 14}),
                        direction="up") for i in range(20)]
 
     def run():
-        for s in specs:
+        for s in rules:
             evaluate_alert(s, closed_closes=CLOSES, closed_ts=TS, mark=105.0,
                            timeframe="1d", new_indices=[N - 1], now=0.0)
     benchmark(run)

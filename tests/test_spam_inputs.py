@@ -15,7 +15,7 @@ _install_qt_stub()
 
 from mahad.data.models import Candle, Quote
 from mahad.engine.indicators import IndicatorSettings
-from mahad.engine.signals import AlertSpec
+from mahad.engine.signals import AlertRule
 from mahad.worker import PollWorker, _interrupted
 
 REPO = Path(__file__).resolve().parents[1]
@@ -97,7 +97,7 @@ def test_intents_noop_after_stop(tmp_path):
     assert _interrupted() is False, "the stub reports no interruption (defensive helper)"
 
 
-# a torn _alerts list must still fire against the right spec by identity, not index
+# a torn _alerts list must still fire against the right rule by identity, not index
 def test_evaluate_alerts_applies_by_identity(tmp_path):
     w = _worker(tmp_path)
     w._symbol = "AAPL"
@@ -105,16 +105,16 @@ def test_evaluate_alerts_applies_by_identity(tmp_path):
     w._last_quote = Quote("AAPL", 100.0, now, "fake", False)     # fresh, not stale
     w._candles = (Candle("AAPL", "1d", now - 7200, 99, 101, 98, 100, 10.0, True),
                   Candle("AAPL", "1d", now - 3600, 100, 102, 99, 101, 10.0, True))
-    keep = AlertSpec(id=11, symbol="AAPL", condition_type="rsi_threshold",
+    keep = AlertRule(id=11, symbol="AAPL", condition_type="rsi_threshold",
                      params={"rsi_period": 14, "level": 99.0}, direction="up", armed=True)
-    fires = AlertSpec(id=12, symbol="AAPL", condition_type="price_threshold",
+    fires = AlertRule(id=12, symbol="AAPL", condition_type="price_threshold",
                       params={"level": 50.0}, direction="up", armed=True)   # mark 100 >= 50
     w._alerts = [keep, fires]
     events = w._evaluate_alerts()
     assert len(events) == 1, "the price threshold fires once"
     by_id = {s.id: s for s in w._alerts}
-    assert by_id[12].armed is False, "the fired spec is disarmed (matched by identity)"
-    assert by_id[11].armed is True, "the unrelated spec is untouched"
+    assert by_id[12].armed is False, "the fired rule is disarmed (matched by identity)"
+    assert by_id[11].armed is True, "the unrelated rule is untouched"
 
 
 # UI-widget guards can't run under the stub, so the tests below pin their source

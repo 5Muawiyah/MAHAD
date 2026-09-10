@@ -316,12 +316,12 @@ def test_worker_arm_alert_hostile_payloads_never_raise(tmp_path, payload):
 
 
 def test_worker_persist_before_emit_on_fire(tmp_path):
-    # if persisting the disarm fails the event is dropped, spec stays armed
-    from mahad.engine.signals import AlertSpec
+    # if persisting the disarm fails the event is dropped, rule stays armed
+    from mahad.engine.signals import AlertRule
     w = _worker(tmp_path)
     w._repo.add("AAPL", "stock", "USD", "finnhub")
     alert, _ = w._repo.add_alert("AAPL", "price_threshold", {"level": 1.0}, "up")
-    w._alerts = [AlertSpec(id=alert.id, symbol="AAPL",
+    w._alerts = [AlertRule(id=alert.id, symbol="AAPL",
                            condition_type="price_threshold",
                            params={"level": 1.0}, direction="up")]
     w._last_quote = Quote("AAPL", 100.0, time.time(), "yfinance", False)
@@ -337,11 +337,11 @@ def test_worker_persist_before_emit_on_fire(tmp_path):
 
 
 def test_worker_fire_persists_then_emits(tmp_path):
-    from mahad.engine.signals import AlertSpec
+    from mahad.engine.signals import AlertRule
     w = _worker(tmp_path)
     w._repo.add("AAPL", "stock", "USD", "finnhub")
     alert, _ = w._repo.add_alert("AAPL", "price_threshold", {"level": 1.0}, "up")
-    w._alerts = [AlertSpec(id=alert.id, symbol="AAPL",
+    w._alerts = [AlertRule(id=alert.id, symbol="AAPL",
                            condition_type="price_threshold",
                            params={"level": 1.0}, direction="up")]
     w._last_quote = Quote("AAPL", 100.0, time.time(), "yfinance", False)
@@ -354,9 +354,9 @@ def test_worker_fire_persists_then_emits(tmp_path):
 
 
 def test_worker_stale_quote_pauses_alerts_no_fire(tmp_path):
-    from mahad.engine.signals import AlertSpec
+    from mahad.engine.signals import AlertRule
     w = _worker(tmp_path)
-    w._alerts = [AlertSpec(id=1, symbol="AAPL", condition_type="price_threshold",
+    w._alerts = [AlertRule(id=1, symbol="AAPL", condition_type="price_threshold",
                            params={"level": 1.0}, direction="up")]
     w._last_quote = Quote("AAPL", 100.0, time.time() - 9999, "yfinance", False)
     events = w._evaluate_alerts()
