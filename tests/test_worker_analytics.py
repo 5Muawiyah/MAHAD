@@ -197,8 +197,8 @@ def test_accrual_resolves_with_the_prior_days_weights(tmp_path):
     prior_day = grid[-2]
     prior_ts = dt.datetime(prior_day.year, prior_day.month, prior_day.day,
                            tzinfo=dt.UTC).timestamp()
-    # stored weights 0.5 -> realised -0.98%; current ~0.09 -> -0.18%.
-    # var99 = 0.5% sits between: only the stored-weights path excepts.
+    # var99 = 0.5% sits between the stored-weights return (-0.98%) and the current-weights one (-0.18%),
+    # so only the stored-weights path counts an exception
     w._repo.upsert_backtest_forecast(prior_ts, 0.005, {"AAPL": 0.5})
     w._accrue_backtest()
     x, t = w._repo.backtest_counts()

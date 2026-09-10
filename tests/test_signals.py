@@ -93,9 +93,8 @@ def test_price_sma_crossover_up_fires_down_does_not():
 
 
 def test_crossover_warmup_boundary_then_real_cross():
-  # first defined d has a NaN predecessor: it is the baseline, not a cross, even
-  # when positive. a genuine cross after it does fire.
-  # closes [8,12,9,13], SMA(2): sma=[nan,10,10.5,11]; d = close - sma = [nan, 2, -1.5, 2]
+  # the first defined d has a NaN predecessor, so it is the baseline and not a cross even when positive, while
+  # a genuine cross after it fires: closes [8,12,9,13], SMA(2) sma=[nan,10,10.5,11], d = [nan, 2, -1.5, 2]
     closes = [8.0, 12.0, 9.0, 13.0]
     ts = [0.0, 60.0, 120.0, 180.0]
     rule = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
@@ -134,8 +133,7 @@ def test_sma_ema_crossover_direction_is_decisive_against_a_swap():
 
 
 def test_crossover_uses_closed_closes_only_forming_bar_excluded():
-  # worker feeds [c.close for c in candles if c.is_closed], so a wild forming bar
-  # must not move the price-cross decision. close=5 here would flip it but is excluded.
+  # the worker feeds closed closes only, so the wild forming bar (close=5 would flip the decision) is excluded
     closed = [10.0, 10.0, 10.0, 9.0, 14.0]
     candles = [Candle("AAPL", "1m", float(i) * 60, c, c, c, c, 1.0, is_closed=True)
                for i, c in enumerate(closed)]
@@ -163,9 +161,8 @@ def test_price_threshold_level_triggered_and_demo_recipe():
 
 
 def test_rsi_threshold_uses_latest_closed_bar_rsi():
-  # closes [10,11,10,11,12,11,12], RSI(3) last value (idx6) = 5500/81 ~ 67.901
-  # (hand-derived in test_indicators.py). fires off that closed value, never the
-  # live mark, so the wild mark argument is irrelevant.
+  # closes [10,11,10,11,12,11,12] give RSI(3) = 5500/81 ~ 67.901 at idx6 (hand-derived in test_indicators.py),
+  # and the alert fires off that closed value rather than the wild live mark
     closes = [10.0, 11.0, 10.0, 11.0, 12.0, 11.0, 12.0]
     val = threshold_value(_spec(RSI_THRESHOLD, {"rsi_period": 3, "level": 0}), closes, mark=99999.0)
     assert val == pytest.approx(5500 / 81)
@@ -208,10 +205,8 @@ def test_evaluate_alert_one_shot_then_rearm():
 
 
 def test_scan_crossover_fires_exactly_once_on_first_crossing_over_a_gap():
-  # three bars close over a poll gap; the up-cross is on the first newly-closed
-  # bar. scan_crossover returns the FIRST event only (one-shot bound within catch-up).
+  # three bars close over a poll gap and scan_crossover returns only the first up-cross (idx3, not idx5):
   # closes [8,12,9,13,8,14], SMA(2) d = [nan, 2, -1.5, 2, -2.5, 3]
-  # up-crosses at idx3 (1.5 -> 2) AND idx5 (2.5 -> 3); scan returns idx3 (the first).
     closes = [8.0, 12.0, 9.0, 13.0, 8.0, 14.0]
     ts = [i * 60.0 for i in range(len(closes))]
     rule = _spec(PRICE_SMA_CROSS, {"sma_period": 2}, UP)
