@@ -4,10 +4,11 @@ import gc
 import json
 import logging
 import os
+import sqlite3
 import time
 from decimal import Decimal
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Iterable, Optional
 
 from sqlalchemy import (Boolean, Float, ForeignKey, Integer, String, Text,
                         UniqueConstraint, create_engine, delete, event, func,
@@ -37,11 +38,11 @@ class DecimalText(TypeDecorator):
     impl = Text
     cache_ok = True
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value: object, dialect: object) -> Optional[str]:
         return None if value is None else str(value)
 
-    def process_result_value(self, value, dialect):
-        return None if value is None else Decimal(value)
+    def process_result_value(self, value: object, dialect: object) -> Optional[Decimal]:
+        return None if value is None else Decimal(str(value))
 
 
 class SchemaVersion(Base):
@@ -104,8 +105,8 @@ class Portfolio(Base):
     starting_cash: Mapped[Decimal] = mapped_column(DecimalText, nullable=False)
     cash: Mapped[Decimal] = mapped_column(DecimalText, nullable=False)
     realised_pnl: Mapped[Decimal] = mapped_column(DecimalText, nullable=False)
-    peak_value: Mapped[Optional[Decimal]] = mapped_column(DecimalText, nullable=True)   # (unused here)
-    peak_ts: Mapped[Optional[float]] = mapped_column(Float, nullable=True)              # (unused here)
+    peak_value: Mapped[Optional[Decimal]] = mapped_column(DecimalText, nullable=True)   # all-time peak
+    peak_ts: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     created_at: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     reset_at: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
@@ -210,7 +211,7 @@ class VarBacktestRow(Base):
 class PersistedBacktestRow:
     forecast_ts: float
     var99_pct: float
-    weights: dict
+    weights: dict[str, float]
     realised_pct: Optional[float]
     exception: Optional[bool]
 
@@ -231,7 +232,7 @@ class PersistedAlert:
     id: int
     symbol: str
     condition_type: str
-    params: dict
+    params: dict[str, object]
     direction: str
     armed: bool
     fired_at: Optional[float] = None
@@ -325,7 +326,7 @@ class MahadRepository:
         busy_ms = self._busy_ms
 
         @event.listens_for(self._engine, "connect")
-        def _on_connect(dbapi_conn, _record):           # noqa: ANN001
+        def _on_connect(dbapi_conn: sqlite3.Connection, _record: object) -> None:
             cur = dbapi_conn.cursor()
             try:
                 cur.execute("PRAGMA journal_mode=WAL")   # lets readers and the writer overlap
@@ -437,7 +438,7 @@ class MahadRepository:
             self._session.commit()
         return int(sym.id)
 
-    def seed_if_empty(self, default_watchlist, venue: str) -> bool:
+    def seed_if_empty(self, default_watchlist: Iterable[str], venue: str) -> bool:
         count = self._session.scalar(select(func.count()).select_from(WatchlistEntry))
         if count and count > 0:
             return False
@@ -448,7 +449,7 @@ class MahadRepository:
         return True
 
     # -- settings ------------------------------------------------------------- #
-    def get_setting(self, key: str):
+    def get_setting(self, key: str) -> object:
         row = self._session.get(Setting, key)
         if row is None:
             return None
@@ -457,7 +458,7 @@ class MahadRepository:
         except (ValueError, TypeError):
             return None                                  # corrupt value; caller falls back to its default
 
-    def set_setting(self, key: str, value) -> None:
+    def set_setting(self, key: str, value: object) -> None:
         payload = json.dumps(value)
         row = self._session.get(Setting, key)
         if row is None:
@@ -486,7 +487,7 @@ class MahadRepository:
     def count_alerts(self) -> int:
         return self._session.scalar(select(func.count()).select_from(Alert)) or 0
 
-    def add_alert(self, symbol: str, condition_type: str, params: dict,
+    def add_alert(self, symbol: str, condition_type: str, params: dict[str, object],
                   direction: str) -> tuple[Optional[PersistedAlert], str]:
         # enforces the cap and rejects duplicates; second tuple slot is the reason on failure
         sym = self._session.scalar(
@@ -532,7 +533,7 @@ class MahadRepository:
         return True
 
     # -- portfolio / positions / trades -------------------------------------- #
-    def load_or_create_portfolio(self, starting_cash) -> PersistedPortfolio:
+    def load_or_create_portfolio(self, starting_cash: object) -> PersistedPortfolio:
         row = self._session.scalar(select(Portfolio).limit(1))
         if row is None:
             sc = Decimal(str(starting_cash))
@@ -563,7 +564,8 @@ class MahadRepository:
             return sid
         return self._session.scalar(select(Symbol.id).where(Symbol.ticker == ticker))
 
-    def record_fill(self, *, cash, realised_pnl, symbol, new_quantity, new_avg_cost,
+    def record_fill(self, *, cash: object, realised_pnl: object, symbol: str,
+                    new_quantity: Optional[Decimal], new_avg_cost: Optional[Decimal],
                     trade: PersistedTrade) -> None:
         # cash, realised, position and trade all land in one commit
         pf = self._portfolio_row()
@@ -612,7 +614,7 @@ class MahadRepository:
         self._session.execute(delete(Trade))
         self._session.commit()
 
-    def reset_portfolio(self, starting_cash=None) -> PersistedPortfolio:
+    def reset_portfolio(self, starting_cash: object = None) -> PersistedPortfolio:
         pf = self._portfolio_row()
         if pf is None:
             return self.load_or_create_portfolio(
@@ -633,8 +635,9 @@ class MahadRepository:
                                   realised_pnl=pf.realised_pnl)
 
     # -- value-history + all-time peak --------------------------------------- #
-    def append_value_history(self, *, ts, portfolio_value, cash, positions_value,
-                             stale, cap, peak_value=None, peak_ts=None) -> None:
+    def append_value_history(self, *, ts: float, portfolio_value: object, cash: object,
+                             positions_value: object, stale: bool, cap: int,
+                             peak_value: object = None, peak_ts: Optional[float] = None) -> None:
         # appends a point then prunes the oldest rows down to cap
         pf = self._portfolio_row()
         if pf is None:
@@ -685,7 +688,7 @@ class MahadRepository:
             return PersistedPeak(None, None)
         return PersistedPeak(peak_value=pf.peak_value, peak_ts=pf.peak_ts)
 
-    def set_peak(self, peak_value, peak_ts) -> None:
+    def set_peak(self, peak_value: object, peak_ts: Optional[float]) -> None:
         # writes whatever it is given; the worker is what enforces rise-only
         pf = self._portfolio_row()
         if pf is None:
@@ -694,7 +697,8 @@ class MahadRepository:
         pf.peak_ts = None if peak_ts is None else float(peak_ts)
         self._session.commit()
 
-    def rebase_value_history(self, *, ts, value, timeframe: Optional[str] = None) -> None:
+    def rebase_value_history(self, *, ts: float, value: object,
+                             timeframe: Optional[str] = None) -> None:
         # called when the risk timeframe switches: wipe history, re-seed the peak
         pf = self._portfolio_row()
         if pf is None:
@@ -714,7 +718,7 @@ class MahadRepository:
         self._session.commit()
 
     # -- the DailyBar cache (worker-written) --------------------------------- #
-    def upsert_daily_bars(self, symbol: str, rows) -> int:
+    def upsert_daily_bars(self, symbol: str, rows: Iterable[Any]) -> int:
         sym_id = self._symbol_id_for(symbol)
         if sym_id is None or not rows:
             return 0
@@ -816,7 +820,7 @@ class MahadRepository:
 
     # -- the VaR backtest series --------------------------------------------- #
     def upsert_backtest_forecast(self, forecast_ts: float, var99_pct: float,
-                                 weights: dict) -> None:
+                                 weights: dict[str, float]) -> None:
         # only an unresolved day's forecast is refreshed; resolved rows are left alone
         pf = self._portfolio_row()
         if pf is None:
@@ -842,7 +846,7 @@ class MahadRepository:
                 .where(VarBacktestRow.portfolio_id == pf.id,
                        VarBacktestRow.realised_pct.is_(None))
                 .order_by(VarBacktestRow.forecast_ts))
-        out = []
+        out: list[PersistedBacktestRow] = []
         for row in self._session.scalars(stmt):
             try:
                 weights = json.loads(row.weights_json)
@@ -883,7 +887,7 @@ class MahadRepository:
                 .order_by(VarBacktestRow.forecast_ts.desc()).limit(int(limit)))
         rows = list(self._session.scalars(stmt))
         rows.reverse()
-        out = []
+        out: list[PersistedBacktestRow] = []
         for row in rows:
             try:
                 weights = json.loads(row.weights_json)
