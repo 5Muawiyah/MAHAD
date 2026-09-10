@@ -175,8 +175,8 @@ A file whose version differs from the code's is backed up and recreated on open.
 | Finnhub quote | `c` (current price) | `Quote.mark`, when it is a finite positive number |
 | Finnhub quote | `t` (price time) | `Quote.exchange_ts`; a zero payload means an unknown symbol |
 | Finnhub profile | `finnhubIndustry` | the sector name cached in the `sector_map` setting |
-| Kraken Ticker | `c[0]` (last trade), else the midpoint of `b[0]` and `a[0]` | `Quote.mark`; the pair key is matched back to the requested symbol through the XBT and XDG aliases |
-| Kraken OHLC (open, high, low, close bars) | `[time, open, high, low, close, vwap, volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
+| Kraken Ticker | `c[0]` (the last trade), else the midpoint of `b[0]` (the best bid) and `a[0]` (the best ask) | `Quote.mark`; the pair key is matched back to the requested symbol through the XBT and XDG aliases |
+| Kraken OHLC (open, high, low, close bars) | `[time, open, high, low, close, vwap (volume-weighted average price), volume, count]` | a `Candle` per row after `normalize_ohlcv` drops malformed and non-positive rows, de-duplicates on (symbol, timeframe, ts), sorts, caps at 500 bars and flags the last row as forming |
 | Tiingo daily | `date, open, high, low, close, adjClose, volume, divCash, splitFactor` | a `daily_bars` row; the analytics read `adj_close` |
 | Tiingo IEX (its intraday feed) | `date, open, high, low, close, volume` | closed one-minute or one-hour `Candle` rows merged into the sampled series |
 | Treasury CSV | `Date, 3 Mo, 2 Yr, 10 Yr, 30 Yr` | the yield-curve tile; the newest row with both the two-year and ten-year legs |

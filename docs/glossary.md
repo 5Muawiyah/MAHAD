@@ -6,9 +6,9 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Adapter.** A small module that talks to one data provider and turns its answers into the program's own `Quote` and `Candle` shapes. Each adapter returns failures as values rather than raising exceptions.
 
-**As-if portfolio return.** The daily return the book would have earned on a past day with today's weights held across it. The analytics run on this series so that a trade today does not rewrite yesterday's risk.
-
 **Adjusted close.** A daily closing price restated so that dividends and share splits do not show up as price moves. Stock history from Tiingo is used in this form.
+
+**As-if portfolio return.** The daily return the book would have earned on a past day with today's weights held across it. The analytics run on this series so that a trade today does not rewrite yesterday's risk.
 
 **Backcast.** Running the trailing-window VaR day by day across the cached history with today's weights, to fill the backtest before 250 live forecasts have accrued. The panel labels it so it is never mistaken for the live series.
 
@@ -38,7 +38,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **EMA.** Exponential moving average: a price average that weights recent bars more, seeded from the simple average of the first period. The chart overlays a 12-bar EMA by default.
 
-**EWMA.** Exponentially weighted moving average. Applied to squared returns with a decay of 0.94 it gives a volatility estimate that leans on recent days, the RiskMetrics convention.
+**EWMA.** Exponentially weighted moving average. Applied to squared returns with a decay of 0.94 (each day's weight is 0.94 times the next day's) it gives a volatility estimate that leans on recent days, the convention JP Morgan's RiskMetrics service set in the 1990s.
 
 **Ex-ante.** Computed in advance. An ex-ante backtest series is one where every forecast was recorded before the day it covered.
 
@@ -94,7 +94,7 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **SONIA.** The Sterling Overnight Index Average, the UK's overnight interest-rate benchmark.
 
-**Sortino ratio.** Like the Sharpe ratio but dividing by the downside deviation only, so upside swings are not counted as risk.
+**Sortino ratio.** The mean return, measured against a zero target rather than a risk-free rate, divided by the downside deviation only, so upside swings are not counted as risk; annualised over 252 trading days.
 
 **Stale.** A quote older than three poll intervals or fifteen seconds, whichever is longer. Stale prices are still shown, dimmed, and alerts pause until a fresh one arrives.
 
@@ -104,13 +104,15 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Timeframe.** The size of a chart bar: one minute, one hour, one day, three days, one week or one month.
 
+**Toast.** A short notice that appears in the corner of the window and fades, used when an alert fires or an order is refused.
+
 **Trading-day basis.** Returns measured from one US trading day's close to the next, with weekends and holidays folded into the following day. The analytics section runs on this basis and annualises with 252 days.
 
-**Toast.** A short notice that appears in the corner of the window and fades, used when an alert fires or an order is refused.
+**Value history.** The portfolio's own value sampled on a fixed cadence (one minute, one hour or one day) while the program runs, kept to the newest 1,000 samples. The headline volatility, the maximum drawdown and the drawdown duration are computed on it.
 
 **Value-at-Risk (VaR).** The loss that a stated share of days should not exceed. A 95% one-day VaR of 1,934 USD means that on about one day in twenty the loss is expected to be worse than that.
 
-**VIX.** The CBOE volatility index, a market-implied measure of expected S&P 500 volatility over the next 30 days. The context tile bands it as calm, normal, elevated or extreme.
+**VIX.** The Chicago Board Options Exchange (CBOE) volatility index, a market-implied measure of expected S&P 500 volatility over the next 30 days. The context tile bands it as calm, normal, elevated or extreme.
 
 **WAL.** Write-ahead logging, an SQLite mode in which readers and the single writer do not block each other. The database runs in this mode so the report can read while the program writes.
 
