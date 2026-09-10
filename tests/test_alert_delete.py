@@ -74,6 +74,16 @@ def test_remove_alert_missing_id_is_safe(tmp_path):
     w.stop()
 
 
+def test_a_failed_delete_can_be_retried():
+    from pathlib import Path as _P
+    src = (_P(__file__).resolve().parents[1] / "mahad" / "ui" / "main_window.py").read_text(encoding="utf-8")
+    block = src.split("def _on_alerts_ready", 1)[1].split("\n    @Slot", 1)[0]
+    assert "self._deleting_alert_ids.clear()" in block          # the guard is released either way
+    assert "self._unread = unread_after_delete(" in block       # the badge waits for the row to go
+    delete = src.split("def _on_alert_delete", 1)[1].split("\n    @Slot", 1)[0]
+    assert "unread_after_delete(" not in delete                 # never decremented on the click
+
+
 def test_unread_after_delete_decrements_only_unseen_fired():
     # deleting a fired alert off the Alerts tab clears one unseen fire
     assert unread_after_delete(3, fired=True, on_alerts_tab=False) == 2
