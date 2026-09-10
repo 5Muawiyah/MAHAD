@@ -99,7 +99,7 @@ FRED_KEY_ENV: str = "FRED_API_KEY"         # free key - the VIX tile
 # --- Data plane ---
 FINNHUB_KEY_ENV: str = "FINNHUB_API_KEY"   # free key - live US stock quotes
 TIINGO_KEY_ENV: str = "TIINGO_API_KEY"     # free key - stock daily history
-FINNHUB_BUDGET_PER_MIN: int = 55           # worker-side cap under the free tier
+FINNHUB_BUDGET_PER_MIN: int = 55           # the adapter's cap under the free tier
 TIINGO_DAILY_LOOKBACK_DAYS: int = 750      # calendar days fetched
 NEEDS_KEY_STOCK_MSG: str = ("needs a free Finnhub key (finnhub.io) - see the "
                             "README to add it; crypto runs without a key")

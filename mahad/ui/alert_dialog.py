@@ -26,7 +26,6 @@ _TIP_NOTE = ("Tip: arm a price threshold just inside the live mark "
              "(use mark - 0.1%) - it fires within about one poll.")
 
 
-
 def _spin_value(box: QWidget) -> int:
     spin = box.findChild(QSpinBox)
     assert spin is not None
