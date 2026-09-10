@@ -42,6 +42,7 @@ def test_each_shortcut_is_paired_with_the_handler_its_button_uses():
                    "_btn_help.clicked.connect(self._show_help)"):
         assert wiring in src, wiring                      # the button and the key share one slot
 
+
 def test_symbol_and_timeframe_intents_ride_queued_signals():
     src = _src("mahad/ui/main_window.py")
     assert "_select_symbol = Signal(str)" in src and "_set_timeframe = Signal(str)" in src
@@ -59,6 +60,7 @@ def test_the_worker_quits_its_thread_from_the_stop_slot():
     assert "self._stop_worker.emit()" in block and "self._thread.quit()" not in block
     stop = _src("mahad/worker/poll.py").split("def stop(self)", 1)[1].split("\n    @Slot", 1)[0]
     assert "QThread.currentThread()" in stop and "thread.quit()" in stop
+
 
 def test_timeframe_shortcut_drives_the_same_intent_path():
     src = _src("mahad/ui/main_window.py")
