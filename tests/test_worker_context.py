@@ -7,7 +7,8 @@ from tests._qt_stub import install as _install_qt_stub
 
 _install_qt_stub()
 
-import mahad.worker as worker_mod  # noqa: E402
+import mahad.worker.context as worker_mod  # noqa: E402
+import mahad.worker.poll as poll_mod  # noqa: E402
 from mahad import config  # noqa: E402
 from mahad.data.context_sources import ContextResult  # noqa: E402
 from mahad.data.models import Quote  # noqa: E402
@@ -320,7 +321,7 @@ def test_poll_failure_records_and_success_clears_the_health_error():
 
 # the degraded-persistence flag
 def test_db_open_failure_sets_the_degraded_flag(monkeypatch):
-    monkeypatch.setattr(worker_mod, "open_repository",
+    monkeypatch.setattr(poll_mod, "open_repository",
                         lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("locked")))
     w = PollWorker(symbol="AAPL", timeframe="1d", db_url="sqlite:///:memory:")
     w._open_repo()

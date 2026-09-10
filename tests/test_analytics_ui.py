@@ -223,7 +223,7 @@ def test_pnl_vs_risk_block_block_guards():
     assert "TIP_RA_PNL" in src and "_ra_pnl_rows" in src
     assert "x VaR95" in src
     assert "signed_usd(" in src               # signed: a loss reads negative
-    assert "return_on_risk" in _src("mahad/worker.py")
+    assert "return_on_risk" in _src("mahad/worker/analytics.py")
 
 
 def test_view_carries_var_history():

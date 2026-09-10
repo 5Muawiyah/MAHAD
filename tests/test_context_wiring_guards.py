@@ -40,7 +40,7 @@ def test_health_chip_is_wired_from_the_snapshot():
 
 
 def test_db_notice_rides_a_discrete_signal_and_is_emitted_on_start():
-    wsrc = _src("mahad/worker.py")
+    wsrc = _src("mahad/worker/poll.py")
     assert "db_notice = Signal(str)" in wsrc
     start = wsrc.split("def start(", 1)[1].split("\n    @Slot()", 1)[0]
     assert "self.db_notice.emit(" in start                # surfaced on start, never silent
@@ -122,7 +122,7 @@ def test_no_credential_kinds_beyond_the_one_free_data_key():
 
 
 def test_worker_never_stores_the_key_value():
-    src = _src("mahad/worker.py")
+    src = _src("mahad/worker/context.py")
     assert "_ctx_has_key" in src                          # presence only, not the value
     # key is read locally in the refresh and passed straight through; no attribute holds it
     assert "self._key" not in src and "self._api_key" not in src

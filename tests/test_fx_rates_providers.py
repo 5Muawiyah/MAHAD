@@ -184,7 +184,7 @@ def test_integrity_popover_and_chip_wiring():
     assert "_toggle_integrity_popover" in src
     assert "DATA INTEGRITY" in src and "HISTORY GAP CHECK" in src
     assert "no gaps" in src
-    src_w = _src("mahad/worker.py")
+    src_w = _src("mahad/worker/context.py")
     assert "_build_integrity_view" in src_w
     assert "missing_trading_days" in src_w
 
@@ -201,7 +201,7 @@ def test_worker_fx_boe_round_trip_and_fresh_provider_rows(tmp_path, monkeypatch)
     # provider rows refresh every snapshot, but the gap scan is dirty-gated
     from tests._qt_stub import install as _install
     _install()
-    import mahad.worker as worker_mod
+    import mahad.worker.context as worker_mod
     from mahad.worker import PollWorker
     from mahad.data.context_sources import ContextResult
     from mahad.data.source import SourceError, SourceErrorKind
