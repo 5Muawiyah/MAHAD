@@ -2,7 +2,7 @@
 
 # MAHAD
 
-### A desktop market-risk workstation for live stock and crypto markets
+### A desktop risk tool for live stock and crypto markets
 
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue) &nbsp;[![tests](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml/badge.svg)](https://github.com/5Muawiyah/MAHAD/actions/workflows/tests.yml) &nbsp;![Built with](https://img.shields.io/badge/built%20with-PySide6%20%2F%20Qt-41cd52)
 
@@ -28,7 +28,11 @@ MAHAD is a desktop risk tool that runs on live market data. The name, Multi-Asse
 
 ## Highlights
 
-MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart shows one symbol in bars, slices of time from one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it. Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once. On the right, the risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
+MAHAD puts a live price chart, a watchlist, a simulated portfolio and a risk panel in one window. The chart shows one symbol in bars, slices of time from one minute to one month. A symbol is the short code for a share, such as AAPL, or for a crypto pair such as BTC/USD, a coin priced in a currency. Three indicator lines go with it: two moving averages (smoothed lines of recent prices) over the price, and the RSI (relative strength index, a momentum gauge) beneath it.
+
+Because the portfolio is simulated, a buy or sell order moves virtual USD only, and cash, positions (the shares and coins held) and profit and loss update at once.
+
+On the right, the risk panel computes the standard measures of how much the portfolio could lose on a bad day and how sure that estimate is, each defined in the [glossary](docs/glossary.md) and explained in the [overview](docs/overview.md). Market context tiles give the backdrop: US Treasury yields (what US government bonds pay) and the VIX index of expected market volatility (the typical size of a day's move, as a percentage). The other tiles carry the crypto Fear & Greed index (a daily sentiment score from 0, extreme fear, to 100, extreme greed) and the two UK rates, SONIA (the rate banks pay to borrow pounds from each other overnight) and the Bank Rate (the Bank of England's base rate). Alerts fire once when a price or indicator condition is met; a command palette lists every command with its shortcut.
 
 ## A closer look
 
@@ -42,7 +46,7 @@ The price chart carries a simple and an exponential moving average (SMA and EMA,
 
 <img src="docs/images/watchlist.png" alt="Watchlist" width="300" align="right">
 
-Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no API key (a free sign-up code; see API keys below) and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
+Follow stocks and crypto side by side; the badge counts them (five here, three in view). Each row shows the latest price, and clicking one makes it the active symbol on the chart. Crypto needs no key at all and updates around the clock, so a live BTC/USD chart appears within seconds of selecting it.
 
 <br clear="all">
 

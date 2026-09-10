@@ -4,7 +4,7 @@ MAHAD (Multi-Asset Heuristic Analytics Dashboard: several [asset classes](glossa
 
 ## Who it is for
 
-MAHAD is for two people. The analyst runs it, follows symbols, places simulated trades and reads the figures as they update. The reader takes the figures without running it, from the report file or these documents, and can check them against answers worked out by hand. On a laptop, with real prices, it runs the standard calculations that risk teams in banks and funds use to answer one question: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula. The [verification note](verification.md) holds the hand-worked answers the tests check against.
+MAHAD is for two people. The analyst runs it, follows symbols, places simulated trades and reads the figures as they update. The reader takes the figures without running it, from the report file or these documents, and can check them against hand-worked answers. On a laptop, with real prices, it runs the standard calculations that risk teams in banks and funds use to answer one question: how much could we lose if prices move against us, and how sure are we. The [methodology note](risk-methodology.md) states every formula. The [verification note](verification.md) holds the hand-worked answers the tests check against.
 
 ## A guided tour
 
@@ -18,11 +18,11 @@ The chart draws the closing price with two moving averages (smoothed lines of re
 
 ![Watchlist](images/watchlist.png)
 
-The watchlist holds the symbols being followed (five here, three in view), with their latest prices and a green dot when fresh. Clicking a row makes it the active chart. Crypto pairs such as BTC/USD need no account or key (a free sign-up code); a live chart appears within seconds.
+The watchlist holds the symbols being followed (five here, three in view), with their latest prices and a green dot when fresh. Clicking a row makes it the active chart. Crypto pairs such as BTC/USD need no account or key at all; a live chart appears within seconds.
 
 ![Risk analytics panel](images/risk-analytics.png)
 
-The top of the panel shows exposure (how much of the portfolio's value, its net asset value or NAV, is in positions rather than cash), the volatility (the typical size of one period's move, a day by default) of the portfolio's own value, and its worst fall from a peak. The analytics section below runs the measures risk teams use, most on the last 250 trading days and the correlation grid on the last 90. The loss measures are [Value-at-Risk](glossary.md#value-at-risk-var) at two confidence levels (how sure the estimate is), [Expected Shortfall](glossary.md#expected-shortfall-es), their bell-curve (parametric) versions, and three replayed shocks: the 2020 COVID crash, the 2022 tightening and the FTX week. A traffic-light [backtest](glossary.md#backtest) checks the VaR against what happened. Others describe reward and how the risk is spread: [beta](glossary.md#beta) against the S&P 500 fund SPY, the [Sharpe](glossary.md#sharpe-ratio) and [Sortino](glossary.md#sortino-ratio) ratios, a recent-weighted (EWMA) volatility, [concentration](glossary.md#concentration), each position's share of the risk, and a grid of how closely the positions move together.
+The top of the panel shows exposure (how much of the portfolio's value, its net asset value or NAV, is in positions rather than cash), the volatility (the typical size of one period's move, a day by default) of the portfolio's own value, and its worst fall from a peak. The analytics below run on the last 250 trading days, the correlation grid on the last 90. The loss measures are [Value-at-Risk](glossary.md#value-at-risk-var) at two confidence levels (how sure the estimate is), [Expected Shortfall](glossary.md#expected-shortfall-es), the bell-curve (parametric) version of the VaR at both levels, and three replayed shocks: the 2020 COVID crash, the 2022 tightening (central banks raising rates sharply) and the FTX week (a large crypto exchange collapsing). A traffic-light [backtest](glossary.md#backtest) checks the VaR against what happened. Others describe reward and spread: [beta](glossary.md#beta) against the S&P 500 fund SPY, the [Sharpe](glossary.md#sharpe-ratio) and [Sortino](glossary.md#sortino-ratio) ratios, a recent-weighted (EWMA) volatility, [concentration](glossary.md#concentration), each position's share of the risk, and a grid of how closely the positions move together.
 
 ![The risk panel with the market context section open](images/market-context.png)
 
@@ -71,7 +71,7 @@ MAHAD holds no brokerage account and cannot place a real order; Kraken's public 
 
 ## The report export
 
-`python -m mahad.report` writes the portfolio's risk figures to a CSV file (a spreadsheet-readable file) without the window and without writing to the database, even while the program is open. Every row states the metric, its value and unit, its period and basis (the price history behind it), the date, and a note when the database lacks what the figure needs.
+`python -m mahad.report` writes the portfolio's risk figures to a CSV file (a spreadsheet-readable file) without the window and without writing to the database, even while the program is open. Every row carries the same seven columns: the metric, its value and unit, the basis (the price history behind it), the period where the figure has one, the date, and a note where there is something to say.
 
 ## How to run it
 
