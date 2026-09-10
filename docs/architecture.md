@@ -21,13 +21,13 @@ flowchart LR
     R -. "read-only" .-> DB
 ```
 
-Three read-model modules live under `mahad/data/` and are the only data modules the window imports: `symbols.py` (watchlist and alert rows), `portfolio_view.py` (portfolio, risk and analytics views) and `context_view.py` (context tiles, health and data-integrity views). They hold frozen dataclasses plus a few small functions: the window calls the symbol helpers `classify`, `effective_active`, `normalize_symbol` and `unread_after_delete`, the CSV builders for the value history and the risk snapshot, and the analytics summary text, while the worker calls the symbol validator `validate_add` and the health classifier; the trade-log CSV builder lives with the ledger in `engine/portfolio.py`. None of them touches a provider or the database. The window never computes a risk figure; it renders what the worker publishes and sends intents back.
+Three read-model modules live under `mahad/data/` and are the only data modules the window imports: `symbols.py` (watchlist and alert rows), `portfolio_view.py` (portfolio, risk and analytics views) and `context_view.py` (context tiles, health and data-integrity views). They hold frozen dataclasses plus a few small functions: the window calls the symbol helpers `classify`, `effective_active`, `normalize_symbol` and `unread_after_delete`, the CSV builders for the value history and the risk snapshot, the analytics summary text and the backtest chip text, while the worker calls the symbol validator `validate_add`, the provider lookup `provider_for` and the health classifier; the trade-log CSV builder lives with the ledger in `engine/portfolio.py`. None of them touches a provider or the database. The window never computes a risk figure; it renders what the worker publishes and sends intents back.
 
 The engine is Qt-free and the report module (`mahad/report.py`) imports the engine and the data layer only. `tests/test_layering.py` walks every import under the four layers, the report module and `config.py` with the `ast` module and fails on any crossing: a UI module importing a data module other than the three read models or an engine module other than the five helper modules, a data module importing anything of MAHAD's beyond the data layer and the config, an engine module importing anything beyond the engine, the data layer and the config, the worker importing the UI, or the engine, the report or the config importing Qt.
 
 ## The path of a price
 
-The worker polls the active symbol every five seconds (`config.POLL_INTERVAL_S`) from a timer on its own thread. The adapter returns a `FetchResult` whose `error` field carries a failure as a value; nothing in the data layer raises across the boundary.
+The worker polls the active symbol every five seconds (`config.POLL_INTERVAL_S`) from a timer on its own thread. The adapter returns a `FetchResult` whose `error` field carries a failure as a value; nothing in the adapters raises across the boundary.
 
 ```mermaid
 sequenceDiagram
@@ -65,7 +65,7 @@ Shutdown is cooperative and bounded. `MainWindow.closeEvent` requests interrupti
 
 ## The worker package
 
-`mahad/worker/` holds one `QObject` subclass, `PollWorker` in `poll.py`, which owns every signal and every piece of state. Its methods are grouped by responsibility into mixins that `PollWorker` combines, each in its own module: `alerts.py` (evaluation, arming and the alerts view), `portfolio.py` (the simulated book, marks, the value-history sampling, orders and reset), `daily.py` (daily-bar coverage and the official one-day series), `analytics.py` (the risk-analytics assembly, sectors, stress rows and the backtest accrual) and `context.py` (the context tiles, their cache, the health and data-integrity views). `state.py` declares the attributes, signals and cross-part methods once so each part type-checks on its own; at runtime it is a plain class, and `PollWorker` alone derives from `QObject`. The package re-exports `PollWorker`, so `from mahad.worker import PollWorker` is the only import the window needs.
+`mahad/worker/` holds one `QObject` subclass, `PollWorker` in `poll.py`, which owns every signal and every piece of state. Its methods are grouped by responsibility into mixins that `PollWorker` combines, each in its own module: `alerts.py` (evaluation, arming and the alerts view), `portfolio.py` (the simulated book, marks, the value-history sampling, orders and reset), `daily.py` (daily-bar coverage, the official one-day series, the provider health notes and the one call into the legacy-schema migration), `analytics.py` (the risk-analytics assembly, sectors, stress rows and the backtest accrual) and `context.py` (the context tiles, their cache, the health and data-integrity views). `state.py` declares the attributes, signals and cross-part methods once so each part type-checks on its own; at runtime it is a plain class, and `PollWorker` alone derives from `QObject`. The package re-exports `PollWorker`, so `from mahad.worker import PollWorker` is the only import the window needs.
 
 ## Persistence
 
@@ -139,7 +139,7 @@ GitHub Actions runs the suite on Ubuntu and Windows across Python 3.11, 3.12 and
 | `mahad/worker/poll.py` | `PollWorker`: signals, the poll loop, intents, switching, the heartbeat |
 | `mahad/worker/alerts.py` | alert evaluation and arming |
 | `mahad/worker/portfolio.py` | the simulated book, value-history sampling, orders |
-| `mahad/worker/daily.py` | daily-bar coverage and the official one-day series |
+| `mahad/worker/daily.py` | daily-bar coverage, the official one-day series, the provider health notes, the legacy-schema migration call |
 | `mahad/worker/analytics.py` | the analytics assembly, stress rows, the backtest accrual |
 | `mahad/worker/context.py` | context tiles, their cache, health and integrity views |
 | `mahad/worker/state.py` | the worker's attribute and signal declarations |
