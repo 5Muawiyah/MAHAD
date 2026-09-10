@@ -5,7 +5,8 @@ is the answer key: the test suite pins each function to these exact values, so a
 regression in any formula fails a test rather than drifting silently. Anyone can
 reproduce each figure from the inputs below with a calculator.
 
-The pinned tests are `tests/test_risk.py` (the value-history metrics) and
+The pinned tests are `tests/test_risk.py` (the value-history metrics),
+`tests/test_returns.py` (the return series, checks M and N) and
 `tests/test_risk_metrics.py` (the trading-day analytics).
 
 ## Worked vectors
