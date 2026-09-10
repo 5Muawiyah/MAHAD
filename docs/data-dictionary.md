@@ -1,6 +1,6 @@
 # Data dictionary
 
-The SQLite schema the application writes, the provider fields it consumes and how they normalise, the figures it derives, and the columns of the report CSV.
+The SQLite schema the application writes, the provider fields it consumes and how they normalise, the figures it derives, and the columns of the four CSV exports.
 
 ## The SQLite schema
 
@@ -103,7 +103,7 @@ Rows are never updated or removed singly. The table is emptied in two ways, both
 | side | VARCHAR(8) | buy or sell | buy |
 | quantity | TEXT (Decimal) | units filled | 100 |
 | fill_price | TEXT (Decimal) | the mark the order filled at | 308.00 |
-| avg_cost_at_fill | TEXT (Decimal) | the position's average cost after the fill | 308.00 |
+| avg_cost_at_fill | TEXT (Decimal) | the average cost the fill was measured against: the new blended average on a buy, the average the position carried before the fill on a sell | 308.00 |
 | qty_before | TEXT (Decimal) | position size before | 0 |
 | qty_after | TEXT (Decimal) | position size after | 100 |
 | realised_pnl | TEXT (Decimal) | the result booked by this fill; zero on a buy | 0.00 |
@@ -211,6 +211,16 @@ Formula references point at sections of the [methodology note](risk-methodology.
 | Return on VaR | Return on VaR and rolling VaR | mixed: ledger P&L over the 95% VaR in USD | now | ratio |
 | Rolling VaR | Return on VaR and rolling VaR | trading-day | 60-day windows, 40 points | fraction |
 | Stress replay | Stress replay | scenario windows on cached closes, else the per-asset constants in `config.STRESS_CONSTANTS` | the scenario | USD |
+
+## The other three exports
+
+The window writes three more files, each self-contained so it reads back without the database.
+
+| Export | Columns | Written by |
+|---|---|---|
+| Trade log | `ts, symbol, side, quantity, fill_price, avg_cost_at_fill, qty_before, qty_after, realised_pnl`, under a `# starting_cash,<amount>` line | `build_trade_csv` in `mahad/engine/portfolio.py` |
+| Value history | `ts_iso_utc, ts_epoch, portfolio_value, stale` | `build_value_history_csv` in `mahad/data/portfolio_view.py` |
+| Risk snapshot | `metric, value, units, convention, as_of` | `build_risk_snapshot_csv` in `mahad/data/portfolio_view.py` |
 
 ## The report CSV
 

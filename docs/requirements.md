@@ -2,7 +2,7 @@
 
 ## Purpose and scope
 
-MAHAD is a single-user desktop workstation that runs a simulated USD portfolio on live market data and reports market-risk figures over it. The requirements below are what the program as it stands in the repository is required to do and not to do; each names the test, or the check, that proves it.
+MAHAD is a single-user desktop workstation that runs a simulated USD portfolio on live market data and reports market-risk figures over it. The requirements below are what the program as it stands in the repository is required to do and not to do; each names the test, or the check, that proves it, and says so plainly where nothing proves it yet.
 
 In scope: live stock and crypto prices with charting and indicators, a watchlist, simulated orders against an exact ledger, the risk figures on two bases, the market-context tiles, one-shot alerts, local persistence, the handling of the three optional free keys, and the report export, which runs headless (without the window).
 
@@ -110,7 +110,7 @@ FR-37. Symbols, alert parameters and settings values shall be stored as inert da
 
 ### Exports and the report
 
-FR-38. The trade log, the value history and the risk snapshot shall export as CSV files that read back without the database: the trade log opens with a starting-cash line and every row carries its symbol, and the value history (a timestamp, the value and the stale flag on every row) and the risk snapshot carry their own columns. Proof: `test_csv_rows_are_self_contained` in `test_portfolio.py`; `test_value_history_csv_round_trip` in `test_market_context.py`; `test_risk_snapshot_csv_round_trips` in `test_fx_rates_providers.py`.
+FR-38. The trade log, the value history and the risk snapshot shall export as CSV files that read back without the database: the trade log opens with a starting-cash line and every row carries its symbol, the value history carries `ts_iso_utc, ts_epoch, portfolio_value, stale`, and the risk snapshot carries `metric, value, units, convention, as_of`. Proof: `test_csv_rows_are_self_contained` in `test_portfolio.py`; `test_value_history_csv_round_trip` in `test_market_context.py`; `test_risk_snapshot_csv_round_trips` in `test_fx_rates_providers.py`.
 
 FR-39. `python -m mahad.report` shall write the book's figures to a CSV from the database in read-only mode, equal to the engine's own outputs on the same inputs, saying in a note when the database cannot support a figure, exiting with code 1 and a plain message when there is no data, and loading no module of the Qt window toolkit. Proof: `test_rows_equal_the_engine_on_the_same_inputs`, `test_rows_say_when_data_is_missing`, `test_csv_has_the_columns_and_the_summary_prints`, `test_no_data_gives_a_message_and_exit_one`, `test_the_report_connection_cannot_write` and `test_importing_the_report_pulls_in_no_qt` in `test_report.py`.
 
@@ -124,7 +124,7 @@ NFR-01. Keyless start: crypto, the USD to GBP rate, the Treasury curve, the UK r
 
 NFR-02. The test suite shall run headless with no network and no display. Proof: the Ubuntu CI jobs run the suite on runners without OpenGL (the graphics library a Qt window draws with), which proves the no-display clause; the no-network clause is enforced by `tests/_no_network.py`, loaded for every run, which refuses any network connection, and `test_the_suite_cannot_reach_the_network` in `test_security.py` proves the refusal; the report module's own Qt-free rule is FR-39.
 
-NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and the backtest zone chip, the watchlist count badge and the unread badge shall carry their state in text, never in colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa` and `test_unread_badge_is_aa_safe_on_the_left` in `test_ui_layout_guards.py`.
+NFR-03. Painted text shall meet the WCAG AA contrast standard (the AA level of the Web Content Accessibility Guidelines: a 4.5 to 1 ratio for normal text), and the backtest zone chip, the watchlist count badge and the unread badge shall carry their state in text, never in colour alone. Proof: `test_contrast_ratio_matches_known_wcag_values`, `test_heatmap_incell_numerals_clear_aa_on_every_cell` and `test_traffic_chip_is_painted_text_never_colour_only` in `test_analytics_ui.py`; `test_count_badge_is_blue_and_aa`, `test_unread_badge_is_aa_safe_on_the_left` and `test_both_badges_paint_their_count_as_text` in `test_ui_layout_guards.py`.
 
 NFR-04. Compute-side latency, measured as the median of repeated timed runs wherever the suite runs: SMA, EMA and RSI over 500 bars under 50 ms each; a snapshot with three indicators under 250 ms; twenty alerts evaluated under 250 ms; the value-history risk over 1,000 samples under 50 ms; a portfolio view with 1,000 trades under 250 ms; one fill commit and one value-history append at cap under 500 ms each. Proof: `test_sma_500`, `test_ema_500`, `test_rsi_500`, `test_snapshot_build_500_three_indicators`, `test_signals_twenty_alerts`, `test_risk_compute_1000_samples`, `test_portfolio_view_1000_trades`, `test_record_fill_sqlite` and `test_append_value_history_at_cap` in `test_perf.py`.
 
@@ -136,9 +136,9 @@ NFR-07. Hostile or malformed input shall never raise out of the normaliser, the 
 
 NFR-08. One background thread shall do all fetching, computing and writing; the window shall not block on the network, shall block a second symbol switch while one is in flight, and shall stop the thread on close by asking it to finish its loop. Proof: `test_the_ui_imports_only_the_read_models_from_the_data_layer`, `test_the_ui_imports_the_engine_only_for_its_pure_helpers`, `test_the_engine_and_data_layers_never_import_upwards`, `test_the_worker_never_imports_the_ui` and `test_the_engine_the_report_and_the_config_import_no_qt` in `test_layering.py`; `test_symbol_switch_is_gated_while_in_flight` in `test_ui_layout_guards.py`; `test_closeevent_requests_interruption` in `test_spam_inputs.py`; `test_symbol_and_timeframe_intents_ride_queued_signals` and `test_the_worker_quits_its_thread_from_the_stop_slot` in `test_context_wiring_guards.py`.
 
-NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows, macOS and Linux. Proof: the GitHub Actions matrix covers the three versions on Ubuntu and Windows; macOS is unchecked.
+NFR-09. The program shall run on Python 3.11, 3.12 and 3.13 on Windows and Linux. Proof: the GitHub Actions matrix covers the three versions on Ubuntu and Windows. macOS is expected to work, since the code is platform-neutral and Qt supports it, but nothing verifies it.
 
-NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. Proof of the dash rule: `test_no_em_or_en_dashes_in_the_context_files` and `test_no_em_or_en_dashes_anywhere_in_the_app_source` in `test_context_wiring_guards.py`; `test_summary_strings_are_dash_clean_and_descriptive` in `test_signals.py`. The British spelling is read by hand, most recently across the whole tracked tree.
+NFR-10. User-facing copy shall use hyphens, never dashes, and British spelling. Proof of the dash rule: `test_no_em_or_en_dashes_in_the_context_files` and `test_no_em_or_en_dashes_anywhere_in_the_app_source` in `test_context_wiring_guards.py`; `test_summary_strings_are_dash_clean_and_descriptive` in `test_signals.py`. The British spelling is checked by reading the tracked text; no test covers it.
 
 ## User stories
 
@@ -242,11 +242,11 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-40 | test_command_palette.py, test_context_wiring_guards.py | 5 |
 | NFR-01 | test_market_data_providers.py, test_fx_rates_providers.py, test_market_context.py, test_worker_context.py, the Windows CI jobs | 7 |
 | NFR-02 | the Ubuntu CI jobs, test_security.py | 1 |
-| NFR-03 | test_analytics_ui.py, test_ui_layout_guards.py | 5 |
+| NFR-03 | test_analytics_ui.py, test_ui_layout_guards.py | 6 |
 | NFR-04 | test_perf.py | 9 |
 | NFR-05 | test_robustness.py, test_worker_switch.py, test_worker_context.py | 6 |
 | NFR-06 | test_stress.py | 7 |
 | NFR-07 | test_robustness.py, test_fuzz.py | 3 |
 | NFR-08 | test_layering.py, test_ui_layout_guards.py, test_spam_inputs.py, test_context_wiring_guards.py | 9 |
-| NFR-09 | the CI matrix; macOS unchecked | 0 |
+| NFR-09 | the CI matrix; macOS unverified | 0 |
 | NFR-10 | test_context_wiring_guards.py, test_signals.py | 3 |
