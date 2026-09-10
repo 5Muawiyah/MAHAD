@@ -1,5 +1,4 @@
-# a failure here is a real bug (flag to the owner) or a wrong property - never
-# "fix" it by changing the engine
+# property-based checks of the ledger, the value-history metrics, the normalisers and the validators
 from __future__ import annotations
 
 import csv

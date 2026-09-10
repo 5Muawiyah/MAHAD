@@ -244,11 +244,11 @@ def test_backoff_resets_on_success_and_user_intent_bypasses(tmp_path):
 
 # --------------------------------------------------------------------------- #
 # The drawdown seed applies only when the persisted peak predates the
-# sampled window (engine contract; the locked risk maths stays untouched).
+# sampled window.
 # --------------------------------------------------------------------------- #
 def test_drawdown_seed_not_applied_when_peak_postdates_window(tmp_path):
-    # 100 -> 90 -> 120: true max drawdown is -10%; the pre-fix worker seeded the
-    # current all-time peak (120 at t3) and reported -25% with peak after trough
+    # 100 -> 90 -> 120 has a maximum drawdown of -10%; the persisted peak at t3
+    # postdates the window and must not seed the running maximum
     from decimal import Decimal as D
     from mahad.engine.risk import ValueSample
     w = _worker(tmp_path)
