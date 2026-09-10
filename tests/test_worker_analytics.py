@@ -84,6 +84,38 @@ def test_asset_returns_consume_the_adjusted_close_column(tmp_path):
     assert w._asset_closes["AAPL"][0][1] == pytest.approx(200.0)
 
 
+def test_the_view_and_the_report_agree_on_the_same_book(tmp_path):
+    from mahad import config, report
+    from tests.test_report import AAPL, MSFT, _seed
+    path = tmp_path / "book.db"
+    _seed(path)
+    repo = report.open_read_only(path)
+    try:
+        by = {r.metric: r.value for r in report.build_rows(repo, confidence=0.95,
+                                                            window=config.RISK_WINDOW)}
+    finally:
+        repo.close()
+    w = PollWorker(symbol="AAPL", timeframe="1d", db_url=f"sqlite:///{path.as_posix()}")
+    w._open_repo()
+    w._load_portfolio()
+    w._load_sectors()
+    w._wallclock = lambda: 1000.0
+    for sym, bars in (("AAPL", AAPL), ("MSFT", MSFT)):
+        w._marks[sym] = Quote(sym, bars[-1].close, time.time(), "test")   # the report marks at the last close
+    w._build_asset_data()
+    view = w._build_analytics_view()
+    assert view.available and view.n == by["observations"]
+    assert view.var95_pct == pytest.approx(by["var_hist"])
+    assert view.var99_pct == pytest.approx(by["var99_hist"])
+    assert view.es975_pct == pytest.approx(by["es975_hist"])
+    assert view.pvar95_pct == pytest.approx(by["var_parametric"])
+    assert view.ewma_vol_pct == pytest.approx(by["ewma_vol_daily"])
+    assert view.sortino_annual == pytest.approx(by["sortino_annual"])
+    assert view.beta_spy == pytest.approx(by["beta_spy"])
+    assert view.hhi == pytest.approx(by["hhi"]) and view.effective_n == pytest.approx(by["effective_n"])
+    assert view.corr_avg == pytest.approx(by["corr_avg"])
+    w.stop()
+
 def test_view_gates_on_n_not_coverage(tmp_path):
     # disjoint histories: full included weight but n == 0, so still unavailable
     w = _worker(tmp_path)
