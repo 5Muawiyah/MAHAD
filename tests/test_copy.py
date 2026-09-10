@@ -20,7 +20,7 @@ def _main_window_text() -> str:
     return (UI_DIR / "ui" / "main_window.py").read_text(encoding="utf-8")
 
 
-def test_paper_trading_badge_is_retired():
+def test_no_paper_trading_badge_text_anywhere():
     assert not hasattr(theme, "PAPER_BADGE_TEXT")
     assert not hasattr(theme, "BADGE_TOOLTIP")
     assert "PAPER TRADING" not in _source_text()          # no badge string on any surface
@@ -35,13 +35,13 @@ def test_no_paper_badge_widget_in_the_dialogs_or_status_bar():
         assert "paper_badge(" not in src, f
 
 
-def test_app_name_reflects_stripped():
+def test_app_name_is_mahad():
     assert theme.APP_NAME == "MAHAD"
 
 
-# ---- About is removed; Help owns the identity line --------------- #
+# ---- Help owns the identity line --------------- #
 
-def test_about_is_fully_removed():
+def test_no_about_dialog_or_about_copy():
     assert not hasattr(theme, "ABOUT_WHAT")
     assert not hasattr(theme, "ABOUT_FULL_NOTE")
     assert not hasattr(theme, "ABOUT_TAGLINE")
@@ -79,20 +79,20 @@ def test_help_keeps_first_steps_and_the_identity_line():
     assert "HELP_IDENTITY" in _main_window_text()
 
 
-def test_no_old_warning_copy_anywhere_in_the_app_source():
+def test_no_warning_copy_in_the_app_source():
     src = _source_text()
     assert "virtual money" not in src
     assert "Not financial advice" not in src
     assert "connects to no broker" not in src
 
 
-# ---- the session line replaced "Live" ----------- #
+# ---- the market-session headline ----------- #
 
 def _market_session_text() -> str:
     return (UI_DIR / "engine" / "market_session.py").read_text(encoding="utf-8")
 
 
-def test_live_line_is_replaced_by_the_market_session():
+def test_headline_is_the_market_session_line():
     mw = _main_window_text()
     assert 'f"Live · last update' not in mw
     assert 'f"Stale · last update' not in mw
@@ -118,7 +118,7 @@ def test_staleness_stays_internal():
 
 def test_status_bar_is_state_not_config():
     src = _main_window_text()
-    assert "polling every" not in src  # config echo died
+    assert "polling every" not in src  # no config echo
     assert "USD · last poll" in src
 
 
@@ -134,13 +134,13 @@ def test_chart_loading_treatment_and_discard_guard():
     cv = (UI_DIR / "ui" / "chart_view.py").read_text(encoding="utf-8")
     assert "def begin_switch" in cv and "def cancel_switch" in cv
     assert "_pending_switch" in cv
-    assert 'setLabel("left", "Price (USD)")' not in cv      # rotated label deleted
+    assert 'setLabel("left", "Price (USD)")' not in cv      # no rotated label
     assert "RSI {" in cv or "RSI 14" in cv                  # horizontal corner tag
 
 
 def test_watchlist_selection_is_tonal_and_noclip():
     wl = (UI_DIR / "ui" / "watchlist_panel.py").read_text(encoding="utf-8")
-    assert "border-left: 3px solid" not in wl               # accent bar is gone
+    assert "border-left: 3px solid" not in wl               # no accent bar
     assert "theme.NESTED" in wl and "theme.DIVIDER" in wl   # tonal treatment instead
     assert "setFixedHeight(52)" in wl
     assert "setMinimumWidth(72)" in wl                      # column floor
@@ -149,11 +149,11 @@ def test_watchlist_selection_is_tonal_and_noclip():
 
 def test_dialog_headers_have_no_icon_tiles():
     gd = (UI_DIR / "ui" / "glass_dialog.py").read_text(encoding="utf-8")
-    assert "DialogIcon" not in gd  # tiles deleted
+    assert "DialogIcon" not in gd  # no icon tiles
     assert "DialogTitleWarn" in gd                          # warn rides the title now
 
 
 def test_alerts_panel_quieting():
     at = (UI_DIR / "ui" / "alerts_tab.py").read_text(encoding="utf-8")
-    assert 'QLabel("Alerts")' not in at                     # echo heading died
+    assert 'QLabel("Alerts")' not in at                     # no echo heading
     assert "armed" in at                                    # count line lives

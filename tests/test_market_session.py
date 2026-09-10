@@ -71,7 +71,7 @@ def test_accepts_posix_timestamp_and_naive_utc():
 
 
 # cross-check the computed calendar against hand-checked 2026 and the published NYSE 2027 list
-def test_computed_2026_equals_the_retired_hand_checked_constant():
+def test_computed_2026_holidays_match_the_hand_checked_set():
     retired = frozenset({
         dt.date(2026, 1, 1), dt.date(2026, 1, 19), dt.date(2026, 2, 16),
         dt.date(2026, 4, 3), dt.date(2026, 5, 25), dt.date(2026, 6, 19),
