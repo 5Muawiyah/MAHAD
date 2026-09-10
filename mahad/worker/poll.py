@@ -10,7 +10,7 @@ from dataclasses import replace
 from decimal import Decimal
 from typing import Optional
 
-from PySide6.QtCore import QObject, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QThread, QTimer, Signal, Slot
 
 from mahad import config
 from mahad.data.context_view import (DataIntegrityView, FxRateView, SentimentTile, UkRatesTile,
@@ -191,6 +191,9 @@ class PollWorker(AlertsMixin, PortfolioMixin, DailyHistoryMixin, AnalyticsMixin,
             except Exception:
                 log.exception("error closing repository")
             self._repo = None
+        thread = QThread.currentThread()
+        if thread is self.thread():                   # a queued stop ends the loop after it, not before
+            thread.quit()
 
     @Slot()
     def request_poll(self) -> None:

@@ -57,6 +57,8 @@ class _ScrimOverlay(QFrame):
 class MainWindow(QMainWindow):
     _stop_worker = Signal()
     _alert_remove = Signal(int)                # queued alert delete
+    _select_symbol = Signal(str)               # queued switch of the active symbol
+    _set_timeframe = Signal(str)               # queued timeframe change
 
     def __init__(self, symbol: str | None = None, timeframe: str | None = None) -> None:
         super().__init__()
@@ -548,6 +550,8 @@ class MainWindow(QMainWindow):
         self._worker.settings_applied.connect(self._on_settings_applied)
         self._alert_remove.connect(self._worker.remove_alert)   # queued, one-writer
         self._stop_worker.connect(self._worker.stop)
+        self._select_symbol.connect(self._worker.select_symbol)   # queued, so the switch runs on the worker thread
+        self._set_timeframe.connect(self._worker.set_timeframe)
         self._thread.start()
 
     def _connect_intents(self) -> None:
@@ -715,10 +719,10 @@ class MainWindow(QMainWindow):
             self._sync_header_pending()  # restore the headline
             return
         if tf is not None:
-            self._worker.set_timeframe(tf)                 # a direct call, so it runs on this thread
+            self._set_timeframe.emit(tf)                   # queued to the worker thread
             self._on_timeframe_changed(tf)
         if sym is not None:
-            self._worker.select_symbol(sym)                # a direct call, so it runs on this thread
+            self._select_symbol.emit(sym)                  # queued to the worker thread
 
     def _render_session(self, snap: RenderSnapshot | None = None) -> None:
         if not self._symbol:
@@ -1167,8 +1171,7 @@ class MainWindow(QMainWindow):
         # cooperative bounded shutdown, no orphaned threads
         try:
             self._thread.requestInterruption()       # in-flight/queued work bails
-            self._stop_worker.emit()                 # queued stop on the worker thread
-            self._thread.quit()
+            self._stop_worker.emit()                 # queued stop; the worker quits its loop at the end of stop
             # wait budget covers a worst legal poll cycle before terminate
             budget_s = (2 * config.REQUEST_TIMEOUT_S
                         + config.HELD_POLL_BUDGET * config.HELD_REQUEST_TIMEOUT_S + 5)

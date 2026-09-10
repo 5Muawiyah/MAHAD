@@ -75,6 +75,22 @@ class QObject:
     def __init__(self, parent=None) -> None:
         self._parent = parent
 
+    def thread(self) -> None:
+        return None
+
+
+class QThread:
+    # only what the worker's stop touches
+    def quit(self) -> None:
+        pass
+
+    @staticmethod
+    def currentThread() -> QThread:  # noqa: N802 (Qt API)
+        return _CURRENT_THREAD
+
+
+_CURRENT_THREAD = QThread()
+
 
 def install() -> bool:
     if os.environ.get("MAHAD_REAL_QT") == "1":
@@ -85,6 +101,7 @@ def install() -> bool:
     qtcore = types.ModuleType("PySide6.QtCore")
     qtcore.QObject = QObject
     qtcore.QTimer = QTimer
+    qtcore.QThread = QThread
     qtcore.Signal = Signal
     qtcore.Slot = Slot
     pyside = sys.modules.get("PySide6") or types.ModuleType("PySide6")
