@@ -58,7 +58,7 @@ FR-16. The ledger shall use exact decimals, round money half-up to the cent, kee
 
 FR-17. The portfolio view shall show cash, positions, and realised, unrealised and total P&L marked to the latest quotes, flagging the view stale when any mark is stale or missing. Proof: `test_unrealised_value_total_signs` in `test_portfolio.py`; `test_realised_plus_unrealised_is_total` in `test_fuzz.py`; `test_missing_mark_flags_all_three_valuation_views_stale`, `test_an_old_mark_flags_all_three_views_stale` and `test_fresh_mark_keeps_all_three_views_non_stale` in `test_worker_context.py`.
 
-FR-18. A reset shall (a) clear positions, cash and realised P&L back to the starting cash; (b) keep the trade log unless an export succeeded and clearing was requested; (c) clear the value history and the backtest series and re-seed the peak; (d) be dropped when one is already in flight. Separately, (e) the trade-log panel's Clear control shall empty the log only after a successful export and only while the log still holds the exported count. Proof: (a) `test_reset_clears_positions_cash_realised_retains_trades` and (c) `test_reset_clears_value_history_and_reseeds_peak` in `test_persistence.py`; (c) `test_reset_clears_the_backtest_series` in `test_worker_analytics.py`; (d) `test_reset_in_flight_drops_reentrant`, (b) `test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested` and (e) `test_clear_trade_log_count_guard` in `test_spam_inputs.py`.
+FR-18. A reset shall (a) clear positions, cash and realised P&L back to the starting cash; (b) keep the trade log unless an export succeeded and clearing was requested; (c) clear the value history and the backtest series and re-seed the peak; (d) be dropped when one is already in flight. Separately, (e) the trade-log panel's Clear control shall empty the log only after a successful export and only while the log still holds the exported count. Proof: (a) `test_reset_clears_positions_cash_realised_retains_trades` and (c) `test_reset_clears_value_history_and_reseeds_peak` in `test_persistence.py`; (c) `test_reset_clears_the_backtest_series` in `test_worker_analytics.py`; (d) `test_reset_in_flight_drops_reentrant`, (b) `test_reset_clears_the_log_only_when_export_succeeded_and_clearing_requested` (e) `test_clear_trade_log_count_guard` and `test_the_clear_control_is_gated_on_a_successful_export` in `test_spam_inputs.py`.
 
 ### Risk analytics
 
@@ -219,7 +219,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-15 | test_portfolio.py, test_fuzz.py | 6 |
 | FR-16 | test_portfolio.py, test_fuzz.py, test_stress.py | 6 |
 | FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 5 |
-| FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 6 |
+| FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 7 |
 | FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
 | FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py, test_analytics_ui.py | 8 |
 | FR-21 | test_risk_metrics.py | 13 |

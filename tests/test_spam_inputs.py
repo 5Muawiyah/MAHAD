@@ -251,3 +251,12 @@ def test_chart_bounds_menu_disabled():
 def test_closeevent_requests_interruption():
     s = _src("mahad/ui/main_window.py")
     assert "self._thread.requestInterruption()" in s, "request cooperative shutdown"
+
+
+def test_the_clear_control_is_gated_on_a_successful_export():
+    from pathlib import Path as _P
+    src = (_P(__file__).resolve().parents[1] / "mahad" / "ui" / "trade_log_panel.py").read_text(encoding="utf-8")
+    block = src.split("def _on_clear", 1)[1].split("\n    def ", 1)[0]
+    assert "if not self._export_ok" in block                            # no export, no clear
+    assert "self.clear_requested.emit(self._exported_count)" in block   # and only the exported set
+    assert "self._export_ok = False" in src                             # a changed log invalidates it
