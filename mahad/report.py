@@ -10,9 +10,11 @@ from urllib.parse import quote
 from pathlib import Path
 from typing import Optional, Sequence
 
+from sqlalchemy.exc import OperationalError
+
 from mahad import config
 from mahad.data.repository import (CONTEXT_KEY, RISK_TIMEFRAME_KEY, SECTORS_KEY,
-                                   MahadRepository)
+                                   MahadRepository, MissingSchema)
 from mahad.data.source import is_crypto_symbol
 from mahad.engine.analytics import backtest_summary, sector_map, stress_rows
 from mahad.engine import returns as eng_returns
@@ -52,6 +54,8 @@ def open_read_only(path: Path) -> MahadRepository:
         raise ReportError(f"no database at {path}")
     try:
         return MahadRepository(read_only_url(path), create_tables=False)
+    except (MissingSchema, OperationalError):
+        raise ReportError(f"{path} is not a MAHAD database") from None
     except Exception as exc:
         raise ReportError(f"could not open {path} read-only: {exc}") from None
 

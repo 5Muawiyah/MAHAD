@@ -150,6 +150,23 @@ def test_the_report_opens_a_database_that_is_not_in_wal_mode(tmp_path):
     assert {r.metric for r in rows} >= {"portfolio_value", "var_hist"}
 
 
+def test_a_database_that_is_not_mahads_gives_a_plain_message(tmp_path):
+    import sqlite3
+    other = tmp_path / "other.db"
+    con = sqlite3.connect(other)
+    con.execute("CREATE TABLE unrelated (id INTEGER)")            # a table, but not the schema row
+    con.close()
+    with pytest.raises(report.ReportError) as exc:
+        report.open_read_only(other)
+    assert str(exc.value) == f"{other} is not a MAHAD database"
+
+    empty = tmp_path / "empty.db"
+    empty.write_bytes(b"")                                        # no tables at all
+    with pytest.raises(report.ReportError) as exc:
+        report.open_read_only(empty)
+    assert str(exc.value) == f"{empty} is not a MAHAD database"
+
+
 def test_the_report_connection_cannot_write(tmp_path):
     path = tmp_path / "book.db"
     seed(path)
