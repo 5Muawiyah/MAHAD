@@ -44,11 +44,11 @@ def read_only_url(path: Path) -> str:
 
 
 def open_read_only(path: Path) -> MahadRepository:
-    # mode=ro keeps the app the single writer; a missing file is an error, never created
+    # mode=ro keeps the app the single writer; no table is created and no file appears
     if not path.is_file():
         raise ReportError(f"no database at {path}")
     try:
-        return MahadRepository(read_only_url(path))
+        return MahadRepository(read_only_url(path), create_tables=False)
     except Exception as exc:
         raise ReportError(f"could not open {path} read-only: {exc}") from None
 

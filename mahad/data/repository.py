@@ -302,12 +302,15 @@ class MahadRepository:
     # one Session, owned by the worker thread; do not share across threads
 
     def __init__(self, url: str,
-                 busy_timeout_ms: int = config.SQLITE_BUSY_TIMEOUT_MS) -> None:
+                 busy_timeout_ms: int = config.SQLITE_BUSY_TIMEOUT_MS,
+                 create_tables: bool = True) -> None:
+        # create_tables=False is the read-only report's path: no DDL, whatever the file holds
         self._engine = create_engine(url, future=True)
         self._busy_ms = int(busy_timeout_ms)
         try:
             self._attach_pragmas()
-            Base.metadata.create_all(self._engine)
+            if create_tables:
+                Base.metadata.create_all(self._engine)
             self._session = Session(self._engine, future=True)
             self._ensure_schema()
         except Exception:
