@@ -201,6 +201,18 @@ def test_no_data_gives_a_message_and_exit_one(tmp_path, capsys):
         report.main(["--db", str(empty), "--confidence", "1.5"])
 
 
+def test_the_report_opens_a_path_holding_hash_and_percent(tmp_path):
+    folder = tmp_path / "hash#1 pct%20x"
+    folder.mkdir()
+    path = folder / "book.db"
+    _seed(path)
+    repo = report.open_read_only(path)
+    try:
+        assert report.build_rows(repo)[0].metric == "portfolio_value"
+    finally:
+        repo.close()
+
+
 def test_the_report_connection_cannot_write(tmp_path):
     path = tmp_path / "book.db"
     _seed(path)

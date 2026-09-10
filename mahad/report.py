@@ -6,6 +6,7 @@ import csv
 import datetime as _dt
 import sys
 from dataclasses import dataclass
+from urllib.parse import quote
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -41,7 +42,8 @@ class Row:
 
 
 def read_only_url(path: Path) -> str:
-    return f"sqlite:///file:{path.resolve().as_posix()}?mode=ro&uri=true"
+    # SQLite reads the file: form as a URI, so # and % in the path must be escaped
+    return f"sqlite:///file:{quote(path.resolve().as_posix(), safe='/:')}?mode=ro&uri=true"
 
 
 def open_read_only(path: Path) -> MahadRepository:
