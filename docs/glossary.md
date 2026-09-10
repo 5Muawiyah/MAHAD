@@ -116,6 +116,8 @@ Plain-English definitions of the terms the MAHAD documents use, in alphabetical 
 
 **Value-at-Risk (VaR).** The loss that a stated share of days should not exceed. A 95% one-day VaR of 1,934 USD means that on about one day in twenty the loss is expected to be worse than that.
 
+**Verification vector.** A worked example with fixed inputs and an answer computed by hand, tabled in the verification note; the tests pin each formula to its vector.
+
 **VIX.** The Chicago Board Options Exchange (CBOE) volatility index, a market-implied measure of expected S&P 500 volatility over the next 30 days. The context tile bands it as calm, normal, elevated or extreme.
 
 **WAL.** Write-ahead logging, an SQLite mode in which readers and the single writer do not block each other. The database runs in this mode so the report can read while the program writes.
