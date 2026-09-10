@@ -139,6 +139,12 @@ def test_row_formats_are_pinned():
         or "{row.start} to {row.end}" in src          # dates visible on rows
 
 
+def test_the_warming_copy_is_pinned():
+    src = _src("mahad/ui/risk_panel.py")
+    assert 'self._vol.state.setText("needs >= 2 returns")' in src   # the blank volatility value
+    assert 'self._head_status.setText("warming up")' in src         # the panel header
+
+
 def test_chip_text_yellow_zone():
     view = RiskAnalyticsView(available=True, backtest_zone="yellow",
                              backtest_mode="ex-ante", backtest_exceptions=6,

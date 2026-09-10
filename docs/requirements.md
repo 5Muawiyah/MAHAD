@@ -64,7 +64,7 @@ FR-18. A reset shall (a) clear positions, cash and realised P&L back to the star
 
 FR-19. The portfolio value shall be sampled on a fixed wall-clock grid at the chosen risk timeframe, catching up one sample after a sleep and re-anchoring when the timeframe changes; the series shall persist, pruned to the configured cap of 1,000 samples. Proof: `test_sleep_catchup_takes_one_sample_and_preserves_the_grid`, `test_heartbeat_no_sample_before_due` and `test_set_risk_timeframe_reanchors_the_grid` in `test_worker_context.py`; `test_value_history_capped_prune_drops_oldest` in `test_persistence.py`; `test_value_history_cap_is_the_configured_thousand` in `test_stress.py`.
 
-FR-20. Exposure, volatility (sample standard deviation over the last 30 returns, annualised on the calendar basis), maximum drawdown (seeded from the persisted peak) and drawdown duration shall be computed on the value history and match the hand-worked vectors (fixed inputs with answers computed by hand, tabled in the verification note). Proof: `test_exposure_overall_fraction_and_abs`, `test_volatility_ddof1_per_period_and_annualised`, `test_volatility_rolling_window_cap_min_available_30`, `test_max_drawdown_core_vector` and `test_max_drawdown_seeded_persisted_peak_survives_capping` in `test_risk.py`; `test_volatility_matches_statistics_stdev` in `test_fuzz.py`; `test_check_i_drawdown_duration` in `test_risk_metrics.py`.
+FR-20. Exposure, volatility (sample standard deviation over the last 30 returns, annualised on the calendar basis), maximum drawdown (seeded from the persisted peak) and drawdown duration shall be computed on the value history and match the hand-worked vectors (fixed inputs with answers computed by hand, tabled in the verification note). Below two returns the volatility value shall show a dash with the note "needs >= 2 returns", and the panel header shall read "warming up" while every mark is fresh. Proof: `test_exposure_overall_fraction_and_abs`, `test_volatility_ddof1_per_period_and_annualised`, `test_volatility_rolling_window_cap_min_available_30`, `test_max_drawdown_core_vector` and `test_max_drawdown_seeded_persisted_peak_survives_capping` in `test_risk.py`; `test_volatility_matches_statistics_stdev` in `test_fuzz.py`; `test_check_i_drawdown_duration` in `test_risk_metrics.py`; `test_the_warming_copy_is_pinned` in `test_analytics_ui.py`.
 
 FR-21. The trading-day analytics shall compute historical and parametric VaR, Expected Shortfall, the Kupiec test and the Basel zone, beta, Sharpe, Sortino, EWMA volatility, correlation, concentration, stress replay and component VaR, each matching its worked vector. Proof: `test_check_b_historical_var`, `test_check_b_expected_shortfall`, `test_check_c_parametric_from_moments`, `test_check_e_kupiec`, `test_check_e_basel_zones`, `test_check_g_beta`, `test_check_h_sharpe`, `test_check_h_sortino`, `test_check_f_ewma_steps`, `test_check_k_correlation`, `test_check_j_concentration`, `test_check_l_stress_replay` and `test_component_var_answer_key` in `test_risk_metrics.py`.
 
@@ -74,7 +74,7 @@ FR-23. The VaR backtest shall log one 99% forecast per trading day, resolve it a
 
 FR-24. Daily history shall be cached per symbol for every held position, the active stock and the SPY benchmark (the exchange-traded fund that tracks the S&P 500): (a) fetched from the latest cached date forward; (b) re-pulled in full when a corporate action (a dividend or split that changes the adjusted history) is seen; (c) refreshed at most one symbol per tick of the worker's five-second heartbeat timer. Proof: the coverage set `test_coverage_set_is_positions_active_stock_and_benchmark`, (a) `test_stock_delta_fetch_starts_at_the_latest_cached_date`, (b) `test_corporate_action_in_the_delta_triggers_a_full_repull` and (c) `test_at_most_one_coverage_fetch_per_tick` in `test_worker_daily.py`; `test_daily_bars_upsert_is_idempotent_and_updates` in `test_daily_bar_migration.py`.
 
-FR-25. The analytics section shall (a) state its window and as-of date (the date of the last trading day it covers) on one line; (b) carry a tooltip on each block of figures stating its method; (c) name the missing key when stock history is keyless; (d) show the VaR row's USD and percent figures together, the risk-free line's rate and date, the Kupiec line's p-value label and each stress row's window dates. Proof: (a) `test_analytics_section_states_its_window_and_as_of`, (b) `test_analytics_tooltips_state_their_methods`, (d) `test_row_formats_are_pinned`, and the block structure each tooltip hangs on in `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards`, all in `test_analytics_ui.py`; (c) `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
+FR-25. The analytics section shall (a) state its window and as-of date (the date of the last trading day it covers) on one line; (b) carry a tooltip on each block of figures stating its method; (c) name the missing key when stock history is keyless; (d) show the VaR row's USD and percent figures together, the risk-free line's rate and date, and each stress row's window dates, with the Kupiec p-value in the backtest chip's tooltip. Proof: (a) `test_analytics_section_states_its_window_and_as_of`, (b) `test_analytics_tooltips_state_their_methods`, (d) `test_row_formats_are_pinned`, and the block structure each tooltip hangs on in `test_contributions_block_block_guards`, `test_diversification_block_block_guards`, `test_pnl_vs_risk_block_block_guards` and `test_var_history_block_block_guards`, all in `test_analytics_ui.py`; (c) `test_view_names_the_tiingo_key_when_stock_history_is_keyless` in `test_worker_analytics.py`.
 
 ### Market context
 
@@ -164,7 +164,7 @@ Given the quote is stale or absent, when I confirm, then the order is refused wi
 
 Given a buy would take cash below zero or a sell exceeds the position, when I confirm, then the order is refused and the book is unchanged.
 
-### Read the risk panel (FR-21 to FR-25)
+### Read the risk panel (FR-19 to FR-25)
 
 As the analyst I want each figure to state what it is so that I never confuse two percentages for the same holding.
 
@@ -221,7 +221,7 @@ The book is USD only and long only: it holds only assets it has bought, and neit
 | FR-17 | test_portfolio.py, test_fuzz.py, test_worker_context.py | 5 |
 | FR-18 | test_persistence.py, test_worker_analytics.py, test_spam_inputs.py | 6 |
 | FR-19 | test_worker_context.py, test_persistence.py, test_stress.py | 5 |
-| FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py | 7 |
+| FR-20 | test_risk.py, test_fuzz.py, test_risk_metrics.py, test_analytics_ui.py | 8 |
 | FR-21 | test_risk_metrics.py | 13 |
 | FR-22 | test_worker_analytics.py, test_returns.py, test_risk_metrics.py | 6 |
 | FR-23 | test_worker_analytics.py, test_risk_metrics.py | 6 |
