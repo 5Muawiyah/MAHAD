@@ -176,7 +176,9 @@ def build_rows(repo: MahadRepository, *, confidence: float = 0.95,
     rf_daily = eng_returns.rf_daily_from_annual_pct(rf_annual)
     sharpe = eng_rm.sharpe(rets, rf_daily) if rf_daily is not None else None
     daily("sharpe_annual", sharpe.annualised if sharpe else None, "ratio",
-          f"mean excess / sd excess (ddof 1) x sqrt(252); rf {rf_annual}% Treasury 3M par yield",
+          ("mean excess / sd excess (ddof 1) x sqrt(252); "
+           + (f"rf {rf_annual}% Treasury 3M par yield" if rf_annual is not None
+              else "no risk-free rate cached")),
           "" if rf_daily is not None else "needs the Treasury 3M yield the app caches after its first fetch")
     sortino = eng_rm.sortino(rets)
     daily("sortino_annual", sortino.annualised if sortino else None, "ratio",

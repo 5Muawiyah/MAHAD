@@ -90,6 +90,7 @@ def test_rows_say_when_data_is_missing(tmp_path):
     finally:
         repo.close()
     assert by["sharpe_annual"].value is None and "Treasury" in by["sharpe_annual"].note
+    assert "None" not in by["sharpe_annual"].basis            # no repr leaks into the basis text
     assert by["backtest_zone"].value is None and "no observations" in by["backtest_zone"].note
     assert by["stress_COVID_crash"].note.startswith("constant legs")
 
